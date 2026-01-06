@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proposal 2: Glassmorphism</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+      min-height: 100vh;
+      padding: 2rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    body::before {
+      content: '';
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+      top: -250px;
+      right: -250px;
+      filter: blur(100px);
+    }
+    
+    body::after {
+      content: '';
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+      bottom: -200px;
+      left: -200px;
+      filter: blur(100px);
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .header {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      color: white;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    
+    .nav {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    
+    .nav-item {
+      padding: 0.75rem 1.5rem;
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 12px;
+      color: white;
+      text-decoration: none;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+    
+    .nav-item:hover, .nav-item.active {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+    
+    .section {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 2rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+    }
+    
+    .section h2 {
+      color: white;
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .input-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .input-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: white;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    
+    .input-group textarea {
+      width: 100%;
+      padding: 1rem;
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 1rem;
+      resize: vertical;
+      color: white;
+      transition: all 0.3s;
+    }
+    
+    .input-group textarea::placeholder {
+      color: rgba(255,255,255,0.7);
+    }
+    
+    .input-group textarea:focus {
+      outline: none;
+      background: rgba(255,255,255,0.25);
+      border-color: rgba(255,255,255,0.5);
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
+    }
+    
+    .btn {
+      padding: 1rem 2rem;
+      background: rgba(255,255,255,0.3);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.4);
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      color: white;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    
+    .btn:hover {
+      background: rgba(255,255,255,0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 15px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      color: white;
+      transition: all 0.3s;
+    }
+    
+    .card:hover {
+      background: rgba(255,255,255,0.2);
+      transform: translateX(5px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+      background: rgba(255,255,255,0.3);
+      backdrop-filter: blur(10px);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🧪 Master Test Generator</h1>
+      <p>Generate comprehensive test plans and cases</p>
+      <nav class="nav">
+        <a href="#" class="nav-item active">Test Plans</a>
+        <a href="#" class="nav-item">Test Cases</a>
+      </nav>
+    </div>
+    
+    <div class="content">
+      <div class="section">
+        <h2>Project Information</h2>
+        <div class="input-group">
+          <label>Enter project details or acceptance criteria</label>
+          <textarea rows="8" placeholder="Describe your project requirements here..."></textarea>
+        </div>
+        <button class="btn">Generate Test Plan</button>
+      </div>
+      
+      <div class="section">
+        <h2>Generated Test Cases</h2>
+        <div class="card">
+          <h3>User Login Validation</h3>
+          <p>Verify user can login with valid credentials</p>
+          <span class="badge">High</span>
+          <span class="badge">Functional</span>
+        </div>
+        <div class="card">
+          <h3>Password Reset Flow</h3>
+          <p>Test password reset functionality</p>
+          <span class="badge">Medium</span>
+          <span class="badge">Functional</span>
+        </div>
+        <div class="card">
+          <h3>Data Export Feature</h3>
+          <p>Validate CSV export functionality</p>
+          <span class="badge">Medium</span>
+          <span class="badge">Functional</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

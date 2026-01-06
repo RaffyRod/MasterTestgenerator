@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proposal 1: Modern Minimal</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 2rem;
+      color: #333;
+    }
+    
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+    
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+    
+    .nav {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    
+    .nav-item {
+      padding: 0.75rem 1.5rem;
+      background: rgba(255,255,255,0.2);
+      border-radius: 10px;
+      color: white;
+      text-decoration: none;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+    
+    .nav-item:hover, .nav-item.active {
+      background: white;
+      color: #667eea;
+      transform: translateY(-2px);
+    }
+    
+    .content {
+      padding: 3rem;
+    }
+    
+    .section {
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .section h2 {
+      color: #667eea;
+      margin-bottom: 1.5rem;
+      font-size: 1.5rem;
+    }
+    
+    .input-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    .input-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .input-group textarea {
+      width: 100%;
+      padding: 1rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 1rem;
+      resize: vertical;
+      transition: all 0.3s;
+    }
+    
+    .input-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .btn {
+      padding: 1rem 2rem;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+    
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 15px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      border-left: 4px solid #667eea;
+      transition: all 0.3s;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+    
+    .badge-high {
+      background: #fee;
+      color: #c33;
+    }
+    
+    .badge-medium {
+      background: #ffeaa7;
+      color: #d63031;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🧪 Master Test Generator</h1>
+      <p>Generate comprehensive test plans and cases</p>
+      <nav class="nav">
+        <a href="#" class="nav-item active">Test Plans</a>
+        <a href="#" class="nav-item">Test Cases</a>
+      </nav>
+    </div>
+    
+    <div class="content">
+      <div class="section">
+        <h2>Project Information</h2>
+        <div class="input-group">
+          <label>Enter project details or acceptance criteria</label>
+          <textarea rows="6" placeholder="Describe your project requirements here..."></textarea>
+        </div>
+        <button class="btn">Generate Test Plan</button>
+      </div>
+      
+      <div class="section">
+        <h2>Generated Test Cases</h2>
+        <div class="card-grid">
+          <div class="card">
+            <h3>User Login Validation</h3>
+            <p>Verify user can login with valid credentials</p>
+            <span class="badge badge-high">High</span>
+            <span class="badge badge-medium">Functional</span>
+          </div>
+          <div class="card">
+            <h3>Password Reset Flow</h3>
+            <p>Test password reset functionality</p>
+            <span class="badge badge-medium">Medium</span>
+            <span class="badge badge-medium">Functional</span>
+          </div>
+          <div class="card">
+            <h3>Data Export Feature</h3>
+            <p>Validate CSV export functionality</p>
+            <span class="badge badge-medium">Medium</span>
+            <span class="badge badge-medium">Functional</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+
