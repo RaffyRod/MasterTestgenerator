@@ -18,7 +18,11 @@
           ></textarea>
         </div>
         <div class="button-group">
-          <button @click="generatePlan" :disabled="!projectInfo.trim() || loading" class="btn btn-primary">
+          <button
+            @click="openPlanTypeModal"
+            :disabled="!projectInfo.trim() || loading"
+            class="btn btn-primary"
+          >
             <span v-if="loading" class="spinner"></span>
             <span>{{ loading ? $t('testPlan.loading') : $t('testPlan.generate') }}</span>
           </button>
@@ -72,8 +76,13 @@
 
           <section class="plan-section">
             <h3>{{ $t('testPlan.testStrategy') }}</h3>
-            <div v-for="(strategy, index) in testPlan.testStrategy" :key="index" class="strategy-item">
-              <strong>{{ strategy.type }}:</strong> {{ strategy.description }}
+            <div
+              v-for="(strategy, index) in testPlan.testStrategy"
+              :key="index"
+              class="strategy-item"
+            >
+              <strong>{{ strategy.type }}:</strong>
+              {{ strategy.description }}
             </div>
           </section>
 
@@ -81,7 +90,8 @@
             <h3>{{ $t('testPlan.testItems') }}</h3>
             <div class="test-items">
               <div v-for="item in testPlan.testItems" :key="item.id" class="test-item">
-                <strong>{{ item.id }}:</strong> {{ item.name }}
+                <strong>{{ item.id }}:</strong>
+                {{ item.name }}
               </div>
             </div>
           </section>
@@ -89,14 +99,16 @@
           <section class="plan-section">
             <h3>{{ $t('testPlan.resources') }}</h3>
             <div v-for="(resource, index) in testPlan.resources" :key="index" class="resource-item">
-              <strong>{{ resource.role }}:</strong> {{ resource.responsibility }}
+              <strong>{{ resource.role }}:</strong>
+              {{ resource.responsibility }}
             </div>
           </section>
 
           <section class="plan-section">
             <h3>{{ $t('testPlan.schedule') }}</h3>
             <div v-for="(phase, index) in testPlan.schedule.phases" :key="index" class="phase-item">
-              <strong>{{ phase.phase }}</strong> ({{ phase.duration }})
+              <strong>{{ phase.phase }}</strong>
+              ({{ phase.duration }})
               <ul>
                 <li v-for="(activity, actIndex) in phase.activities" :key="actIndex">
                   {{ activity }}
@@ -118,9 +130,17 @@
             </div>
           </section>
 
-          <section v-if="testPlan.recommendations && testPlan.recommendations.length > 0" class="plan-section recommendations-section">
+          <section
+            v-if="testPlan.recommendations && testPlan.recommendations.length > 0"
+            class="plan-section recommendations-section"
+          >
             <h3>💡 Recommendations</h3>
-            <div v-for="(rec, index) in testPlan.recommendations" :key="index" class="recommendation-item" :class="`rec-${rec.type}`">
+            <div
+              v-for="(rec, index) in testPlan.recommendations"
+              :key="index"
+              class="recommendation-item"
+              :class="`rec-${rec.type}`"
+            >
               <div class="rec-header">
                 <strong>{{ rec.type === 'warning' ? '⚠️' : '💡' }} {{ rec.message }}</strong>
                 <span class="priority-badge" :class="`priority-${rec.priority.toLowerCase()}`">
@@ -134,18 +154,32 @@
             <h3>📊 Analysis Summary</h3>
             <div class="analysis-grid">
               <div class="analysis-item">
-                <strong>Complexity:</strong> 
-                <span class="complexity-badge" :class="`complexity-${testPlan.analysis.complexity.toLowerCase()}`">
+                <strong>Complexity:</strong>
+                <span
+                  class="complexity-badge"
+                  :class="`complexity-${testPlan.analysis.complexity.toLowerCase()}`"
+                >
                   {{ testPlan.analysis.complexity }}
                 </span>
               </div>
               <div class="analysis-item">
-                <strong>Estimated Test Cases:</strong> {{ testPlan.analysis.estimatedTestCases }}
+                <strong>Estimated Test Cases:</strong>
+                {{ testPlan.analysis.estimatedTestCases }}
               </div>
-              <div class="analysis-item" v-if="testPlan.analysis.detectedFunctionalities && testPlan.analysis.detectedFunctionalities.length > 0">
+              <div
+                class="analysis-item"
+                v-if="
+                  testPlan.analysis.detectedFunctionalities &&
+                  testPlan.analysis.detectedFunctionalities.length > 0
+                "
+              >
                 <strong>Detected Functionalities:</strong>
                 <div class="functionality-tags">
-                  <span v-for="func in testPlan.analysis.detectedFunctionalities" :key="func" class="func-tag">
+                  <span
+                    v-for="func in testPlan.analysis.detectedFunctionalities"
+                    :key="func"
+                    class="func-tag"
+                  >
                     {{ func }}
                   </span>
                 </div>
@@ -155,33 +189,77 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal for selecting test plan type -->
+    <PlanTypeModal
+      :show="showPlanTypeModal"
+      :selected-type="selectedPlanType"
+      @close="closePlanTypeModal"
+      @select="selectPlanType"
+      @confirm="confirmPlanType"
+    />
   </div>
 </template>
 
 <script>
 import { ref } from 'vue'
 import { generateTestPlan } from '../utils/testPlanGenerator'
+import PlanTypeModal from '../components/PlanTypeModal.vue'
 
 export default {
   name: 'TestPlans',
+  components: {
+    PlanTypeModal
+  },
   setup() {
     const projectInfo = ref('')
     const testPlan = ref(null)
     const loading = ref(false)
+    const showPlanTypeModal = ref(false)
+    const selectedPlanType = ref(null)
 
-    const generatePlan = () => {
-      if (!projectInfo.value.trim()) return
-      
+    const selectPlanType = typeId => {
+      selectedPlanType.value = typeId
+    }
+
+    const confirmPlanType = typeId => {
+      if (!typeId || !projectInfo.value.trim()) return
+      closePlanTypeModal()
+      generatePlan(typeId)
+    }
+
+    const generatePlan = (planType = 'comprehensive') => {
+      if (!projectInfo.value.trim()) {
+        console.warn('Project info is empty')
+        return
+      }
+
       loading.value = true
       setTimeout(() => {
-        testPlan.value = generateTestPlan(projectInfo.value)
-        loading.value = false
+        try {
+          testPlan.value = generateTestPlan(projectInfo.value, planType)
+          console.log('Test plan generated:', testPlan.value)
+        } catch (error) {
+          console.error('Error generating test plan:', error)
+        } finally {
+          loading.value = false
+        }
       }, 500)
     }
 
     const clearPlan = () => {
       projectInfo.value = ''
       testPlan.value = null
+      selectedPlanType.value = null
+    }
+
+    const openPlanTypeModal = () => {
+      selectedPlanType.value = null
+      showPlanTypeModal.value = true
+    }
+
+    const closePlanTypeModal = () => {
+      showPlanTypeModal.value = false
     }
 
     const exportPlan = () => {
@@ -201,6 +279,12 @@ export default {
       projectInfo,
       testPlan,
       loading,
+      showPlanTypeModal,
+      selectedPlanType,
+      selectPlanType,
+      confirmPlanType,
+      openPlanTypeModal,
+      closePlanTypeModal,
       generatePlan,
       clearPlan,
       exportPlan
@@ -231,6 +315,16 @@ export default {
   background-clip: text;
 }
 
+[data-theme='light'] .header h1 {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+[data-theme='dark'] .header h1 {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
 .subtitle {
   color: var(--text-secondary);
   font-size: 1.1rem;
@@ -253,6 +347,16 @@ export default {
   transition: var(--transition);
 }
 
+[data-theme='light'] .input-section {
+  background: #ffffff !important;
+  border-color: #e0e0e0 !important;
+}
+
+[data-theme='dark'] .input-section {
+  background: var(--bg-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
 .input-section:hover {
   box-shadow: var(--shadow-lg);
   border-color: var(--primary-color);
@@ -268,6 +372,16 @@ export default {
   overflow-y: auto;
   position: sticky;
   top: 100px;
+}
+
+[data-theme='light'] .output-section {
+  background: #ffffff !important;
+  border-color: #e0e0e0 !important;
+}
+
+[data-theme='dark'] .output-section {
+  background: var(--bg-primary) !important;
+  border-color: var(--border-color) !important;
 }
 
 .output-section::-webkit-scrollbar {
@@ -300,6 +414,14 @@ export default {
   font-size: 1rem;
 }
 
+[data-theme='light'] .form-group label {
+  color: #000000 !important;
+}
+
+[data-theme='dark'] .form-group label {
+  color: #ffffff !important;
+}
+
 .textarea-input {
   width: 100%;
   padding: 1rem;
@@ -324,7 +446,7 @@ export default {
   color: var(--text-tertiary);
 }
 
-[data-theme="light"] .textarea-input {
+[data-theme='light'] .textarea-input {
   font-family: inherit;
   background: var(--bg-secondary);
 }
@@ -342,10 +464,12 @@ export default {
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition);
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   font-size: 1rem;
+  visibility: visible;
+  opacity: 1;
 }
 
 .btn:disabled {
@@ -355,9 +479,11 @@ export default {
 }
 
 .btn-primary {
-  background: var(--primary-gradient);
-  color: white;
+  background: var(--primary-gradient) !important;
+  color: white !important;
   box-shadow: var(--shadow-sm);
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -366,14 +492,38 @@ export default {
 }
 
 .btn-secondary {
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+[data-theme='light'] .btn-secondary {
+  background: #e8e8e8 !important;
+  color: #000000 !important;
+  border-color: #d0d0d0 !important;
+}
+
+[data-theme='dark'] .btn-secondary {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+  border-color: #3a3a3a !important;
 }
 
 .btn-secondary:hover {
   background: var(--bg-secondary);
   transform: translateY(-1px);
+}
+
+[data-theme='light'] .btn-secondary:hover {
+  background: #d8d8d8 !important;
+  color: #000000 !important;
+}
+
+[data-theme='dark'] .btn-secondary:hover {
+  background: #3a3a3a !important;
+  color: #ffffff !important;
 }
 
 .btn-export {
@@ -402,7 +552,9 @@ export default {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .plan-header {
@@ -449,6 +601,14 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+[data-theme='light'] .plan-section h3 {
+  color: #000000 !important;
+}
+
+[data-theme='dark'] .plan-section h3 {
+  color: #ffffff !important;
 }
 
 .plan-section h3::before {
@@ -682,7 +842,7 @@ export default {
   .content-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .output-section {
     position: static;
     max-height: none;
@@ -693,16 +853,16 @@ export default {
   .header h1 {
     font-size: 2rem;
   }
-  
+
   .scope-content {
     grid-template-columns: 1fr;
   }
-  
+
   .input-section,
   .output-section {
     padding: 1.5rem;
   }
-  
+
   .plan-section {
     padding: 1rem;
   }
@@ -712,19 +872,18 @@ export default {
   .header h1 {
     font-size: 1.75rem;
   }
-  
+
   .input-section,
   .output-section {
     padding: 1rem;
   }
-  
+
   .button-group {
     flex-direction: column;
   }
-  
+
   .btn {
     width: 100%;
   }
 }
 </style>
-

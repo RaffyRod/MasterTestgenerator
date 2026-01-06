@@ -48,7 +48,12 @@ export const messages = {
       type: 'Type',
       steps: 'Steps',
       expectedResult: 'Expected Result',
-      preconditions: 'Preconditions'
+      preconditions: 'Preconditions',
+      useAI: 'Use AI Enhancement',
+      testsPerAC: 'Test Cases per Acceptance Criteria',
+      testsPerACHint: 'Generate multiple test case variations for each acceptance criteria',
+      testCase: 'Test Case',
+      testCases: 'Test Cases'
     },
     export: {
       preview: 'Export Preview',
@@ -79,9 +84,11 @@ export const messages = {
     },
     testPlan: {
       title: 'Generador de Planes de Prueba',
-      subtitle: 'Genera planes de prueba completos a partir de información del proyecto o criterios de aceptación',
+      subtitle:
+        'Genera planes de prueba completos a partir de información del proyecto o criterios de aceptación',
       projectInfo: 'Información del Proyecto / Criterios de Aceptación',
-      projectInfoPlaceholder: 'Ingresa la descripción del proyecto, requisitos o criterios de aceptación...',
+      projectInfoPlaceholder:
+        'Ingresa la descripción del proyecto, requisitos o criterios de aceptación...',
       generate: 'Generar Plan de Prueba',
       planTitle: 'Plan de Prueba',
       objectives: 'Objetivos',
@@ -101,7 +108,8 @@ export const messages = {
       title: 'Generador de Casos de Prueba',
       subtitle: 'Crea casos de prueba en formato paso a paso o Gherkin',
       projectInfo: 'Información del Proyecto / Criterios de Aceptación',
-      projectInfoPlaceholder: 'Ingresa la descripción del proyecto, requisitos o criterios de aceptación...',
+      projectInfoPlaceholder:
+        'Ingresa la descripción del proyecto, requisitos o criterios de aceptación...',
       format: 'Formato de Caso de Prueba',
       stepByStep: 'Paso a Paso',
       gherkin: 'Gherkin (Given-When-Then)',
@@ -112,13 +120,20 @@ export const messages = {
       preview: 'Vista Previa de Exportación',
       clear: 'Limpiar',
       loading: 'Generando casos de prueba...',
-      noTestCases: 'Aún no se han generado casos de prueba. Ingresa información del proyecto y haz clic en Generar.',
+      noTestCases:
+        'Aún no se han generado casos de prueba. Ingresa información del proyecto y haz clic en Generar.',
       testCaseTitle: 'Título del Caso de Prueba',
       priority: 'Prioridad',
       type: 'Tipo',
       steps: 'Pasos',
       expectedResult: 'Resultado Esperado',
-      preconditions: 'Precondiciones'
+      preconditions: 'Precondiciones',
+      useAI: 'Usar Mejora con IA',
+      testsPerAC: 'Casos de Prueba por Criterio de Aceptación',
+      testsPerACHint:
+        'Generar múltiples variaciones de casos de prueba para cada criterio de aceptación',
+      testCase: 'Caso de Prueba',
+      testCases: 'Casos de Prueba'
     },
     export: {
       preview: 'Vista Previa de Exportación',
@@ -140,4 +155,3 @@ export const messages = {
     }
   }
 }
-

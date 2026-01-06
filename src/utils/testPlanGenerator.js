@@ -1,6 +1,6 @@
 import { analyzeProjectInfo, extractAcceptanceCriteria } from './intelligentAnalyzer'
 
-export function generateTestPlan(projectInfo) {
+export function generateTestPlan(projectInfo, planType = 'comprehensive') {
   if (!projectInfo || projectInfo.trim().length === 0) {
     return null
   }
@@ -9,12 +9,15 @@ export function generateTestPlan(projectInfo) {
   const analysis = analyzeProjectInfo(projectInfo)
   const acceptanceCriteria = extractAcceptanceCriteria(projectInfo)
 
+  const planTypeConfig = getPlanTypeConfig(planType)
+
   const plan = {
-    title: extractPlanTitle(projectInfo),
-    objectives: generateObjectives(projectInfo, analysis),
-    scope: generateScope(projectInfo, analysis),
-    testStrategy: generateTestStrategy(projectInfo, analysis),
-    testItems: generateTestItems(projectInfo, acceptanceCriteria),
+    title: `${planTypeConfig.titlePrefix}${extractPlanTitle(projectInfo)}`,
+    type: planTypeConfig.name,
+    objectives: generateObjectives(projectInfo, analysis, planType),
+    scope: generateScope(projectInfo, analysis, planType),
+    testStrategy: generateTestStrategy(projectInfo, analysis, planType),
+    testItems: generateTestItems(projectInfo, acceptanceCriteria, planType),
     resources: generateResources(analysis),
     schedule: generateSchedule(analysis),
     risks: generateRisks(projectInfo, analysis),
@@ -29,18 +32,64 @@ export function generateTestPlan(projectInfo) {
   return plan
 }
 
+function getPlanTypeConfig(planType) {
+  const configs = {
+    functional: {
+      name: 'Functional Test Plan',
+      titlePrefix: 'Functional Test Plan - ',
+      focus: 'functional requirements, user stories, and business logic'
+    },
+    performance: {
+      name: 'Performance Test Plan',
+      titlePrefix: 'Performance Test Plan - ',
+      focus: 'system performance, load testing, stress testing, and scalability'
+    },
+    security: {
+      name: 'Security Test Plan',
+      titlePrefix: 'Security Test Plan - ',
+      focus: 'security vulnerabilities, authentication, authorization, and data protection'
+    },
+    integration: {
+      name: 'Integration Test Plan',
+      titlePrefix: 'Integration Test Plan - ',
+      focus: 'integration between components, APIs, and external systems'
+    },
+    system: {
+      name: 'System Test Plan',
+      titlePrefix: 'System Test Plan - ',
+      focus: 'end-to-end system functionality and user workflows'
+    },
+    acceptance: {
+      name: 'Acceptance Test Plan',
+      titlePrefix: 'Acceptance Test Plan - ',
+      focus: 'user acceptance criteria and business requirements validation'
+    },
+    regression: {
+      name: 'Regression Test Plan',
+      titlePrefix: 'Regression Test Plan - ',
+      focus: 'existing functionality verification after changes'
+    },
+    comprehensive: {
+      name: 'Comprehensive Test Plan',
+      titlePrefix: 'Comprehensive Test Plan - ',
+      focus: 'all aspects of testing including functional, performance, security, and integration'
+    }
+  }
+  return configs[planType] || configs.comprehensive
+}
+
 function extractPlanTitle(projectInfo) {
   const lines = projectInfo.split('\n')
   const firstLine = lines[0]?.trim()
-  
+
   if (firstLine && firstLine.length > 0) {
     return `Test Plan: ${firstLine.substring(0, 100)}`
   }
-  
+
   return 'Test Plan'
 }
 
-function generateObjectives(projectInfo, analysis = null) {
+function generateObjectives(projectInfo, analysis = null, planType = 'comprehensive') {
   const objectives = [
     'Verify that all functional requirements are met',
     'Ensure system reliability and stability',
@@ -51,15 +100,21 @@ function generateObjectives(projectInfo, analysis = null) {
   const lowerText = projectInfo.toLowerCase()
 
   // Performance objectives
-  if (lowerText.includes('performance') || lowerText.includes('rendimiento') || 
-      (analysis && analysis.edgeCases.includes('performance'))) {
+  if (
+    lowerText.includes('performance') ||
+    lowerText.includes('rendimiento') ||
+    (analysis && analysis.edgeCases.includes('performance'))
+  ) {
     objectives.push('Validate system performance under load')
     objectives.push('Ensure response times meet specified requirements')
   }
 
   // Security objectives
-  if (lowerText.includes('security') || lowerText.includes('seguridad') ||
-      (analysis && analysis.detectedFunctionalities.some(f => f.type === 'authentication'))) {
+  if (
+    lowerText.includes('security') ||
+    lowerText.includes('seguridad') ||
+    (analysis && analysis.detectedFunctionalities.some(f => f.type === 'authentication'))
+  ) {
     objectives.push('Verify security requirements and data protection')
     objectives.push('Validate authentication and authorization mechanisms')
   }
@@ -77,7 +132,11 @@ function generateObjectives(projectInfo, analysis = null) {
   }
 
   // UI objectives
-  if (lowerText.includes('ui') || lowerText.includes('interface') || lowerText.includes('frontend')) {
+  if (
+    lowerText.includes('ui') ||
+    lowerText.includes('interface') ||
+    lowerText.includes('frontend')
+  ) {
     objectives.push('Validate user interface usability and accessibility')
     objectives.push('Ensure consistent user experience across different browsers and devices')
   }
@@ -85,7 +144,7 @@ function generateObjectives(projectInfo, analysis = null) {
   return objectives
 }
 
-function generateScope(projectInfo, analysis = null) {
+function generateScope(projectInfo, analysis = null, planType = 'comprehensive') {
   const scope = {
     inScope: [],
     outOfScope: []
@@ -129,7 +188,11 @@ function generateScope(projectInfo, analysis = null) {
     }
   }
 
-  if (lowerText.includes('ui') || lowerText.includes('frontend') || lowerText.includes('interface')) {
+  if (
+    lowerText.includes('ui') ||
+    lowerText.includes('frontend') ||
+    lowerText.includes('interface')
+  ) {
     scope.inScope.push('User interface and user experience')
   }
 
@@ -144,20 +207,26 @@ function generateScope(projectInfo, analysis = null) {
 
   // Out of scope items
   scope.outOfScope.push('Third-party integrations (unless explicitly specified)')
-  
-  if (!lowerText.includes('performance') && !lowerText.includes('load') && 
-      (!analysis || !analysis.edgeCases.includes('performance'))) {
+
+  if (
+    !lowerText.includes('performance') &&
+    !lowerText.includes('load') &&
+    (!analysis || !analysis.edgeCases.includes('performance'))
+  ) {
     scope.outOfScope.push('Performance and load testing (unless specified)')
   }
 
-  if (!lowerText.includes('security') && (!analysis || !analysis.detectedFunctionalities.some(f => f.type === 'authentication'))) {
+  if (
+    !lowerText.includes('security') &&
+    (!analysis || !analysis.detectedFunctionalities.some(f => f.type === 'authentication'))
+  ) {
     scope.outOfScope.push('Security penetration testing (unless specified)')
   }
 
   return scope
 }
 
-function generateTestStrategy(projectInfo, analysis = null) {
+function generateTestStrategy(projectInfo, analysis = null, planType = 'comprehensive') {
   const strategies = []
   const lowerText = projectInfo.toLowerCase()
 
@@ -177,7 +246,8 @@ function generateTestStrategy(projectInfo, analysis = null) {
     if (analysis.detectedFunctionalities.some(f => f.type === 'api')) {
       strategies.push({
         type: 'API Testing',
-        description: 'Test API endpoints, request/response validation, error handling, and integration points'
+        description:
+          'Test API endpoints, request/response validation, error handling, and integration points'
       })
     }
 
@@ -213,7 +283,11 @@ function generateTestStrategy(projectInfo, analysis = null) {
     }
   }
 
-  if (lowerText.includes('ui') || lowerText.includes('interface') || lowerText.includes('frontend')) {
+  if (
+    lowerText.includes('ui') ||
+    lowerText.includes('interface') ||
+    lowerText.includes('frontend')
+  ) {
     strategies.push({
       type: 'UI Testing',
       description: 'Validate user interface elements, interactions, and user experience'
@@ -230,7 +304,7 @@ function generateTestStrategy(projectInfo, analysis = null) {
   return strategies
 }
 
-function generateTestItems(projectInfo, acceptanceCriteria = null) {
+function generateTestItems(projectInfo, acceptanceCriteria = null, planType = 'comprehensive') {
   const items = []
 
   // Use acceptance criteria if available
@@ -341,7 +415,7 @@ function generateSchedule(analysis = null) {
     if (analysis.complexity === 'High') {
       basePhases[1].duration = '3 weeks' // More time for test design
       basePhases[2].duration = '4 weeks' // More time for execution
-      
+
       // Add additional activities for complex projects
       basePhases[1].activities.push('Create detailed test scenarios', 'Prepare automation scripts')
       basePhases[2].activities.push('Execute regression tests', 'Performance testing')
@@ -389,7 +463,8 @@ function generateRisks(projectInfo, analysis = null) {
     risks.push({
       risk: 'High complexity may require additional testing time and resources',
       impact: 'High',
-      mitigation: 'Allocate buffer time, prioritize critical test cases, and consider test automation'
+      mitigation:
+        'Allocate buffer time, prioritize critical test cases, and consider test automation'
     })
   }
 
@@ -417,7 +492,8 @@ function generateRisks(projectInfo, analysis = null) {
       risks.push({
         risk: 'API dependency and integration issues',
         impact: 'High',
-        mitigation: 'Mock external APIs for testing, establish service level agreements with API providers'
+        mitigation:
+          'Mock external APIs for testing, establish service level agreements with API providers'
       })
     }
 
@@ -425,7 +501,8 @@ function generateRisks(projectInfo, analysis = null) {
       risks.push({
         risk: 'Security vulnerabilities in authentication flow',
         impact: 'High',
-        mitigation: 'Conduct security review, implement proper encryption, and follow security best practices'
+        mitigation:
+          'Conduct security review, implement proper encryption, and follow security best practices'
       })
     }
 
@@ -433,11 +510,11 @@ function generateRisks(projectInfo, analysis = null) {
       risks.push({
         risk: 'Performance issues under load',
         impact: 'Medium',
-        mitigation: 'Conduct early performance testing, optimize critical paths, plan for scalability'
+        mitigation:
+          'Conduct early performance testing, optimize critical paths, plan for scalability'
       })
     }
   }
 
   return risks
 }
-

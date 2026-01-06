@@ -19,8 +19,8 @@
           </div>
         </div>
         <div class="nav-right">
-          <button 
-            @click="toggleTheme" 
+          <button
+            @click="toggleTheme"
             class="theme-toggle"
             :title="currentTheme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'"
           >
@@ -28,15 +28,15 @@
             <span v-else>☀️</span>
           </button>
           <div class="language-selector">
-            <button 
-              @click="setLocale('en')" 
+            <button
+              @click="setLocale('en')"
               :class="['lang-btn', { active: currentLocale === 'en' }]"
               title="English"
             >
               EN
             </button>
-            <button 
-              @click="setLocale('es')" 
+            <button
+              @click="setLocale('es')"
               :class="['lang-btn', { active: currentLocale === 'es' }]"
               title="Español"
             >
@@ -47,7 +47,10 @@
       </div>
     </nav>
     <main class="main-content">
-      <router-view />
+      <router-view v-if="true" />
+      <div v-if="false" style="padding: 2rem; color: red; background: yellow">
+        DEBUG: Router view should be visible
+      </div>
     </main>
   </div>
 </template>
@@ -62,21 +65,29 @@ export default {
   setup() {
     const { locale } = useI18n()
     const { currentTheme, toggleTheme, initTheme } = useTheme()
-    
+
     onMounted(() => {
-      initTheme()
-      const savedLocale = localStorage.getItem('locale')
-      if (savedLocale) {
-        locale.value = savedLocale
+      try {
+        initTheme()
+        const savedLocale = localStorage.getItem('locale')
+        if (savedLocale) {
+          locale.value = savedLocale
+        }
+      } catch (error) {
+        console.error('Error initializing app:', error)
       }
     })
-    
+
     return {
       currentLocale: locale,
       currentTheme,
-      setLocale: (lang) => {
-        locale.value = lang
-        localStorage.setItem('locale', lang)
+      setLocale: lang => {
+        try {
+          locale.value = lang
+          localStorage.setItem('locale', lang)
+        } catch (error) {
+          console.error('Error setting locale:', error)
+        }
       },
       toggleTheme
     }
@@ -93,34 +104,37 @@ export default {
   --info-color: #2196f3;
   --warning-color: #ff9800;
   --danger-color: #f44336;
-  
-  --bg-primary: #1a1f3a;
-  --bg-secondary: #0f1322;
-  --bg-tertiary: #151a2e;
+
+  --bg-primary: #000000;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #2a2a2a;
   --bg-header: linear-gradient(135deg, #1a1f3a 0%, #2d1b4e 100%);
-  --text-primary: #e0e0e0;
-  --text-secondary: #8a8fa3;
-  --text-tertiary: #5a5f73;
-  --border-color: #2a2f4a;
-  --shadow-sm: 0 4px 15px rgba(0,0,0,0.3);
-  --shadow-md: 0 8px 32px rgba(0,0,0,0.4);
-  --shadow-lg: 0 12px 48px rgba(0,0,0,0.5);
-  
+  --text-primary: #ffffff;
+  --text-secondary: #e0e0e0;
+  --text-tertiary: #b0b0b0;
+  --border-color: #3a3a3a;
+  --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.5);
+
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-[data-theme="light"] {
+[data-theme='light'] {
   --bg-primary: #ffffff;
   --bg-secondary: #f5f5f5;
   --bg-tertiary: #fafafa;
-  --bg-header: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --text-primary: #333333;
-  --text-secondary: #666666;
-  --text-tertiary: #999999;
+  --bg-header: linear-gradient(135deg, #5b8def 0%, #6ba3e8 100%);
+  --primary-color: #5b8def;
+  --secondary-color: #6ba3e8;
+  --primary-gradient: linear-gradient(135deg, #5b8def 0%, #6ba3e8 100%);
+  --text-primary: #000000;
+  --text-secondary: #333333;
+  --text-tertiary: #666666;
   --border-color: #e0e0e0;
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,0.2);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 * {
@@ -130,25 +144,52 @@ export default {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  background: #0a0e27;
-  color: var(--text-primary);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family:
+    'Inter',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    sans-serif;
+  background: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-[data-theme="light"] body {
+[data-theme='light'] body {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+[data-theme='dark'] body {
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+[data-theme='light'] body {
   background: var(--bg-secondary);
 }
 
 #app {
   min-height: 100vh;
+  width: 100%;
+  display: block;
 }
 
 .navbar {
-  background: var(--bg-header);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  padding: 0;
+  background: var(--bg-header) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+  padding: 1rem 0 !important;
   box-shadow: var(--shadow-md);
   position: sticky;
   top: 0;
@@ -156,9 +197,13 @@ body {
   backdrop-filter: blur(10px);
   border-radius: 0;
   margin-bottom: 2rem;
+  width: 100%;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
-[data-theme="light"] .navbar {
+[data-theme='light'] .navbar {
   background: var(--primary-gradient);
   color: white;
   border: none;
@@ -190,7 +235,7 @@ body {
 
 .logo-icon {
   font-size: 1.75rem;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
 .logo {
@@ -203,7 +248,7 @@ body {
   background-clip: text;
 }
 
-[data-theme="light"] .logo {
+[data-theme='light'] .logo {
   color: white;
   -webkit-text-fill-color: white;
 }
@@ -217,24 +262,26 @@ body {
   border: 1px solid var(--border-color);
 }
 
-[data-theme="light"] .nav-links {
+[data-theme='light'] .nav-links {
   background: transparent;
   border: none;
   padding: 0;
 }
 
 .nav-link {
-  color: var(--text-secondary);
+  color: var(--text-secondary) !important;
   text-decoration: none;
   font-weight: 500;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
   transition: var(--transition);
-  display: flex;
+  display: flex !important;
   align-items: center;
   gap: 0.5rem;
   position: relative;
   background: transparent;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .nav-link:hover {
@@ -250,17 +297,17 @@ body {
   transform: translateY(-2px);
 }
 
-[data-theme="light"] .nav-link {
+[data-theme='light'] .nav-link {
   color: white;
 }
 
-[data-theme="light"] .nav-link:hover {
+[data-theme='light'] .nav-link:hover {
   background-color: rgba(255, 255, 255, 0.15);
 }
 
-[data-theme="light"] .nav-link.router-link-active {
+[data-theme='light'] .nav-link.router-link-active {
   background-color: rgba(255, 255, 255, 0.25);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .nav-icon {
@@ -274,19 +321,21 @@ body {
 }
 
 .theme-toggle {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  color: var(--primary-color);
+  background: var(--bg-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--primary-color) !important;
   padding: 0.75rem 1rem;
   border-radius: 10px;
   cursor: pointer;
   font-size: 1.25rem;
   width: auto;
   height: auto;
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: center;
   transition: var(--transition);
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .theme-toggle:hover {
@@ -294,13 +343,13 @@ body {
   transform: scale(1.1);
 }
 
-[data-theme="light"] .theme-toggle {
+[data-theme='light'] .theme-toggle {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
 }
 
-[data-theme="light"] .theme-toggle:hover {
+[data-theme='light'] .theme-toggle:hover {
   background: rgba(255, 255, 255, 0.3);
 }
 
@@ -313,7 +362,7 @@ body {
   border: 1px solid var(--border-color);
 }
 
-[data-theme="light"] .language-selector {
+[data-theme='light'] .language-selector {
   background: rgba(255, 255, 255, 0.1);
   border: none;
 }
@@ -321,13 +370,16 @@ body {
 .lang-btn {
   background: transparent;
   border: none;
-  color: var(--text-secondary);
+  color: var(--text-secondary) !important;
   padding: 0.5rem 1rem;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
   transition: var(--transition);
   min-width: 3rem;
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .lang-btn:hover {
@@ -341,15 +393,15 @@ body {
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-[data-theme="light"] .lang-btn {
+[data-theme='light'] .lang-btn {
   color: white;
 }
 
-[data-theme="light"] .lang-btn:hover {
+[data-theme='light'] .lang-btn:hover {
   background: rgba(255, 255, 255, 0.15);
 }
 
-[data-theme="light"] .lang-btn.active {
+[data-theme='light'] .lang-btn.active {
   background: white;
   color: var(--primary-color);
 }
@@ -359,6 +411,12 @@ body {
   margin: 0 auto;
   padding: 0 2rem 2rem;
   animation: fadeIn 0.4s ease-in;
+  min-height: calc(100vh - 200px);
+  display: block;
+  visibility: visible;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 @keyframes fadeIn {
@@ -376,11 +434,11 @@ body {
   .nav-container {
     padding: 1.5rem;
   }
-  
+
   .logo {
     font-size: 1.75rem;
   }
-  
+
   .nav-links {
     flex-wrap: wrap;
   }
@@ -390,37 +448,37 @@ body {
   body {
     padding: 1rem;
   }
-  
+
   .nav-container {
     flex-direction: column;
     align-items: stretch;
     gap: 1rem;
     padding: 1.5rem;
   }
-  
+
   .nav-left {
     flex-direction: column;
     gap: 1rem;
     width: 100%;
   }
-  
+
   .logo-wrapper {
     justify-content: center;
   }
-  
+
   .nav-links {
     width: 100%;
     justify-content: center;
     flex-wrap: wrap;
   }
-  
+
   .nav-right {
     width: 100%;
     justify-content: center;
     flex-wrap: wrap;
     gap: 0.75rem;
   }
-  
+
   .main-content {
     padding: 0 1rem 1rem;
   }
@@ -430,23 +488,22 @@ body {
   body {
     padding: 0.5rem;
   }
-  
+
   .nav-container {
     padding: 1rem;
   }
-  
+
   .logo {
     font-size: 1.5rem;
   }
-  
+
   .nav-link {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
   }
-  
+
   .nav-icon {
     display: none;
   }
 }
 </style>
-

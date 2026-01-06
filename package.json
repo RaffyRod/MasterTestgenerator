@@ -5,12 +5,17 @@
   "type": "module",
   "packageManager": "pnpm@8.15.0",
   "scripts": {
-    "dev": "vite",
+    "dev": "node scripts/dev.js",
+    "dev:local-ai": "node scripts/dev-local-ai.js",
+    "dev:web-ai": "node scripts/dev-web-ai.js",
+    "dev:direct": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,vue,json,css,scss,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,vue,json,css,scss,md}\"",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "install-ollama": "node scripts/install-ollama.js",
+    "setup": "node scripts/setup.js"
   },
   "dependencies": {
     "vue": "^3.4.21",
@@ -34,4 +39,3 @@
     ]
   }
 }
-

@@ -7,16 +7,25 @@ import { messages } from './i18n'
 const i18n = createI18n({
   locale: 'en',
   fallbackLocale: 'en',
-  messages
+  messages,
+  legacy: false
 })
 
 const savedTheme = localStorage.getItem('app-theme')
-const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
 const theme = savedTheme || 'dark'
 document.documentElement.setAttribute('data-theme', theme)
 
-createApp(App)
-  .use(router)
-  .use(i18n)
-  .mount('#app')
+const app = createApp(App)
 
+app.use(router)
+app.use(i18n)
+
+// Error handling
+app.config.errorHandler = (err, instance, info) => {
+  console.error('Vue Error:', err, info)
+}
+
+// Mount app
+app.mount('#app')
+
+console.log('✅ App mounted successfully')
