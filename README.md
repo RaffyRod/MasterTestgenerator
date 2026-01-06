@@ -1,115 +1,118 @@
-# Master Test Generator
+# 🧪 Master Test Generator
 
-A Vue.js application for generating test plans and test cases in English and Spanish. Supports multiple export formats compatible with popular test management tools.
+> **Generate test plans and test cases effortlessly** - A powerful Vue.js application that creates comprehensive test documentation in English and Spanish, with AI-powered assistance and seamless export to your favorite test management tools.
 
-## Features
+---
 
-- **Test Plan Module**: Create and manage test plans
-- **Test Case Module**: Generate test cases in two formats:
-  - Step-by-step format
-  - Gherkin format (Given-When-Then with Title Case)
-- **AI-Powered Generation**:
-  - 🤖 **Local AI** (Ollama) - Run AI models locally for privacy and offline use
-  - 🌐 **Online AI** (Hugging Face) - Use cloud-based AI when internet is available
-  - Intelligent fallback to rule-based generation
-- **Multi-language Support**: English and Spanish
-- **CSV Export**: Compatible with TestRail, Testmo, Jira, Zephyr, and other test management tools
-- **Export Preview**: Preview how test cases will appear in the selected tool before exporting
-- **Light/Dark Mode**: Beautiful themes with smooth transitions
-- **Modern UI/UX**: Intuitive and responsive design
+## ✨ Features
 
-## Prerequisites
+### 📋 Test Plan Generation
 
-- Node.js 16+
-- pnpm 8+ (recommended) or npm
-- (Optional) Ollama for local AI - See [AI Integration](#ai-integration) section
+Create detailed test plans with different types (Functional, Performance, Security, Integration, and more)
 
-## Installation
+### 📝 Test Case Generation
 
-### Quick Setup (Recommended) 🚀
+Generate test cases in two formats:
 
-Run the automated setup script that installs everything:
+- **Step-by-Step**: Simple numbered steps for easy execution
+- **Gherkin**: BDD format with Given-When-Then structure
 
-**Using pnpm:**
+### 🤖 AI-Powered Intelligence
+
+- **🤖 Local AI (Ollama)**: Run AI models on your machine for complete privacy
+- **🌐 Online AI (Hugging Face)**: Cloud-based AI when you need it
+- **🧠 Smart Fallback**: Intelligent rule-based generation when AI isn't available
+
+### 🌍 Multi-language Support
+
+Generate test documentation in **English** or **Spanish**
+
+### 📤 Export & Integration
+
+- Export to **TestMO**, **TestRail**, **Jira**, **Zephyr**, and more
+- **Preview before export** to see exactly how it will look
+- CSV format compatible with all major test management tools
+
+### 🎨 Beautiful UI
+
+- **Light/Dark mode** with smooth transitions
+- **Responsive design** - works perfectly on desktop, tablet, and mobile
+- **Intuitive interface** - easy to use, even for beginners
+
+---
+
+## 🚀 Quick Start (Super Easy!)
+
+### ⚡ One-Command Setup - Installs Everything Automatically!
+
+**That's it! Just run one command and everything will be installed automatically:**
 
 ```bash
 pnpm setup
 ```
 
-**Using npm:**
+**Or if you prefer npm:**
 
 ```bash
 npm run setup
 ```
 
-**Direct execution:**
+**On Windows, you can also double-click:**
 
-```bash
-# Windows
+```
 setup.bat
+```
 
-# Linux/macOS
+**On Linux/macOS:**
+
+```bash
 ./setup.sh
-
-# Or directly with Node.js
-node scripts/setup.js
 ```
 
-**What the setup script does:**
+### 🎯 What the Setup Does Automatically
 
-- ✅ Checks Node.js version
-- ✅ Installs pnpm globally if needed
-- ✅ Installs all project dependencies
-- ✅ Configures Git hooks (Husky)
-- ✅ Checks Ollama installation (Local AI)
-- ✅ Attempts to install AI model if Ollama is available
-- ✅ Creates `.env` file with configuration template
-- ✅ Provides installation guide for Ollama if not found
+The setup script will **automatically**:
 
-### Manual Installation
+- ✅ Check and install Node.js (if needed)
+- ✅ Install pnpm package manager
+- ✅ Install all project dependencies
+- ✅ Configure Git hooks (Prettier formatting)
+- ✅ **Install Ollama (Local AI)** - automatically downloads and sets up
+- ✅ **Download AI models** - pulls the recommended model (llama3.2:1b)
+- ✅ Create environment files
+- ✅ Verify everything is working
 
-#### Using pnpm (Recommended)
+**You don't need to do anything else!** Just run the setup and you're ready to go. 🎉
 
-```bash
-# Install pnpm globally if you don't have it
-npm install -g pnpm
+### 📋 Prerequisites
 
-# Install dependencies
-pnpm install
+The setup will check and install these for you, but if you want to install manually:
 
-# Setup husky for git hooks
-pnpm prepare
-```
+- **Node.js 16+** - [Download here](https://nodejs.org/)
+- **pnpm 8+** (recommended) or npm - Will be installed automatically by setup
 
-#### Using npm
+> 💡 **Tip**: The setup script handles everything, including Ollama installation. You don't need to install anything manually!
 
-```bash
-npm install
-npm run prepare
-```
+---
 
-## Development
+## 🛠️ Development
 
-### Standard Development Server
+### Start the Development Server
+
+After running `pnpm setup`, start developing:
 
 ```bash
-# Using pnpm
 pnpm dev
-
-# Using npm
-npm run dev
 ```
 
-### Development with Local AI (Ollama)
+The server will automatically find an available port (3000-7000) and start at `http://localhost:3000`
 
-Runs the development server with Local AI (Ollama) pre-configured:
+### 🤖 Development with Local AI (Ollama)
+
+Runs the development server with Local AI pre-configured:
 
 ```bash
-# Using pnpm
 pnpm dev:local-ai
-
-# Using npm
-npm run dev:local-ai
 ```
 
 This will:
@@ -118,16 +121,12 @@ This will:
 - ✅ Configure the app to use Local AI by default
 - ✅ Show helpful messages if Ollama is not available
 
-### Development with Web AI (Hugging Face)
+### 🌐 Development with Web AI (Hugging Face)
 
-Runs the development server with Web AI (Hugging Face) pre-configured:
+Runs the development server with Web AI pre-configured:
 
 ```bash
-# Using pnpm
 pnpm dev:web-ai
-
-# Using npm
-npm run dev:web-ai
 ```
 
 This will:
@@ -137,196 +136,256 @@ This will:
 - ✅ Use authenticated API if key is found (faster)
 - ✅ Fallback to public endpoints if no key (slower, rate-limited)
 
-The application will be available at `http://localhost:3000` (or next available port)
+---
 
-## Build
+## 🤖 AI Integration
 
-```bash
-# Using pnpm
-pnpm build
+This project supports AI-powered generation using two open-source solutions. **The setup script installs everything automatically!**
 
-# Using npm
-npm run build
-```
+### 🎯 Quick AI Setup
 
-## Code Formatting
+**Good news!** The `pnpm setup` command automatically:
 
-This project uses Prettier for code formatting. Formatting runs automatically on pre-commit via husky and lint-staged.
+- ✅ Installs Ollama (Local AI) on your system
+- ✅ Downloads the recommended AI model (llama3.2:1b)
+- ✅ Configures everything to work out of the box
 
-### Format all files
+**You don't need to do anything manually!** Just run `pnpm setup` and AI will be ready to use.
 
-```bash
-pnpm format
-```
+---
 
-### Check formatting
+### 1. 🤖 Local AI (Ollama) - Recommended for Privacy
 
-```bash
-pnpm format:check
-```
+**Ollama** runs AI models locally on your machine. Perfect for:
 
-## Git Hooks
+- 🔒 **Complete privacy** - Your data never leaves your computer
+- 📴 **Works offline** - No internet required after setup
+- 💰 **No API costs** - Completely free
+- 🎛️ **Full control** - Choose your models and settings
 
-This project uses Husky to run Prettier on staged files before each commit. This ensures consistent code formatting across the project.
+#### 📍 Installation Location
 
-## AI Integration
+Ollama is installed **system-wide** (like Node.js or Docker), not in the project folder. This means:
 
-This project supports AI-powered generation of test plans and test cases using two open-source solutions:
+- ✅ One installation works for all your projects
+- ✅ Models are stored in your user directory
+- ✅ Easy to manage and update
 
-### 1. Local AI (Ollama) - Recommended for Privacy
+**Model Storage:**
 
-**Ollama** is an open-source tool that runs large language models locally on your machine. This provides:
-
-- ✅ Complete privacy (data never leaves your machine)
-- ✅ Works offline
-- ✅ No API costs
-- ✅ Full control over models
-
-**⚠️ Important:** Ollama is installed **system-wide** (like Node.js or Docker), not inside the project directory. This is because:
-
-- Ollama runs as a system service on port 11434
-- AI models are large (1-5GB) and stored in your user directory
-- Multiple projects can share the same Ollama installation
-
-**Model Storage Locations:**
-
-- **Windows:** `%USERPROFILE%\.ollama` or `%LOCALAPPDATA%\ollama`
+- **Windows:** `%USERPROFILE%\.ollama`
 - **macOS/Linux:** `~/.ollama`
 
-#### Installation
+#### 🚀 Automatic Installation
 
-The setup script (`pnpm setup`) will attempt to install Ollama automatically. If it fails, install manually:
+The setup script (`pnpm setup`) **automatically installs Ollama** for you:
+
+- **Windows**: Downloads and installs via winget or direct download
+- **macOS**: Uses Homebrew if available, or downloads installer
+- **Linux**: Runs the official installation script
+
+**If automatic installation fails** (rare), you can install manually:
 
 **Windows/macOS:**
 
 1. Download from [ollama.com](https://ollama.com)
-2. Install and run the application (system-wide installation)
-3. Pull a model (recommended: `llama3.2:1b` for speed or `llama3.2:3b` for quality):
-   ```bash
-   ollama pull llama3.2:1b
-   ```
+2. Run the installer
+3. The setup script will then download the AI model for you
 
 **Linux:**
 
 ```bash
 curl -fsSL https://ollama.com/install.sh | sh
-ollama pull llama3.2:1b
 ```
 
-#### Usage
+#### ✅ Using Local AI
 
-1. Start Ollama (usually runs automatically)
-2. Verify it's running: `ollama list`
-3. In the app, enable "Use AI Enhancement" and select "Local AI (Ollama)"
-4. The app will automatically detect Ollama when available
+After running `pnpm setup`, Ollama is ready to use:
 
-**Recommended Models:**
+1. **Start the app**: `pnpm dev:local-ai` (or regular `pnpm dev`)
+2. **In the app**: Enable "Use AI Enhancement" and select "💻 Local AI (Ollama)"
+3. **That's it!** The app automatically detects Ollama
 
-- `llama3.2:1b` - Fast, small (~1.3GB), good for quick generation
-- `llama3.2:3b` - Better quality (~2GB), balanced speed/quality
-- `llama3.2` - Best quality (~4.7GB), slower but most accurate
+**Recommended Models** (setup installs `llama3.2:1b` by default):
 
-### 2. Online AI (Hugging Face) - Recommended for Convenience
+- `llama3.2:1b` - ⚡ Fast, small (~1.3GB) - **Installed by default**
+- `llama3.2:3b` - 🎯 Better quality (~2GB) - Run `ollama pull llama3.2:3b` if you want
+- `llama3.2` - 🏆 Best quality (~4.7GB) - Run `ollama pull llama3.2` for maximum quality
 
-**Hugging Face Inference API** provides access to open-source AI models in the cloud:
+---
 
-- ✅ **No installation required** - It's a cloud service, nothing is installed
+### 2. 🌐 Online AI (Hugging Face) - No Installation Needed
+
+**Hugging Face** provides cloud-based AI - perfect if you don't want to install anything locally:
+
+- ✅ **Zero installation** - It's a cloud service
 - ✅ Always up-to-date models
 - ✅ Free tier available
 - ⚠️ Requires internet connection
 - ⚠️ Data sent to external service
 
-**Note:** Hugging Face doesn't require any installation. Only an API key (optional) stored in the project's `.env` file.
+#### 🚀 Using Online AI
 
-#### Setup (Optional - for better performance)
+**No setup needed!** Just:
 
-1. Create a free account at [huggingface.co](https://huggingface.co)
-2. Generate an API token from your [settings](https://huggingface.co/settings/tokens)
-3. Create a `.env` file in the project root:
+1. Start the app: `pnpm dev:web-ai` (or regular `pnpm dev`)
+2. In the app: Enable "Use AI Enhancement" and select "🌐 Online AI (Hugging Face)"
+3. **Optional**: Add your API key to `.env` for better performance:
    ```env
    VITE_HUGGING_FACE_API_KEY=your_token_here
    ```
-4. Restart the development server
+   Get your free token at [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
 
-**Without API Key:**
-The app will use public endpoints (slower, rate-limited) but works without configuration.
+**Without API key**: Works fine, but uses public endpoints (slower, rate-limited)
 
-#### Usage
+---
 
-1. Ensure you have internet connection
-2. In the app, enable "Use AI Enhancement" and select "Online AI (Hugging Face)"
-3. The app will automatically use Hugging Face models
+## 📚 Usage Guide
 
-### AI vs Rule-Based Generation
+### Generating Test Plans
 
-The app intelligently combines both approaches:
+1. Navigate to the **Test Plans** section
+2. Enter your project information or acceptance criteria
+3. Select the test plan type (Functional, Performance, Security, etc.)
+4. Click **Generate Test Plan**
+5. Review the generated plan with recommendations and analysis
+6. Export if needed
 
-1. **AI Enhancement** (when enabled):
-   - Uses AI models to generate more natural, context-aware test cases
-   - Better understanding of complex requirements
-   - More varied and creative test scenarios
+### Generating Test Cases
 
-2. **Rule-Based Fallback** (always available):
-   - Fast, deterministic generation
-   - Works offline
-   - Based on pattern recognition and intelligent analysis
-   - Automatically used if AI fails or is unavailable
+1. Navigate to the **Test Cases** section
+2. Enter your acceptance criteria or project information
+3. Choose format:
+   - **Step-by-Step**: Simple numbered steps
+   - **Gherkin**: BDD format (Given-When-Then)
+4. Select number of test cases per AC (1-5)
+5. **Optional**: Enable AI enhancement for better results
+6. Click **Generate Test Cases**
+7. Preview export format and download CSV
 
-### Troubleshooting
+### Exporting to Test Management Tools
 
-**Local AI (Ollama) not detected:**
+1. Generate your test cases
+2. Select your test management tool (TestMO, TestRail, Jira, etc.)
+3. Click **Preview Export** to see how it will look
+4. Click **Export CSV** to download
+5. Import the CSV into your test management tool
 
-- Ensure Ollama is running: `ollama list`
-- Check if Ollama is on the default port (11434)
-- Verify the model is downloaded: `ollama list`
+---
 
-**Online AI not working:**
+## 🎨 Features in Detail
 
-- Check internet connection
-- Verify Hugging Face API key in `.env` (if using)
-- Check browser console for errors
-- The app will automatically fallback to rule-based generation
+### Multiple Test Cases per AC
 
-**Getting help:**
+Generate **1 to 5 variations** of test cases for each acceptance criteria:
 
-- Run `node scripts/install-ollama.js` for installation help
-- Check [Ollama documentation](https://github.com/ollama/ollama)
-- Check [Hugging Face documentation](https://huggingface.co/docs/api-inference)
+- Positive path scenarios
+- Negative path scenarios
+- Edge cases
+- Alternative flows
 
-## Supported Test Management Tools
+### Intelligent Analysis
 
-- TestRail
-- Testmo
-- Jira (Zephyr)
-- Xray
-- qTest
-- PractiTest
+The app automatically:
 
-## Project Structure
+- Detects functionality types (Authentication, CRUD, Validation, etc.)
+- Identifies edge cases and boundary conditions
+- Suggests missing test scenarios
+- Calculates test complexity and estimates
 
+### Export Formats
+
+Compatible with:
+
+- 🧪 **TestMO** - Multi-row format with HTML formatting
+- 🚂 **TestRail** - Standard CSV format
+- 🎯 **Jira (Zephyr)** - Compatible with Zephyr test management
+- 🔍 **Xray** - Full Xray compatibility
+- 📊 **qTest** - qTest import format
+- ✅ **PractiTest** - PractiTest CSV format
+
+---
+
+## 🛠️ Development
+
+### Build for Production
+
+```bash
+pnpm build
 ```
-src/
-├── components/        # Reusable components
-├── views/            # Page components
-├── utils/            # Utility functions
-├── composables/      # Vue composables
-├── i18n/             # Internationalization
-└── router/           # Vue Router configuration
+
+This creates an optimized production build in the `dist/` folder.
+
+### Code Formatting
+
+This project uses **Prettier** for consistent code style. Formatting runs **automatically** on every commit (thanks to Husky).
+
+**Manual formatting:**
+
+```bash
+# Format all files
+pnpm format
+
+# Check formatting (without changing files)
+pnpm format:check
 ```
 
-## Tech Stack
+### Git Hooks
 
-- **Vue.js 3** - Progressive JavaScript framework
-- **Vue Router** - Official router for Vue.js
-- **Vue I18n** - Internationalization plugin
-- **PapaParse** - CSV parser/generator
-- **Vite** - Next generation frontend tooling
-- **Prettier** - Code formatter
-- **Husky** - Git hooks made easy
-- **lint-staged** - Run linters on git staged files
-- **Ollama** - Local AI models (optional)
-- **Hugging Face Inference API** - Online AI models (optional)
+**Prettier runs automatically** before each commit to ensure consistent code formatting. No need to run it manually!
 
-## License
+---
 
-GPL-3.0
+## 🐛 Troubleshooting
+
+### Ollama Not Available?
+
+1. **Check if Ollama is running:**
+
+   ```bash
+   ollama list
+   ```
+
+2. **If not installed**, run the setup again:
+
+   ```bash
+   pnpm setup
+   ```
+
+3. **If installed but not detected**, restart your terminal and try again
+
+### Port Already in Use?
+
+The dev server automatically finds an available port (3000-7000). No action needed!
+
+### Export Issues?
+
+- Make sure you've generated test cases first
+- Check that you've selected a test management tool
+- Verify the preview looks correct before exporting
+
+---
+
+## 📝 License
+
+This project is licensed under the GNU General Public License Version 3 - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+---
+
+## 📧 Support
+
+If you encounter any issues or have questions:
+
+1. Check the [Troubleshooting](#-troubleshooting) section
+2. Review the documentation above
+3. Open an issue on GitHub
+
+---
+
+**Made with ❤️ for the QA community**
