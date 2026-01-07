@@ -1672,22 +1672,28 @@ function generateStepsFromAC(
     return '1. Navigate to the application\n2. Perform the required action\n3. Verify the expected result'
   }
 
-  // Try to get pattern-based steps first
+  // For multiple variations, generate different steps based on variation index
+  if (totalVariations > 1) {
+    if (variationIndex === 0) {
+      // Base case: Generate concise, basic steps (skip patterns to ensure uniqueness)
+      return generateBasicSteps(text, functionality)
+    } else {
+      // Variations: Try patterns first, then generate detailed, specific steps for each variation type
+      if (functionality) {
+        const patternSteps = getPatternBasedSteps(text, functionality, 'stepByStep', variationIndex)
+        if (patternSteps) {
+          return patternSteps
+        }
+      }
+      return createStepsVariation('', variationIndex, text, functionality)
+    }
+  }
+
+  // Single test case: Try patterns first, then generate standard detailed steps
   if (functionality) {
     const patternSteps = getPatternBasedSteps(text, functionality, 'stepByStep', variationIndex)
     if (patternSteps) {
       return patternSteps
-    }
-  }
-
-  // For multiple variations, generate different steps based on variation index
-  if (totalVariations > 1) {
-    if (variationIndex === 0) {
-      // Base case: Generate concise, basic steps
-      return generateBasicSteps(text, functionality)
-    } else {
-      // Variations: Generate detailed, specific steps for each variation type
-      return createStepsVariation('', variationIndex, text, functionality)
     }
   }
 
