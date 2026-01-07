@@ -107,14 +107,13 @@ const FUNCTIONALITY_PATTERNS = {
   },
   search: {
     keywords: ['search', 'find', 'filter', 'query', 'lookup', 'buscar', 'filtrar', 'consulta'],
-    testTypes: ['Functional', 'Performance'],
+    testTypes: ['Functional'], // Removed 'Performance' - only add if explicitly about performance testing
     priorities: { default: 'Medium' },
     scenarios: [
       'Basic search functionality',
       'Advanced search with filters',
       'Search result pagination',
       'Empty search results',
-      'Search performance with large datasets',
       'Search autocomplete/suggestions'
     ]
   },
@@ -293,10 +292,23 @@ export function analyzeProjectInfo(projectInfo) {
     }
   }
 
-  // Detect edge cases
+  // Detect edge cases - but exclude performance unless explicitly mentioned
   for (const [edgeType, keywords] of Object.entries(EDGE_CASE_PATTERNS)) {
-    if (keywords.some(kw => lowerText.includes(kw))) {
-      analysis.edgeCases.push(edgeType)
+    // Skip performance edge case unless explicitly mentioned (not from search functionality)
+    if (edgeType === 'performance') {
+      // Only add performance as edge case if explicitly mentioned, not from search functionality
+      const explicitPerformance = keywords.some(kw => {
+        // Check if it's explicitly about performance testing, not just search
+        const regex = new RegExp(`\\b${kw}\\b`, 'i')
+        return regex.test(lowerText) && !lowerText.includes('search')
+      })
+      if (explicitPerformance) {
+        analysis.edgeCases.push(edgeType)
+      }
+    } else {
+      if (keywords.some(kw => lowerText.includes(kw))) {
+        analysis.edgeCases.push(edgeType)
+      }
     }
   }
 
