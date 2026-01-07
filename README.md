@@ -2,6 +2,8 @@
 
 > **Generate test plans and test cases effortlessly** - A powerful Vue.js application that creates comprehensive test documentation in English and Spanish, with AI-powered assistance and seamless export to your favorite test management tools.
 
+**🌍 Language / Idioma:** [English](README.md) | [Español](README.es.md)
+
 ---
 
 ## ✨ Features

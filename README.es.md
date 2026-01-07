@@ -2,6 +2,8 @@
 
 > **Genera planes de prueba y casos de prueba sin esfuerzo** - Una potente aplicación Vue.js que crea documentación de pruebas completa en inglés y español, con asistencia de IA y exportación perfecta a tus herramientas de gestión de pruebas favoritas.
 
+**🌍 Idioma / Language:** [Español](README.es.md) | [English](README.md)
+
 ---
 
 ## ✨ Características
