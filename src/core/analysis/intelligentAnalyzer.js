@@ -997,52 +997,144 @@ function extractScenario(text) {
 }
 
 function createEdgeCaseTest(edgeCase, format, id) {
-  const edgeCaseTemplates = {
-    boundary: {
-      title: 'Boundary Value Testing',
-      steps:
-        format === 'gherkin'
-          ? 'Given A System With Defined Limits\nWhen Testing Boundary Values\nThen System Should Handle Limits Correctly'
-          : '1. Identify boundary values\n2. Test minimum value\n3. Test maximum value\n4. Test values just outside boundaries',
-      expected: 'System correctly handles boundary conditions'
-    },
-    error: {
-      title: 'Error Handling Validation',
-      steps:
-        format === 'gherkin'
-          ? 'Given An Invalid Input Condition\nWhen System Processes The Input\nThen Appropriate Error Message Should Be Displayed'
-          : '1. Provide invalid input\n2. Submit the input\n3. Verify error message is displayed\n4. Verify system state is maintained',
-      expected: 'System displays appropriate error message and maintains stability'
-    },
-    security: {
-      title: 'Security and Access Control',
-      steps:
-        format === 'gherkin'
-          ? 'Given A User With Limited Permissions\nWhen Attempting Restricted Action\nThen Access Should Be Denied'
-          : '1. Login with limited permissions\n2. Attempt restricted action\n3. Verify access is denied\n4. Verify appropriate error message',
-      expected: 'Access is properly restricted based on user permissions'
+  // Normalize edge case name
+  const normalizedEdgeCase = String(edgeCase).toLowerCase().trim()
+
+  // Generate intelligent title based on edge case type
+  function generateIntelligentTitle(edgeCaseType) {
+    const titleMap = {
+      boundary: 'Test Boundary Value Conditions',
+      error: 'Test Error Handling Scenarios',
+      security: 'Test Security and Access Control',
+      performance: 'Test Performance Under Load',
+      validation: 'Test Input Validation Edge Cases',
+      data: 'Test Data Edge Cases',
+      timeout: 'Test Timeout and Session Handling',
+      concurrent: 'Test Concurrent User Scenarios',
+      network: 'Test Network Failure Scenarios'
     }
+
+    // Try exact match first
+    if (titleMap[edgeCaseType]) {
+      return titleMap[edgeCaseType]
+    }
+
+    // Try partial match
+    for (const [key, title] of Object.entries(titleMap)) {
+      if (edgeCaseType.includes(key) || key.includes(edgeCaseType)) {
+        return title
+      }
+    }
+
+    // Generate from edge case name
+    const words = edgeCaseType.split(/[\s_-]+/).filter(w => w.length > 0)
+    if (words.length > 0) {
+      const capitalized = words.map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+      return `Test ${capitalized} Edge Cases`
+    }
+
+    return 'Test Edge Case Scenarios'
   }
 
-  const template = edgeCaseTemplates[edgeCase] || {
-    title: `${edgeCase} Testing`,
-    steps: '1. Setup test condition\n2. Execute action\n3. Verify result',
-    expected: 'Expected behavior is verified'
+  // Generate intelligent steps based on edge case type
+  function generateIntelligentSteps(edgeCaseType, format) {
+    const stepMap = {
+      boundary: {
+        gherkin:
+          'Given The System Has Defined Boundary Limits\nWhen I Enter Boundary Values (Minimum, Maximum, Just Outside Limits)\nThen The System Should Process Boundary Values Correctly And Maintain Data Integrity',
+        stepByStep:
+          '1. Identify the boundary limits for the system\n2. Test with the minimum allowed value\n3. Test with the maximum allowed value\n4. Test with values just outside the boundaries\n5. Verify the system handles all boundary conditions correctly'
+      },
+      error: {
+        gherkin:
+          'Given The System Is In A Valid State\nWhen I Provide Invalid Or Malformed Input\nThen The System Should Display Appropriate Error Messages And Maintain System Stability',
+        stepByStep:
+          '1. Identify invalid input scenarios\n2. Provide invalid or malformed input to the system\n3. Submit the input and observe system behavior\n4. Verify appropriate error messages are displayed\n5. Verify the system state remains stable and unchanged'
+      },
+      security: {
+        gherkin:
+          'Given A User With Limited Or No Permissions\nWhen The User Attempts To Access Restricted Resources Or Actions\nThen Access Should Be Denied With Appropriate Security Messages',
+        stepByStep:
+          '1. Login with a user account that has limited permissions\n2. Navigate to restricted resources or attempt restricted actions\n3. Verify access is denied appropriately\n4. Verify appropriate security error messages are displayed\n5. Confirm the system maintains security integrity'
+      },
+      performance: {
+        gherkin:
+          'Given The System Is Under Normal Load\nWhen I Simulate High Load Or Stress Conditions\nThen The System Should Maintain Acceptable Performance And Stability',
+        stepByStep:
+          '1. Establish baseline performance metrics\n2. Simulate high load or stress conditions\n3. Monitor system performance and response times\n4. Verify the system maintains acceptable performance levels\n5. Confirm system stability under load conditions'
+      }
+    }
+
+    // Try exact match
+    if (stepMap[edgeCaseType]) {
+      return format === 'gherkin' ? stepMap[edgeCaseType].gherkin : stepMap[edgeCaseType].stepByStep
+    }
+
+    // Try partial match
+    for (const [key, steps] of Object.entries(stepMap)) {
+      if (edgeCaseType.includes(key) || key.includes(edgeCaseType)) {
+        return format === 'gherkin' ? steps.gherkin : steps.stepByStep
+      }
+    }
+
+    // Default intelligent steps
+    if (format === 'gherkin') {
+      return 'Given The System Is In A Valid State\nWhen I Test Edge Case Scenarios\nThen The System Should Handle Edge Cases Correctly And Maintain Expected Behavior'
+    }
+    return '1. Identify the specific edge case scenario to test\n2. Set up the test conditions for the edge case\n3. Execute the action that triggers the edge case\n4. Verify the system handles the edge case correctly\n5. Confirm expected behavior is maintained'
   }
 
-  const givenMatch = template.steps.match(/(?:Given|Dado)\s+(.+?)(?:\s+When|\s+Cuando|$)/i)
-  const whenMatch = template.steps.match(/(?:When|Cuando)\s+(.+?)(?:\s+Then|\s+Entonces|$)/i)
-  const thenMatch = template.steps.match(/(?:Then|Entonces)\s+(.+?)(?:\.|$)/i)
+  // Generate intelligent expected result
+  function generateIntelligentExpected(edgeCaseType) {
+    const expectedMap = {
+      boundary:
+        'System correctly processes boundary values and maintains data integrity without errors.',
+      error:
+        'System displays appropriate error messages and maintains system stability without data corruption.',
+      security: 'Access is properly restricted and appropriate security messages are displayed.',
+      performance:
+        'System maintains acceptable performance levels and stability under load conditions.',
+      validation:
+        'Input validation works correctly and appropriate feedback is provided to the user.',
+      data: 'System handles data edge cases correctly and maintains data integrity.',
+      timeout: 'System handles timeout scenarios correctly and maintains session integrity.',
+      concurrent:
+        'System handles concurrent operations correctly without conflicts or data corruption.',
+      network: 'System handles network failures gracefully and maintains data consistency.'
+    }
+
+    // Try exact match
+    if (expectedMap[edgeCaseType]) {
+      return expectedMap[edgeCaseType]
+    }
+
+    // Try partial match
+    for (const [key, expected] of Object.entries(expectedMap)) {
+      if (edgeCaseType.includes(key) || key.includes(edgeCaseType)) {
+        return expected
+      }
+    }
+
+    return 'System handles the edge case scenario correctly and maintains expected behavior.'
+  }
+
+  const title = generateIntelligentTitle(normalizedEdgeCase)
+  const steps = generateIntelligentSteps(normalizedEdgeCase, format)
+  const expected = generateIntelligentExpected(normalizedEdgeCase)
+
+  const givenMatch = steps.match(/(?:Given|Dado)\s+(.+?)(?:\s+When|\s+Cuando|$)/i)
+  const whenMatch = steps.match(/(?:When|Cuando)\s+(.+?)(?:\s+Then|\s+Entonces|$)/i)
+  const thenMatch = steps.match(/(?:Then|Entonces)\s+(.+?)(?:\.|$)/i)
 
   return {
     id,
-    title: template.title,
-    priority: 'High',
-    type: 'Edge Case',
-    preconditions: 'System is ready and configured',
-    steps: template.steps,
-    expectedResult: template.expected,
-    scenario: `Test ${edgeCase} edge cases`,
+    title,
+    priority: 'Medium',
+    type: 'Functional', // Always Functional, not 'Edge Case'
+    preconditions: 'System is ready and configured for testing',
+    steps,
+    expectedResult: expected,
+    scenario: `Test ${normalizedEdgeCase} edge case scenarios`,
     given: givenMatch ? givenMatch[1].trim() : null,
     when: whenMatch ? whenMatch[1].trim() : null,
     then: thenMatch ? thenMatch[1].trim() : null,
