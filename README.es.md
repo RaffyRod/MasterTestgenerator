@@ -44,6 +44,63 @@ Genera documentación de pruebas en **Inglés** o **Español**
 - **Diseño moderno basado en tarjetas** - presentación limpia y organizada de casos de prueba
 - **Agrupado por Criterios de Aceptación** - casos de prueba organizados por AC con secciones colapsables
 
+### 🐛 Generador de Reportes de Bug
+
+- **Reportes de bugs completos** con campos de información detallados
+- **Adjuntar evidencias** - sube imágenes, logs y archivos de texto
+- **Múltiples formatos de exportación** - Jira, Markdown y Texto Plano
+- **Auto-detección** de navegador y sistema operativo
+- **Copiar al portapapeles** para pegar fácilmente en rastreadores de issues
+
+---
+
+## 🛠️ Stack Tecnológico
+
+Este proyecto está construido con increíbles tecnologías de código abierto. Estamos agradecidos con todos los contribuidores y mantenedores:
+
+### Framework Principal
+
+- **[Vue.js 3](https://vuejs.org/)** - Framework JavaScript progresivo para construir interfaces de usuario
+- **[Vue Router](https://router.vuejs.org/)** - Router oficial para Vue.js
+- **[Vue I18n](https://vue-i18n.intlify.dev/)** - Plugin de internacionalización para Vue.js
+
+### Herramientas de Construcción y Desarrollo
+
+- **[Vite](https://vitejs.dev/)** - Herramienta de construcción frontend de próxima generación
+- **[Vitest](https://vitest.dev/)** - Framework de pruebas unitarias rápido impulsado por Vite
+- **[Prettier](https://prettier.io/)** - Formateador de código con opiniones definidas
+- **[Husky](https://typicode.github.io/husky/)** - Git hooks simplificados
+
+### Pruebas y Calidad
+
+- **[Vitest](https://vitest.dev/)** - Framework de pruebas unitarias rápido
+- **[@vue/test-utils](https://test-utils.vuejs.org/)** - Utilidades para probar componentes Vue
+- **[Testing Library](https://testing-library.com/)** - Utilidades de prueba simples y completas
+
+### Procesamiento de Datos
+
+- **[PapaParse](https://www.papaparse.com/)** - Parser CSV potente para JavaScript
+- **[jsPDF](https://github.com/parallax/jsPDF)** - Generación de PDF del lado del cliente
+- **[docx](https://github.com/dolanmiu/docx)** - Genera archivos .docx fácilmente
+
+### Integración de IA
+
+- **[Ollama](https://ollama.com/)** - Ejecuta modelos de lenguaje grandes localmente
+- **[Hugging Face](https://huggingface.co/)** - Comunidad y plataforma de IA
+- **[OpenAI API](https://platform.openai.com/)** - Modelos GPT para generación con IA
+- **[Anthropic Claude](https://www.anthropic.com/)** - Modelos de IA Claude
+- **[Google Gemini](https://ai.google.dev/)** - Modelos de IA de Google
+
+### Herramientas Adicionales
+
+- **[jsdom](https://github.com/jsdom/jsdom)** - Implementación DOM en JavaScript puro para pruebas
+
+---
+
+## 🙏 Agradecimientos
+
+Nos gustaría agradecer a todos los contribuidores y mantenedores de código abierto de las tecnologías utilizadas en este proyecto. ¡Su trabajo hace posibles proyectos como este!
+
 ---
 
 ## 🚀 Inicio Rápido (¡Súper Fácil!)

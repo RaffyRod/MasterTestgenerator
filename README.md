@@ -44,6 +44,63 @@ Generate test documentation in **English** or **Spanish**
 - **Modern card-based layout** - clean, organized test case presentation
 - **Grouped by Acceptance Criteria** - test cases organized by AC with collapsible sections
 
+### 🐛 Bug Report Generator
+
+- **Comprehensive bug reporting** with detailed information fields
+- **Evidence attachment** - upload images, logs, and text files
+- **Multiple export formats** - Jira, Markdown, and Plain Text
+- **Auto-detection** of browser and operating system
+- **Copy to clipboard** for easy pasting into issue trackers
+
+---
+
+## 🛠️ Tech Stack
+
+This project is built with amazing open-source technologies. We're grateful to all the contributors and maintainers:
+
+### Core Framework
+
+- **[Vue.js 3](https://vuejs.org/)** - Progressive JavaScript framework for building user interfaces
+- **[Vue Router](https://router.vuejs.org/)** - Official router for Vue.js
+- **[Vue I18n](https://vue-i18n.intlify.dev/)** - Internationalization plugin for Vue.js
+
+### Build Tools & Development
+
+- **[Vite](https://vitejs.dev/)** - Next-generation frontend build tool
+- **[Vitest](https://vitest.dev/)** - Fast unit test framework powered by Vite
+- **[Prettier](https://prettier.io/)** - Opinionated code formatter
+- **[Husky](https://typicode.github.io/husky/)** - Git hooks made easy
+
+### Testing & Quality
+
+- **[Vitest](https://vitest.dev/)** - Fast unit test framework
+- **[@vue/test-utils](https://test-utils.vuejs.org/)** - Utilities for testing Vue components
+- **[Testing Library](https://testing-library.com/)** - Simple and complete testing utilities
+
+### Data Processing
+
+- **[PapaParse](https://www.papaparse.com/)** - Powerful CSV parser for JavaScript
+- **[jsPDF](https://github.com/parallax/jsPDF)** - Client-side PDF generation
+- **[docx](https://github.com/dolanmiu/docx)** - Easily generate .docx files
+
+### AI Integration
+
+- **[Ollama](https://ollama.com/)** - Run large language models locally
+- **[Hugging Face](https://huggingface.co/)** - AI community and platform
+- **[OpenAI API](https://platform.openai.com/)** - GPT models for AI-powered generation
+- **[Anthropic Claude](https://www.anthropic.com/)** - Claude AI models
+- **[Google Gemini](https://ai.google.dev/)** - Google's AI models
+
+### Additional Tools
+
+- **[jsdom](https://github.com/jsdom/jsdom)** - Pure JavaScript DOM implementation for testing
+
+---
+
+## 🙏 Acknowledgments
+
+We would like to thank all the open-source contributors and maintainers of the technologies used in this project. Your work makes projects like this possible!
+
 ---
 
 ## 🚀 Quick Start (Super Easy!)
