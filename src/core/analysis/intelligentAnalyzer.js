@@ -2426,17 +2426,27 @@ function createStepsVariation(baseSteps, variationIndex, acText = '', functional
         positiveSteps.push('7. Verify the record cannot be accessed after deletion')
       } else {
         // Generic positive path - enhance base steps
-        positiveSteps = steps.map((step, idx) => {
+        // Convert baseSteps string to array if needed
+        const baseStepsArray =
+          typeof baseSteps === 'string'
+            ? baseSteps.split('\n').filter(s => s.trim().length > 0)
+            : Array.isArray(baseSteps)
+              ? baseSteps
+              : []
+
+        positiveSteps = baseStepsArray.map((step, idx) => {
           const stepLower = step.toLowerCase()
           if (stepLower.includes('verify') || stepLower.includes('check')) {
             return `${idx + 1}. ${step} with complete validation`
           }
           return step
         })
-        positiveSteps.push(`${steps.length + 1}. Verify the operation completed successfully`)
-        positiveSteps.push(`${steps.length + 2}. Confirm all expected outcomes are met`)
         positiveSteps.push(
-          `${steps.length + 3}. Verify system state is consistent after the operation`
+          `${baseStepsArray.length + 1}. Verify the operation completed successfully`
+        )
+        positiveSteps.push(`${baseStepsArray.length + 2}. Confirm all expected outcomes are met`)
+        positiveSteps.push(
+          `${baseStepsArray.length + 3}. Verify system state is consistent after the operation`
         )
       }
 
