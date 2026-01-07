@@ -468,6 +468,18 @@ body {
   overflow-x: hidden;
 }
 
+@media (max-width: 768px) {
+  .main-content {
+    padding: 0 1rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 0 0.75rem 0.75rem;
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

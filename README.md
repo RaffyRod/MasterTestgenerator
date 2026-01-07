@@ -36,8 +36,11 @@ Generate test documentation in **English** or **Spanish**
 ### 🎨 Beautiful UI
 
 - **Light/Dark mode** with smooth transitions
-- **Responsive design** - works perfectly on desktop, tablet, and mobile
+- **Fully responsive design** - optimized for desktop, tablet, and mobile devices
+- **Touch-friendly interface** - 44px+ touch targets for mobile accessibility
 - **Intuitive interface** - easy to use, even for beginners
+- **Modern card-based layout** - clean, organized test case presentation
+- **Grouped by Acceptance Criteria** - test cases organized by AC with collapsible sections
 
 ---
 
@@ -256,12 +259,15 @@ After running `pnpm setup`, Ollama is ready to use:
 1. Navigate to the **Test Cases** section
 2. Enter your acceptance criteria or project information
 3. Choose format:
-   - **Step-by-Step**: Simple numbered steps
-   - **Gherkin**: BDD format (Given-When-Then)
+   - **Step-by-Step**: Simple numbered steps with specific actions
+   - **Gherkin**: BDD format (Given-When-Then) in title case
 4. Select number of test cases per AC (1-5)
+   - Each variation generates unique steps (Positive, Negative, Edge Case, Alternative Flow)
 5. **Optional**: Enable AI enhancement for better results
 6. Click **Generate Test Cases**
-7. Preview export format and download CSV
+7. Test cases are automatically **grouped by Acceptance Criteria** with collapsible sections
+8. **Copy individual test cases** with the copy button on each card
+9. Preview export format and download CSV
 
 ### Exporting to Test Management Tools
 
@@ -275,14 +281,37 @@ After running `pnpm setup`, Ollama is ready to use:
 
 ## 🎨 Features in Detail
 
+### Smart Test Case Generation
+
+The app generates **intelligent, specific test cases** that:
+
+- ✅ Extract entities from acceptance criteria (e.g., "province", "branch", "user")
+- ✅ Create contextual steps based on detected actions (click, view, create, etc.)
+- ✅ Generate clear, readable expected results from AC text
+- ✅ Avoid generic placeholder text
+- ✅ Always default to "Functional" test type (unless explicitly specified)
+- ✅ Group test cases by Acceptance Criteria for better organization
+
+### Responsive Design
+
+The UI is fully optimized for all devices:
+
+- **Desktop**: Multi-column grid layout, hover effects, spacious cards
+- **Tablet**: Adaptive grid, touch-optimized controls
+- **Mobile**: Single column, large touch targets (44px+), collapsible sections
+- **Accessibility**: Proper ARIA labels, keyboard navigation, screen reader support
+
 ### Multiple Test Cases per AC
 
 Generate **1 to 5 variations** of test cases for each acceptance criteria:
 
-- Positive path scenarios
-- Negative path scenarios
-- Edge cases
-- Alternative flows
+- **Base case**: Concise, focused test case
+- **Positive path**: Comprehensive detailed scenarios
+- **Negative path**: Error handling and validation scenarios
+- **Edge cases**: Boundary conditions and edge scenarios
+- **Alternative flows**: Different approaches to achieve the same goal
+
+Each variation has **unique, specific steps** - no duplicate generic steps!
 
 ### Intelligent Analysis
 
@@ -292,6 +321,9 @@ The app automatically:
 - Identifies edge cases and boundary conditions
 - Suggests missing test scenarios
 - Calculates test complexity and estimates
+- **Generates specific, actionable steps** - No more generic "Navigate to application" steps
+- **Creates clear expected results** - Extracts and formats expected results from acceptance criteria
+- **Smart test case grouping** - Automatically groups test cases by Acceptance Criteria
 
 ### Export Formats
 

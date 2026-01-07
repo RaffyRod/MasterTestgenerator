@@ -715,21 +715,29 @@ export default {
 .textarea-input {
   width: 100%;
   padding: 1rem;
-  border: 1px solid var(--border-color);
+  border: 2px solid var(--border-color);
   border-radius: 12px;
   font-family: 'Courier New', monospace;
   font-size: 0.95rem;
   resize: vertical;
-  transition: var(--transition);
+  transition: all 0.2s ease;
   background: var(--bg-secondary);
   color: var(--text-primary);
   min-height: 180px;
+  line-height: 1.6;
+  box-sizing: border-box;
 }
 
 .textarea-input:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+  background: var(--bg-primary);
+}
+
+.textarea-input:hover:not(:focus) {
+  border-color: var(--primary-color);
+  opacity: 0.8;
 }
 
 .textarea-input::placeholder {
@@ -840,10 +848,10 @@ export default {
 .btn {
   padding: 0.875rem 1.75rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -853,8 +861,9 @@ export default {
   white-space: nowrap;
   min-height: 44px;
   touch-action: manipulation;
-  vertical-align: middle;
-  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn:focus-visible {
@@ -878,7 +887,12 @@ export default {
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-secondary {
@@ -904,6 +918,11 @@ export default {
 .btn-secondary:hover {
   background: var(--bg-secondary);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
 }
 
 [data-theme='light'] .btn-secondary:hover {
@@ -1054,6 +1073,9 @@ export default {
   cursor: pointer;
   transition: all 0.3s ease;
   user-select: none;
+  min-height: 60px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .ac-group-header:hover {
@@ -1220,9 +1242,11 @@ export default {
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   flex-shrink: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .copy-btn:hover {
@@ -1406,55 +1430,81 @@ export default {
 
 @media (max-width: 1200px) {
   .test-cases-grid {
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 350px), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+    gap: 1.5rem;
   }
 }
 
 @media (max-width: 1024px) {
   .test-cases-grid {
-    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
     gap: 1.25rem;
   }
 
   .test-case-card {
-    padding: 1.25rem;
+    padding: 1.5rem;
+  }
+
+  .ac-group-header {
+    padding: 1.125rem 1.375rem;
+  }
+
+  .input-section,
+  .test-cases-section {
+    padding: 1.75rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .test-cases-grid {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
   .test-cases-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 1.25rem;
+  }
+
+  .test-cases-container {
+    gap: 1.5rem;
   }
 
   .section-header {
     flex-direction: column;
     align-items: stretch;
-    gap: 1rem;
+    gap: 1.25rem;
   }
 
   .section-header h2 {
     font-size: 1.5rem;
     margin-bottom: 0;
+    line-height: 1.3;
   }
 
   .export-controls {
     flex-direction: column;
     width: 100%;
-    gap: 0.75rem;
+    gap: 0.875rem;
   }
 
   .tool-select {
     width: 100%;
     min-width: 100%;
+    padding: 1rem;
+    font-size: 1rem;
   }
 
   .format-options {
     flex-direction: column;
+    gap: 0.75rem;
   }
 
   .radio-option {
     min-width: 100%;
+    padding: 1rem;
+    min-height: 48px;
   }
 
   .input-section,
@@ -1465,66 +1515,208 @@ export default {
   .card-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: 1rem;
+  }
+
+  .card-title-wrapper {
+    width: 100%;
+  }
+
+  .card-meta {
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
   }
 
   .badges {
-    width: 100%;
+    width: auto;
+    flex: 1;
     justify-content: flex-start;
+    gap: 0.5rem;
+  }
+
+  .copy-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.75rem;
   }
 
   .steps-content {
     max-height: 300px;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
+    padding: 0.875rem;
+  }
+
+  .ac-group-header {
+    padding: 1rem 1.25rem;
+    min-height: 60px;
+    flex-wrap: wrap;
+  }
+
+  .ac-group-title {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .ac-text {
+    font-size: 0.9rem;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
+    -webkit-line-clamp: 2;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+  }
+
+  .ac-count {
+    margin-left: 0;
+    margin-top: 0.5rem;
+    font-size: 0.8125rem;
+  }
+
+  .btn {
+    min-height: 48px;
+    padding: 0.875rem 1.5rem;
+    font-size: 1rem;
   }
 }
 
 @media (max-width: 480px) {
   .header h1 {
     font-size: 1.75rem;
+    line-height: 1.2;
+  }
+
+  .subtitle {
+    font-size: 0.95rem;
   }
 
   .input-section,
   .test-cases-section {
     padding: 1rem;
+    border-radius: 12px;
+  }
+
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .textarea-input {
+    padding: 0.875rem;
+    min-height: 140px;
+    border-width: 2px;
+    font-size: 16px;
   }
 
   .button-group,
   .export-controls {
     flex-direction: column;
     width: 100%;
+    gap: 0.75rem;
   }
 
   .btn {
     width: 100%;
     justify-content: center;
+    min-height: 48px;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
   }
 
   .test-case-card {
-    padding: 1rem;
+    padding: 1.25rem;
+    border-radius: 12px;
   }
 
   .card-title {
-    font-size: 1rem;
-    -webkit-line-clamp: 2;
+    font-size: 1.1rem;
+    -webkit-line-clamp: 3;
+    line-height: 1.4;
+  }
+
+  .card-content {
+    gap: 1.25rem;
   }
 
   .steps-content {
     max-height: 250px;
-    font-size: 0.8rem;
-    padding: 0.75rem;
+    font-size: 0.875rem;
+    padding: 0.875rem;
+    border-radius: 8px;
   }
 
   .field strong {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
+    margin-bottom: 0.625rem;
   }
 
   .field p {
     font-size: 0.9rem;
+    line-height: 1.6;
   }
 
   .section-header h2 {
     font-size: 1.25rem;
+    line-height: 1.3;
+  }
+
+  .ac-group-header {
+    padding: 1rem;
+    min-height: auto;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .ac-group-title {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .ac-label {
+    font-size: 0.875rem;
+  }
+
+  .ac-text {
+    font-size: 0.875rem;
+    width: 100%;
+    -webkit-line-clamp: 3;
+  }
+
+  .ac-count {
+    align-self: flex-end;
+    margin-top: 0;
+  }
+
+  .badge {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.75rem;
+  }
+
+  .copy-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.75rem;
+  }
+
+  .copy-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .select-input {
+    padding: 1rem;
+    font-size: 1rem;
+    min-height: 48px;
+  }
+
+  .form-label {
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
   }
 }
 

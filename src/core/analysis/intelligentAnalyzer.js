@@ -746,7 +746,8 @@ async function createTestCaseFromAC(
   }
 
   const priority = functionality?.priorities?.default || determinePriority(ac.text)
-  const testType = functionality?.testType || 'Functional'
+  // Always default to 'Functional' unless explicitly specified, and prefer first testType from array
+  const testType = functionality?.testTypes?.[0] || functionality?.testType || 'Functional'
 
   // Generate variations if multiple test cases per AC
   let acText = ac.text
@@ -2025,9 +2026,37 @@ function generateBasicSteps(text, functionality = null) {
   const lowerText = text.toLowerCase()
   const steps = []
 
-  // Generate very basic, minimal steps for base test case
-  // These should be different from Positive Path which has detailed steps
-  if (
+  // Extract specific action and entity from text
+  const clickMatch = text.match(
+    /(?:click|select)\s+(?:on\s+)?(?:a\s+)?([a-z\s]+?)(?:\s+name|\s+button|\s+link|$)/i
+  )
+  const viewMatch = text.match(
+    /(?:view|see|display|show)\s+(?:the\s+)?([a-z\s]+?)(?:\s+page|\s+details|$)/i
+  )
+  const navigateMatch = text.match(
+    /(?:navigate|go|open)\s+(?:to\s+)?(?:the\s+)?([a-z\s]+?)(?:\s+page|$)/i
+  )
+
+  // Handle click actions with specific entities (e.g., "Click on a province name")
+  if (clickMatch && clickMatch[1]) {
+    const entity = clickMatch[1].trim()
+    steps.push(`1. Navigate to the page containing the ${entity} list`)
+    steps.push(`2. Locate a ${entity} in the list`)
+    steps.push(`3. Click on the ${entity} name or link`)
+    steps.push(`4. Verify the ${entity} details page is displayed`)
+  } else if (viewMatch && viewMatch[1]) {
+    const entity = viewMatch[1].trim()
+    steps.push(`1. Navigate to the ${entity} section`)
+    steps.push(`2. Access the ${entity} list or view`)
+    steps.push(`3. Select a ${entity} to view details`)
+    steps.push(`4. Verify all ${entity} information is displayed correctly`)
+  } else if (navigateMatch && navigateMatch[1]) {
+    const page = navigateMatch[1].trim()
+    steps.push(`1. Navigate to the ${page} page`)
+    steps.push(`2. Verify the ${page} page loads correctly`)
+    steps.push(`3. Interact with the main elements on the page`)
+    steps.push(`4. Verify the expected functionality works as intended`)
+  } else if (
     lowerText.includes('view') ||
     lowerText.includes('display') ||
     lowerText.includes('list') ||
@@ -2061,9 +2090,21 @@ function generateBasicSteps(text, functionality = null) {
     steps.push('3. Confirm the deletion')
     steps.push('4. Verify the record is removed')
   } else {
-    steps.push('1. Navigate to the application')
-    steps.push('2. Perform the required action')
-    steps.push('3. Verify the expected result')
+    // Try to extract action from text
+    const actionMatch = text.match(
+      /(?:I|user|usuario)\s+(?:should|will|can|must)\s+([a-z\s]+?)(?:\s+and|\s+or|$|\.)/i
+    )
+    if (actionMatch && actionMatch[1]) {
+      const action = actionMatch[1].trim()
+      steps.push(`1. Navigate to the relevant section`)
+      steps.push(`2. ${action.charAt(0).toUpperCase() + action.slice(1)}`)
+      steps.push(`3. Verify the action completes successfully`)
+      steps.push(`4. Confirm the expected result is achieved`)
+    } else {
+      steps.push('1. Navigate to the application')
+      steps.push('2. Perform the required action')
+      steps.push('3. Verify the expected result')
+    }
   }
 
   return steps.join('\n')
@@ -2592,7 +2633,27 @@ function generateExpectedResult(
   totalVariations = 1
 ) {
   if (!text || typeof text !== 'string') {
-    return 'Operation completes successfully and expected behavior is verified'
+    // Final fallback: Use context-based generation
+    const contextResult = generateContextBasedExpectedResult(text)
+    if (
+      contextResult &&
+      contextResult !== 'The Expected Outcome Should Be Achieved And Verified Successfully'
+    ) {
+      return contextResult
+    }
+
+    // Last resort: Generate from text analysis
+    if (lowerText.includes('page') || lowerText.includes('view') || lowerText.includes('display')) {
+      return 'The page or view is displayed correctly with all expected elements and information.'
+    }
+    if (lowerText.includes('click') || lowerText.includes('select')) {
+      return 'The selected action is performed successfully and the expected result is displayed.'
+    }
+    if (lowerText.includes('navigate') || lowerText.includes('go to')) {
+      return 'Navigation is successful and the target page is displayed correctly.'
+    }
+
+    return 'The operation completes successfully and the expected behavior is verified.'
   }
 
   // Generate different expected results based on variation
@@ -2653,10 +2714,17 @@ function generateExpectedResult(
 
   // Priority 1: Use extracted "Then" match if available
   if (thenMatch && thenMatch[1]) {
-    const thenText = thenMatch[1].trim()
+    let thenText = thenMatch[1].trim()
     if (thenText.length > 5) {
-      // Capitalize first letter
-      return thenText.charAt(0).toUpperCase() + thenText.slice(1)
+      // Clean up common prefixes and make it readable
+      thenText = thenText.replace(/^(I|should|must|will|debe|será)\s+/i, '').trim()
+      // Capitalize first letter and ensure it's a complete sentence
+      thenText = thenText.charAt(0).toUpperCase() + thenText.slice(1)
+      // Ensure it ends with proper punctuation if it's a sentence
+      if (!thenText.match(/[.!?]$/)) {
+        thenText = thenText + '.'
+      }
+      return thenText
     }
   }
 
@@ -2668,10 +2736,41 @@ function generateExpectedResult(
     }
   }
 
-  // Priority 3: Extract from "should" or "debe" statements
-  const shouldMatch = text.match(/(?:should|debe|must)\s+(.+?)(?:\.|$|and|or)/i)
-  if (shouldMatch && shouldMatch[1] && shouldMatch[1].trim().length > 5) {
-    return shouldMatch[1].trim().charAt(0).toUpperCase() + shouldMatch[1].trim().slice(1)
+  // Priority 3: Extract from "should" or "debe" statements with better context
+  // Handle patterns like "I should be taken to", "should see", "should display"
+  const shouldMatch = text.match(
+    /(?:I\s+)?(?:should|debe|must|will)\s+(?:be\s+)?(?:taken\s+to|see|view|display|show|receive|get)\s+(.+?)(?:\.|$|and|or|,|showing)/i
+  )
+  if (shouldMatch && shouldMatch[1]) {
+    let resultText = shouldMatch[1].trim()
+    // Remove trailing commas and clean up
+    resultText = resultText.replace(/,\s*$/, '').trim()
+    // Remove "showing" or similar trailing words if they're incomplete
+    resultText = resultText.replace(/\s+(showing|with|containing)\s*$/, '').trim()
+    if (resultText.length > 5) {
+      // Capitalize first letter
+      resultText = resultText.charAt(0).toUpperCase() + resultText.slice(1)
+      // Ensure it ends with proper punctuation
+      if (!resultText.match(/[.!?]$/)) {
+        resultText = resultText + '.'
+      }
+      return resultText
+    }
+  }
+
+  // Also try simpler "should" pattern
+  const simpleShouldMatch = text.match(/(?:should|debe|must|will)\s+(.+?)(?:\.|$|and|or|,)/i)
+  if (simpleShouldMatch && simpleShouldMatch[1]) {
+    let resultText = simpleShouldMatch[1].trim()
+    // Skip if it's too generic
+    if (!resultText.match(/^(be|see|view|display|show|get|receive)$/i) && resultText.length > 5) {
+      resultText = resultText.replace(/,\s*$/, '').trim()
+      resultText = resultText.charAt(0).toUpperCase() + resultText.slice(1)
+      if (!resultText.match(/[.!?]$/)) {
+        resultText = resultText + '.'
+      }
+      return resultText
+    }
   }
 
   // Priority 4: Extract from "expected" or "esperado" statements
@@ -2680,7 +2779,26 @@ function generateExpectedResult(
     return expectedMatch[1].trim().charAt(0).toUpperCase() + expectedMatch[1].trim().slice(1)
   }
 
-  // Priority 5: Functionality-specific expected results with more context
+  // Priority 5: Extract from click/navigate actions with specific entities
+  const clickEntityMatch = text.match(
+    /(?:click|select)\s+(?:on\s+)?(?:a\s+)?([a-z\s]+?)(?:\s+name|\s+button|\s+link|$)/i
+  )
+  if (clickEntityMatch && clickEntityMatch[1]) {
+    const entity = clickEntityMatch[1].trim()
+    // Try to find what should happen after clicking
+    const resultMatch = text.match(/(?:should|will|must|then)\s+(.+?)(?:\.|$|and|or)/i)
+    if (resultMatch && resultMatch[1]) {
+      let resultText = resultMatch[1].trim()
+      resultText = resultText.replace(/^(I|be|see|view|display)\s+/i, '').trim()
+      if (resultText.length > 5) {
+        return resultText.charAt(0).toUpperCase() + resultText.slice(1) + '.'
+      }
+    }
+    // Default for click actions
+    return `The ${entity} details page is displayed with all relevant information.`
+  }
+
+  // Priority 6: Functionality-specific expected results with more context
   if (functionality) {
     const funcType = functionality.type
     const funcText = lowerText
@@ -2692,35 +2810,35 @@ function generateExpectedResult(
           funcText.includes('wrong') ||
           funcText.includes('incorrect')
         ) {
-          return 'Error message is displayed indicating invalid credentials'
+          return 'Error message is displayed indicating invalid credentials.'
         }
         if (funcText.includes('logout') || funcText.includes('sign out')) {
-          return 'User is successfully logged out and redirected to login page'
+          return 'User is successfully logged out and redirected to login page.'
         }
-        return 'User is successfully authenticated and redirected to the appropriate page'
+        return 'User is successfully authenticated and redirected to the appropriate page.'
 
       case 'crud':
         if (funcText.includes('create') || funcText.includes('add') || funcText.includes('new')) {
-          return 'New record is successfully created and visible in the list'
+          return 'New record is successfully created and visible in the list.'
         }
         if (
           funcText.includes('read') ||
           funcText.includes('view') ||
           funcText.includes('display')
         ) {
-          return 'Record details are correctly displayed with all information'
+          return 'Record details are correctly displayed with all information.'
         }
         if (
           funcText.includes('update') ||
           funcText.includes('edit') ||
           funcText.includes('modify')
         ) {
-          return 'Record is successfully updated with the new information'
+          return 'Record is successfully updated with the new information.'
         }
         if (funcText.includes('delete') || funcText.includes('remove')) {
-          return 'Record is successfully deleted and removed from the system'
+          return 'Record is successfully deleted and removed from the system.'
         }
-        return 'CRUD operation completes successfully'
+        return 'CRUD operation completes successfully.'
 
       case 'validation':
         if (
@@ -2992,7 +3110,27 @@ function generateExpectedResult(
     }
   }
 
-  return 'Operation completes successfully and expected behavior is verified'
+  // Final fallback: Use context-based generation
+  const contextResult = generateContextBasedExpectedResult(text)
+  if (
+    contextResult &&
+    contextResult !== 'The Expected Outcome Should Be Achieved And Verified Successfully'
+  ) {
+    return contextResult
+  }
+
+  // Last resort: Generate from text analysis
+  if (lowerText.includes('page') || lowerText.includes('view') || lowerText.includes('display')) {
+    return 'The page or view is displayed correctly with all expected elements and information.'
+  }
+  if (lowerText.includes('click') || lowerText.includes('select')) {
+    return 'The selected action is performed successfully and the expected result is displayed.'
+  }
+  if (lowerText.includes('navigate') || lowerText.includes('go to')) {
+    return 'Navigation is successful and the target page is displayed correctly.'
+  }
+
+  return 'The operation completes successfully and the expected behavior is verified.'
 }
 
 function determinePriority(text) {
