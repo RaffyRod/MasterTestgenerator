@@ -2,11 +2,66 @@
   <div id="app">
     <nav class="navbar">
       <div class="nav-container">
-        <div class="nav-left">
+        <!-- Header Section -->
+        <div class="nav-header">
           <div class="logo-wrapper">
             <span class="logo-icon">🧪</span>
             <h1 class="logo">{{ $t('app.title') }}</h1>
           </div>
+          <div class="nav-header-right">
+            <div class="config-menu-wrapper">
+              <button
+                @click="toggleConfigMenu"
+                class="config-toggle"
+                :title="$t('nav.config')"
+                :class="{ active: configMenuOpen }"
+              >
+                <span>⚙️</span>
+              </button>
+              <div v-if="configMenuOpen" class="config-menu" @click.stop>
+                <router-link
+                  to="/ai-config"
+                  class="config-menu-item"
+                  @click="closeConfigMenu"
+                >
+                  <span class="config-menu-icon">🤖</span>
+                  <span class="config-menu-text">{{ $t('nav.aiConfig') }}</span>
+                </router-link>
+                <button
+                  @click="toggleThemeAndClose"
+                  class="config-menu-item"
+                >
+                  <span class="config-menu-icon">
+                    <span v-if="currentTheme === 'light'">🌙</span>
+                    <span v-else>☀️</span>
+                  </span>
+                  <span class="config-menu-text">
+                    {{ currentTheme === 'light' ? $t('nav.darkMode') : $t('nav.lightMode') }}
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div class="language-selector">
+              <button
+                @click="setLocale('en')"
+                :class="['lang-btn', { active: currentLocale === 'en' }]"
+                title="English"
+              >
+                EN
+              </button>
+              <button
+                @click="setLocale('es')"
+                :class="['lang-btn', { active: currentLocale === 'es' }]"
+                title="Español"
+              >
+                ES
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Menu Section -->
+        <div class="nav-menu">
           <button @click="toggleMobileMenu" class="mobile-menu-toggle" aria-label="Toggle menu">
             <span v-if="!mobileMenuOpen">☰</span>
             <span v-else>✕</span>
@@ -20,41 +75,16 @@
               <span class="nav-icon">✅</span>
               <span>{{ $t('nav.testCases') }}</span>
             </router-link>
-          </div>
-        </div>
-        <div class="nav-right">
-          <button
-            @click="toggleTheme"
-            class="theme-toggle"
-            :title="currentTheme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'"
-          >
-            <span v-if="currentTheme === 'light'">🌙</span>
-            <span v-else>☀️</span>
-          </button>
-          <div class="language-selector">
-            <button
-              @click="setLocale('en')"
-              :class="['lang-btn', { active: currentLocale === 'en' }]"
-              title="English"
-            >
-              EN
-            </button>
-            <button
-              @click="setLocale('es')"
-              :class="['lang-btn', { active: currentLocale === 'es' }]"
-              title="Español"
-            >
-              ES
-            </button>
+            <router-link to="/bug-report" class="nav-link" @click="closeMobileMenu">
+              <span class="nav-icon">🐛</span>
+              <span>{{ $t('nav.bugReport') }}</span>
+            </router-link>
           </div>
         </div>
       </div>
     </nav>
     <main class="main-content">
-      <router-view v-if="true" />
-      <div v-if="false" style="padding: 2rem; color: red; background: yellow">
-        DEBUG: Router view should be visible
-      </div>
+      <router-view />
     </main>
     <NotificationToast />
   </div>
@@ -63,7 +93,7 @@
 <script>
 import { useI18n } from 'vue-i18n'
 import { useTheme } from '@shared/composables/useTheme.js'
-import { onMounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import NotificationToast from '@shared/components/NotificationToast.vue'
 
 export default {
@@ -75,6 +105,14 @@ export default {
     const { locale } = useI18n()
     const { currentTheme, toggleTheme, initTheme } = useTheme()
     const mobileMenuOpen = ref(false)
+    const configMenuOpen = ref(false)
+
+    const handleClickOutside = (event) => {
+      const configMenu = document.querySelector('.config-menu-wrapper')
+      if (configMenu && !configMenu.contains(event.target)) {
+        configMenuOpen.value = false
+      }
+    }
 
     onMounted(() => {
       try {
@@ -83,9 +121,15 @@ export default {
         if (savedLocale) {
           locale.value = savedLocale
         }
+        // Close config menu when clicking outside
+        document.addEventListener('click', handleClickOutside)
       } catch (error) {
         console.error('Error initializing app:', error)
       }
+    })
+
+    onUnmounted(() => {
+      document.removeEventListener('click', handleClickOutside)
     })
 
     const toggleMobileMenu = () => {
@@ -96,10 +140,24 @@ export default {
       mobileMenuOpen.value = false
     }
 
+    const toggleConfigMenu = () => {
+      configMenuOpen.value = !configMenuOpen.value
+    }
+
+    const closeConfigMenu = () => {
+      configMenuOpen.value = false
+    }
+
+    const toggleThemeAndClose = () => {
+      toggleTheme()
+      closeConfigMenu()
+    }
+
     return {
       currentLocale: locale,
       currentTheme,
       mobileMenuOpen,
+      configMenuOpen,
       setLocale: lang => {
         try {
           locale.value = lang
@@ -110,7 +168,10 @@ export default {
       },
       toggleTheme,
       toggleMobileMenu,
-      closeMobileMenu
+      closeMobileMenu,
+      toggleConfigMenu,
+      closeConfigMenu,
+      toggleThemeAndClose
     }
   }
 }
@@ -130,6 +191,8 @@ export default {
   --bg-secondary: #1a1a1a;
   --bg-tertiary: #2a2a2a;
   --bg-header: linear-gradient(135deg, #1a1f3a 0%, #2d1b4e 100%);
+  --card-bg: #1a1a1a;
+  --input-bg: #2a2a2a;
   --text-primary: #ffffff;
   --text-secondary: #e0e0e0;
   --text-tertiary: #b0b0b0;
@@ -137,6 +200,7 @@ export default {
   --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.3);
   --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 12px 48px rgba(0, 0, 0, 0.5);
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -146,6 +210,8 @@ export default {
   --bg-secondary: #f5f5f5;
   --bg-tertiary: #fafafa;
   --bg-header: linear-gradient(135deg, #5b8def 0%, #6ba3e8 100%);
+  --card-bg: #ffffff;
+  --input-bg: #f5f5f5;
   --primary-color: #5b8def;
   --secondary-color: #6ba3e8;
   --primary-gradient: linear-gradient(135deg, #5b8def 0%, #6ba3e8 100%);
@@ -156,6 +222,7 @@ export default {
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
+  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 * {
@@ -233,19 +300,37 @@ body {
 .nav-container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.5rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.nav-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 2rem;
-  flex-wrap: wrap;
+  width: 100%;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.nav-left {
+[data-theme='light'] .nav-header {
+  border-bottom-color: rgba(255, 255, 255, 0.2);
+}
+
+.nav-header-right {
   display: flex;
   align-items: center;
-  gap: 2rem;
-  flex: 1;
+  gap: 1rem;
+}
+
+.nav-menu {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
 }
 
 .logo-wrapper {
@@ -288,6 +373,12 @@ body {
   min-height: 44px;
   align-items: center;
   justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu-toggle {
+    display: flex;
+  }
 }
 
 .mobile-menu-toggle:hover {
@@ -362,10 +453,141 @@ body {
   font-size: 1.1rem;
 }
 
-.nav-right {
+
+.config-menu-wrapper {
+  position: relative;
+}
+
+.config-toggle {
+  background: var(--bg-primary) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--primary-color) !important;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1.25rem;
+  width: auto;
+  height: 44px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  visibility: visible !important;
+  opacity: 1 !important;
+  text-decoration: none;
+  min-width: 44px;
+  min-height: 44px;
+  border: none;
+}
+
+.config-toggle:hover {
+  background: var(--bg-tertiary) !important;
+  transform: scale(1.1);
+}
+
+.config-toggle.active {
+  background: var(--primary-gradient) !important;
+  color: white !important;
+}
+
+[data-theme='light'] .config-toggle {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: white !important;
+}
+
+[data-theme='light'] .config-toggle:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-theme='light'] .config-toggle.active {
+  background: var(--primary-gradient) !important;
+  color: white !important;
+}
+
+.config-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0.5rem;
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  min-width: 200px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+[data-theme='light'] .config-menu {
+  background: #ffffff;
+  border-color: #e0e0e0;
+}
+
+[data-theme='dark'] .config-menu {
+  background: #1a1a1a;
+  border-color: #3a3a3a;
+}
+
+.config-menu-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.config-menu-item:hover {
+  background: var(--bg-secondary);
+}
+
+[data-theme='light'] .config-menu-item {
+  color: #000000;
+}
+
+[data-theme='light'] .config-menu-item:hover {
+  background: #f5f5f5;
+}
+
+[data-theme='dark'] .config-menu-item {
+  color: #ffffff;
+}
+
+[data-theme='dark'] .config-menu-item:hover {
+  background: #2a2a2a;
+}
+
+.config-menu-icon {
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+}
+
+.config-menu-text {
+  flex: 1;
 }
 
 .theme-toggle {
@@ -409,6 +631,7 @@ body {
   border-radius: 8px;
   border: 1px solid var(--border-color);
   align-items: center;
+  height: 44px;
 }
 
 [data-theme='light'] .language-selector {
@@ -426,7 +649,10 @@ body {
   font-weight: 600;
   transition: var(--transition);
   min-width: 3rem;
-  display: inline-block !important;
+  height: 100%;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
   visibility: visible !important;
   opacity: 1 !important;
 }
@@ -466,6 +692,8 @@ body {
   width: 100%;
   box-sizing: border-box;
   overflow-x: hidden;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 @media (max-width: 768px) {
@@ -493,12 +721,14 @@ body {
 
 @media (max-width: 1024px) {
   .nav-container {
-    padding: 1.5rem;
+    padding: 1.25rem 1.5rem;
+    gap: 1.25rem;
   }
 
   .logo {
     font-size: 1.75rem;
   }
+
 
   .nav-links {
     flex-wrap: wrap;
@@ -515,10 +745,8 @@ body {
     gap: 1rem;
   }
 
-  .nav-left {
-    width: 100%;
-    justify-content: space-between;
-    position: relative;
+  .nav-header {
+    padding-bottom: 0.75rem;
   }
 
   .mobile-menu-toggle {
@@ -533,18 +761,14 @@ body {
     font-size: 1.25rem;
   }
 
+
   .nav-links {
-    position: absolute;
-    top: calc(100% + 1rem);
-    left: 0;
-    right: 0;
     flex-direction: column;
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 1rem;
     box-shadow: var(--shadow-lg);
-    z-index: 1000;
     max-height: 0;
     overflow: hidden;
     opacity: 0;
@@ -554,7 +778,7 @@ body {
   }
 
   .nav-links.mobile-open {
-    max-height: 300px;
+    max-height: 400px;
     opacity: 1;
     transform: translateY(0);
   }
@@ -576,16 +800,23 @@ body {
     min-height: 48px;
   }
 
-  .nav-right {
+  .nav-header-right {
     width: 100%;
     justify-content: space-between;
     gap: 1rem;
   }
 
+  .config-toggle,
   .theme-toggle,
   .language-selector {
     min-width: 44px;
     min-height: 44px;
+  }
+
+  .config-menu {
+    right: 0;
+    left: auto;
+    min-width: 180px;
   }
 
   .main-content {

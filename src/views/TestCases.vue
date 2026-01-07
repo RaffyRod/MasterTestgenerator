@@ -76,6 +76,29 @@
               </span>
             </div>
           </label>
+          <label class="radio-option">
+            <input type="radio" v-model="aiProvider" :value="AI_PROVIDERS.OPENAI" />
+            <div class="radio-label-content">
+              <span class="radio-label-text">🤖 OpenAI (GPT)</span>
+            </div>
+          </label>
+          <label class="radio-option">
+            <input type="radio" v-model="aiProvider" :value="AI_PROVIDERS.CLAUDE" />
+            <div class="radio-label-content">
+              <span class="radio-label-text">🧠 Anthropic Claude</span>
+            </div>
+          </label>
+          <label class="radio-option">
+            <input type="radio" v-model="aiProvider" :value="AI_PROVIDERS.GEMINI" />
+            <div class="radio-label-content">
+              <span class="radio-label-text">💎 Google Gemini</span>
+            </div>
+          </label>
+          <div class="ai-config-hint">
+            <router-link to="/ai-config" class="config-link">
+              ⚙️ {{ $t('testCase.configureAI') || 'Configure AI Settings' }}
+            </router-link>
+          </div>
         </div>
         <OllamaStatus
           v-if="useAIEnhancement && aiProvider === AI_PROVIDERS.LOCAL"
@@ -263,6 +286,8 @@ import {
 import ExportPreview from '@shared/components/ExportPreview.vue'
 import OllamaStatus from '@shared/components/OllamaStatus.vue'
 import { useNotification } from '@shared/composables/useNotification.js'
+import { useAIConfig } from '@shared/composables/useAIConfig.js'
+import { AI_PROVIDER_CONFIG } from '@core/constants/aiProviders.js'
 
 export default {
   name: 'TestCases',
@@ -273,6 +298,7 @@ export default {
   setup() {
     const { locale, t } = useI18n()
     const { showNotification } = useNotification()
+    const { config: aiConfig, getApiKey, getProviderConfig } = useAIConfig()
     const projectInfo = ref('')
     const format = ref('stepByStep')
     const testsPerAC = ref(1)
@@ -352,18 +378,46 @@ export default {
 
     const checkOllama = async () => {
       try {
-        // Get Ollama URL from environment or use default
-        const ollamaUrl = import.meta.env.VITE_OLLAMA_BASE_URL || 'http://localhost:11434'
+        // Get Ollama URL from saved config or environment or use default
+        const ollamaUrl = aiConfig.value.ollamaUrl || import.meta.env.VITE_OLLAMA_BASE_URL || 'http://localhost:11434'
         ollamaAvailable.value = await checkOllamaAvailability(ollamaUrl)
 
-        if (ollamaAvailable.value && aiProvider.value === AI_PROVIDERS.LOCAL) {
-          configureAI(true, AI_PROVIDERS.LOCAL)
-          initAIService(AI_PROVIDERS.LOCAL, ollamaUrl)
-        } else if (aiProvider.value === AI_PROVIDERS.ONLINE) {
+        // Only initialize AI service if user has selected a provider
+        // Default behavior: use Local/Online without saved config
+        const currentProvider = aiProvider.value || AI_PROVIDERS.ONLINE
+
+        if (currentProvider === AI_PROVIDERS.LOCAL) {
+          if (ollamaAvailable.value) {
+            configureAI(true, AI_PROVIDERS.LOCAL)
+            initAIService(AI_PROVIDERS.LOCAL, {
+              ollamaUrl: ollamaUrl
+            })
+          } else {
+            configureAI(false)
+          }
+        } else if (currentProvider === AI_PROVIDERS.ONLINE) {
+          // Use Online (Hugging Face) - no config needed
           configureAI(true, AI_PROVIDERS.ONLINE)
           initAIService(AI_PROVIDERS.ONLINE)
         } else {
-          configureAI(false)
+          // Custom provider (OpenAI, Claude, Gemini, Custom) - use saved config
+          const savedApiKey = getApiKey(currentProvider)
+          const savedModel = aiConfig.value.model || ''
+          const savedCustomEndpoint = aiConfig.value.customEndpoint || ''
+
+          if (savedApiKey || currentProvider === AI_PROVIDERS.CUSTOM) {
+            configureAI(true, currentProvider)
+            initAIService(currentProvider, {
+              apiKey: savedApiKey,
+              model: savedModel,
+              customEndpoint: savedCustomEndpoint,
+              ollamaUrl: ollamaUrl
+            })
+          } else {
+            // No API key configured for custom provider, fallback to Online
+            configureAI(true, AI_PROVIDERS.ONLINE)
+            initAIService(AI_PROVIDERS.ONLINE)
+          }
         }
       } catch (error) {
         console.error('Error checking Ollama:', error)
@@ -383,6 +437,29 @@ export default {
         // Configure AI based on user selection
         if (useAIEnhancement.value) {
           await checkOllama()
+          
+          // Check if custom provider needs API key
+          const customProviders = [
+            AI_PROVIDERS.OPENAI,
+            AI_PROVIDERS.CLAUDE,
+            AI_PROVIDERS.GEMINI,
+            AI_PROVIDERS.CUSTOM
+          ]
+          
+          if (customProviders.includes(aiProvider.value)) {
+            const apiKey = getApiKey(aiProvider.value)
+            if (!apiKey && aiProvider.value !== AI_PROVIDERS.CUSTOM) {
+              showNotification(
+                t('notifications.aiConfigRequired') || 'Please configure API key in AI Settings',
+                'warning',
+                5000
+              )
+              // Fallback to Online
+              aiProvider.value = AI_PROVIDERS.ONLINE
+              await checkOllama()
+            }
+          }
+          
           if (!ollamaAvailable.value && aiProvider.value === AI_PROVIDERS.LOCAL) {
             showNotification(t('notifications.aiNotAvailable'), 'warning', 4000)
           }
@@ -469,6 +546,22 @@ export default {
     }
 
     onMounted(async () => {
+      // Don't auto-load saved config - let user choose Local/Online by default
+      // Only use saved config if it's a custom provider (OpenAI, Claude, Gemini, Custom)
+      const savedConfig = aiConfig.value
+      const customProviders = [
+        AI_PROVIDERS.OPENAI,
+        AI_PROVIDERS.CLAUDE,
+        AI_PROVIDERS.GEMINI,
+        AI_PROVIDERS.CUSTOM
+      ]
+      
+      // Only auto-load if it's a custom provider that requires configuration
+      if (savedConfig.provider && customProviders.includes(savedConfig.provider)) {
+        // Make it available but don't auto-select it
+        // User can still select Local/Online if they want
+      }
+
       // Check Ollama availability on mount
       await checkOllama()
 
@@ -488,6 +581,13 @@ export default {
     // Watch for provider changes
     watch(aiProvider, async newProvider => {
       if (newProvider === AI_PROVIDERS.LOCAL) {
+        await checkOllama()
+      } else if (newProvider === AI_PROVIDERS.ONLINE) {
+        // Reinitialize Online provider
+        configureAI(true, AI_PROVIDERS.ONLINE)
+        initAIService(AI_PROVIDERS.ONLINE)
+      } else {
+        // Custom provider - check if configured
         await checkOllama()
       }
     })
@@ -1818,5 +1918,35 @@ export default {
 
 [data-theme='dark'] .form-hint {
   color: #e0e0e0 !important;
+}
+
+.ai-config-hint {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.config-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--primary-color);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.config-link:hover {
+  text-decoration: underline;
+  color: var(--primary-color-dark, #5568d3);
+}
+
+[data-theme='light'] .config-link {
+  color: #667eea !important;
+}
+
+[data-theme='dark'] .config-link {
+  color: #8b9aff !important;
 }
 </style>

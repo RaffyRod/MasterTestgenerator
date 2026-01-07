@@ -1,0 +1,1742 @@
+<template>
+  <div class="bug-report-view">
+    <div class="header">
+      <div class="header-icon">🐛</div>
+      <h1>{{ $t('bugReport.title') }}</h1>
+      <p class="subtitle">{{ $t('bugReport.subtitle') }}</p>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="progress-indicator">
+      <div class="progress-step" :class="{ active: bugData.title.trim() !== '', completed: bugData.title.trim() !== '' }">
+        <div class="step-number">1</div>
+        <div class="step-label">{{ $t('bugReport.titleLabel') }}</div>
+      </div>
+      <div class="progress-line" :class="{ active: bugData.title.trim() !== '' }"></div>
+      <div class="progress-step" :class="{ active: bugData.description.trim() !== '', completed: bugData.description.trim() !== '' }">
+        <div class="step-number">2</div>
+        <div class="step-label">{{ $t('bugReport.description') }}</div>
+      </div>
+      <div class="progress-line" :class="{ active: isFormValid }"></div>
+      <div class="progress-step" :class="{ active: isFormValid, completed: generatedReport !== '' }">
+        <div class="step-number">3</div>
+        <div class="step-label">{{ $t('bugReport.generatedReport') }}</div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <!-- Essential Information -->
+      <div class="section-header">
+        <h2>📝 {{ $t('bugReport.essentialInfo') || 'Essential Information' }}</h2>
+        <p class="section-subtitle">{{ $t('bugReport.essentialInfoHint') || 'Tell us about the bug' }}</p>
+      </div>
+
+      <div class="form-group full-width">
+        <label for="bug-title" class="label-with-indicator">
+          {{ $t('bugReport.titleLabel') }} *
+          <span v-if="bugData.title.trim() !== ''" class="field-indicator valid">✓</span>
+          <span v-else class="field-indicator invalid">!</span>
+        </label>
+        <input
+          id="bug-title"
+          v-model="bugData.title"
+          type="text"
+          :placeholder="$t('bugReport.titlePlaceholder')"
+          class="text-input"
+          :class="{ 'input-valid': bugData.title.trim() !== '', 'input-invalid': bugData.title.trim() === '' && touchedFields.title }"
+          @blur="touchedFields.title = true"
+          required
+        />
+        <div v-if="bugData.title.trim() === '' && touchedFields.title" class="error-message">
+          {{ $t('bugReport.titleRequired') || 'Title is required' }}
+        </div>
+      </div>
+
+      <div class="form-group full-width">
+        <label for="description" class="label-with-indicator">
+          {{ $t('bugReport.description') }} *
+          <span v-if="bugData.description.trim() !== ''" class="field-indicator valid">✓</span>
+          <span v-else class="field-indicator invalid">!</span>
+        </label>
+        <textarea
+          id="description"
+          v-model="bugData.description"
+          :placeholder="$t('bugReport.descriptionPlaceholder')"
+          rows="6"
+          class="textarea-input"
+          :class="{ 'input-valid': bugData.description.trim() !== '', 'input-invalid': bugData.description.trim() === '' && touchedFields.description }"
+          @blur="touchedFields.description = true"
+          required
+        ></textarea>
+        <small class="form-hint">
+          <span class="hint-icon">💡</span>
+          {{ $t('bugReport.descriptionHint') }}
+        </small>
+        <div v-if="bugData.description.trim() === '' && touchedFields.description" class="error-message">
+          {{ $t('bugReport.descriptionRequired') || 'Description is required' }}
+        </div>
+        <div class="char-counter">
+          {{ bugData.description.length }} {{ $t('bugReport.characters') || 'characters' }}
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="priority">{{ $t('bugReport.priority') }}</label>
+          <div class="select-wrapper">
+            <select id="priority" v-model="bugData.priority" class="select-input">
+              <option value="Critical">{{ $t('bugReport.priorityCritical') }}</option>
+              <option value="High">{{ $t('bugReport.priorityHigh') }}</option>
+              <option value="Medium">{{ $t('bugReport.priorityMedium') }}</option>
+              <option value="Low">{{ $t('bugReport.priorityLow') }}</option>
+            </select>
+            <span class="priority-badge" :class="bugData.priority.toLowerCase()">{{ bugData.priority }}</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="severity">{{ $t('bugReport.severity') }}</label>
+          <div class="select-wrapper">
+            <select id="severity" v-model="bugData.severity" class="select-input">
+              <option value="Blocker">{{ $t('bugReport.severityBlocker') }}</option>
+              <option value="Critical">{{ $t('bugReport.severityCritical') }}</option>
+              <option value="Major">{{ $t('bugReport.severityMajor') }}</option>
+              <option value="Minor">{{ $t('bugReport.severityMinor') }}</option>
+              <option value="Trivial">{{ $t('bugReport.severityTrivial') }}</option>
+            </select>
+            <span class="severity-badge" :class="bugData.severity.toLowerCase()">{{ bugData.severity }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collapsible Optional Information -->
+      <div class="collapsible-section">
+        <button @click="showOptionalInfo = !showOptionalInfo" class="collapsible-header" type="button">
+          <span class="collapsible-icon" :class="{ rotated: showOptionalInfo }">▼</span>
+          <span>{{ $t('bugReport.optionalInfo') || 'Optional Information' }}</span>
+          <span class="collapsible-badge">{{ $t('bugReport.autoDetected') || 'Auto-detected' }}</span>
+        </button>
+        <div class="collapsible-content" :class="{ expanded: showOptionalInfo }">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="environment">
+                <span class="label-icon">🌍</span>
+                {{ $t('bugReport.environment') }}
+              </label>
+              <input
+                id="environment"
+                v-model="bugData.environment"
+                type="text"
+                :placeholder="$t('bugReport.environmentPlaceholder')"
+                class="text-input"
+              />
+            </div>
+            <div class="form-group">
+              <label for="browser">
+                <span class="label-icon">🌐</span>
+                {{ $t('bugReport.browser') }}
+              </label>
+              <input
+                id="browser"
+                v-model="bugData.browser"
+                type="text"
+                :placeholder="$t('bugReport.browserPlaceholder')"
+                class="text-input"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="os">
+                <span class="label-icon">💻</span>
+                {{ $t('bugReport.operatingSystem') }}
+              </label>
+              <input
+                id="os"
+                v-model="bugData.operatingSystem"
+                type="text"
+                :placeholder="$t('bugReport.osPlaceholder')"
+                class="text-input"
+              />
+            </div>
+            <div class="form-group">
+              <label for="version">
+                <span class="label-icon">🔢</span>
+                {{ $t('bugReport.version') }}
+              </label>
+              <input
+                id="version"
+                v-model="bugData.version"
+                type="text"
+                :placeholder="$t('bugReport.versionPlaceholder')"
+                class="text-input"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Evidence Section -->
+      <div class="form-group full-width">
+        <label class="label-with-count">
+          <span class="label-icon">📎</span>
+          {{ $t('bugReport.evidence') }}
+          <span v-if="evidenceFiles.length > 0" class="file-count">{{ evidenceFiles.length }} {{ $t('bugReport.files') || 'files' }}</span>
+        </label>
+        <div class="evidence-section">
+          <div 
+            class="file-upload-area" 
+            :class="{ 'drag-over': isDragging }"
+            @click="triggerFileInput" 
+            @dragover.prevent="isDragging = true"
+            @dragleave.prevent="isDragging = false"
+            @drop.prevent="handleDrop"
+          >
+            <input
+              ref="fileInput"
+              type="file"
+              multiple
+              accept="image/*,.txt,.log,.json"
+              @change="handleFileSelect"
+              class="file-input"
+            />
+            <div class="upload-content">
+              <span class="upload-icon">📎</span>
+              <p class="upload-text">{{ $t('bugReport.uploadText') }}</p>
+              <p class="upload-hint">{{ $t('bugReport.uploadHint') }}</p>
+            </div>
+          </div>
+          <div v-if="evidenceFiles.length > 0" class="evidence-list">
+            <transition-group name="evidence-fade" tag="div" class="evidence-grid">
+              <div v-for="(file, index) in evidenceFiles" :key="index" class="evidence-item">
+                <div class="evidence-preview">
+                  <img
+                    v-if="file.type.startsWith('image/')"
+                    :src="file.preview"
+                    :alt="file.name"
+                    class="evidence-image"
+                  />
+                  <div v-else class="evidence-icon">📄</div>
+                  <div class="evidence-overlay">
+                    <button @click.stop="removeEvidence(index)" class="btn-remove" :title="$t('bugReport.remove')">
+                      ✕
+                    </button>
+                  </div>
+                </div>
+                <div class="evidence-info">
+                  <p class="evidence-name" :title="file.name">{{ file.name }}</p>
+                  <p class="evidence-size">{{ formatFileSize(file.size) }}</p>
+                </div>
+              </div>
+            </transition-group>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Toggle -->
+      <div class="form-group full-width ai-toggle-section">
+        <label class="checkbox-label">
+          <input type="checkbox" v-model="useAI" class="ai-toggle" />
+          <span class="checkbox-text">
+            <span class="ai-icon">🤖</span>
+            {{ $t('bugReport.useAI') || 'Use AI to generate bug report' }}
+            <span class="ai-badge" v-if="useAI">{{ $t('bugReport.enabled') || 'Enabled' }}</span>
+          </span>
+        </label>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="button-group">
+        <button 
+          @click="generateReport" 
+          :disabled="!isFormValid || generating" 
+          class="btn btn-primary generate-btn"
+          :class="{ 'btn-loading': generating }"
+        >
+          <span v-if="generating" class="spinner"></span>
+          <span v-else class="btn-icon">🚀</span>
+          <span>{{ generating ? $t('bugReport.generating') : $t('bugReport.generate') }}</span>
+        </button>
+        <button @click="clearForm" class="btn btn-secondary" :disabled="generating">
+          <span class="btn-icon">🗑️</span>
+          <span>{{ $t('bugReport.clear') }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Generated Report Section -->
+    <transition name="slide-up">
+      <div v-if="generatedReport" class="report-section">
+        <div class="report-header">
+          <div class="report-header-left">
+            <h2>
+              <span class="report-icon">✅</span>
+              {{ $t('bugReport.generatedReport') }}
+            </h2>
+            <p class="report-subtitle">{{ $t('bugReport.reportReady') || 'Your bug report is ready to copy' }}</p>
+          </div>
+          <div class="report-actions">
+            <button @click="copyReport" class="btn btn-primary copy-btn">
+              <span class="btn-icon">📋</span>
+              <span>{{ $t('bugReport.copy') }}</span>
+            </button>
+            <select v-model="reportFormat" @change="regenerateReport" class="format-select">
+              <option value="jira">{{ $t('bugReport.formatJira') }}</option>
+              <option value="markdown">{{ $t('bugReport.formatMarkdown') }}</option>
+              <option value="plain">{{ $t('bugReport.formatPlain') }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="report-content">
+          <pre class="report-text">{{ generatedReport }}</pre>
+        </div>
+      </div>
+    </transition>
+  </div>
+</template>
+
+<script>
+import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useNotification } from '@shared/composables/useNotification.js'
+import { formatBugReport } from '@features/bug-reports/utils/bugReportFormatter.js'
+import { generateBugReportWithAI } from '@core/ai/aiService.js'
+import { useAIConfig } from '@shared/composables/useAIConfig.js'
+import { initAIService } from '@core/ai/aiService.js'
+
+export default {
+  name: 'BugReport',
+  setup() {
+    const { t, locale } = useI18n()
+    const { showNotification } = useNotification()
+    const { config: aiConfig, getApiKey } = useAIConfig()
+    const fileInput = ref(null)
+
+    const bugData = ref({
+      title: '',
+      priority: 'Medium',
+      severity: 'Major',
+      description: '',
+      environment: '',
+      browser: '',
+      operatingSystem: '',
+      version: '',
+      additionalInfo: ''
+    })
+
+    const aiGeneratedData = ref({
+      stepsToReproduce: '',
+      expectedResult: '',
+      actualResult: '',
+      additionalInfo: ''
+    })
+
+    const evidenceFiles = ref([])
+    const generatedReport = ref('')
+    const reportFormat = ref('jira')
+    const generating = ref(false)
+    const useAI = ref(true)
+    const showOptionalInfo = ref(false)
+    const isDragging = ref(false)
+    const touchedFields = ref({
+      title: false,
+      description: false
+    })
+
+    const isFormValid = computed(() => {
+      return bugData.value.title.trim() !== '' && bugData.value.description.trim() !== ''
+    })
+
+    onMounted(() => {
+      // Auto-detect environment info
+      detectEnvironment()
+    })
+
+    function detectEnvironment() {
+      if (typeof navigator !== 'undefined') {
+        // Detect browser
+        const userAgent = navigator.userAgent
+        if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) {
+          bugData.value.browser = 'Chrome ' + (userAgent.match(/Chrome\/(\d+)/)?.[1] || '')
+        } else if (userAgent.includes('Firefox')) {
+          bugData.value.browser = 'Firefox ' + (userAgent.match(/Firefox\/(\d+)/)?.[1] || '')
+        } else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
+          bugData.value.browser = 'Safari ' + (userAgent.match(/Version\/(\d+)/)?.[1] || '')
+        } else if (userAgent.includes('Edg')) {
+          bugData.value.browser = 'Edge ' + (userAgent.match(/Edg\/(\d+)/)?.[1] || '')
+        }
+
+        // Detect OS
+        if (userAgent.includes('Windows')) {
+          bugData.value.operatingSystem = 'Windows'
+        } else if (userAgent.includes('Mac')) {
+          bugData.value.operatingSystem = 'macOS'
+        } else if (userAgent.includes('Linux')) {
+          bugData.value.operatingSystem = 'Linux'
+        } else if (userAgent.includes('Android')) {
+          bugData.value.operatingSystem = 'Android'
+        } else if (userAgent.includes('iOS')) {
+          bugData.value.operatingSystem = 'iOS'
+        }
+      }
+    }
+
+    function triggerFileInput() {
+      fileInput.value?.click()
+    }
+
+    function handleFileSelect(event) {
+      const files = Array.from(event.target.files)
+      addFiles(files)
+    }
+
+    function handleDrop(event) {
+      isDragging.value = false
+      const files = Array.from(event.dataTransfer.files)
+      addFiles(files)
+    }
+
+    function addFiles(files) {
+      files.forEach(file => {
+        if (file.type.startsWith('image/')) {
+          const reader = new FileReader()
+          reader.onload = e => {
+            evidenceFiles.value.push({
+              file: file,
+              name: file.name,
+              size: file.size,
+              type: file.type,
+              preview: e.target.result
+            })
+          }
+          reader.readAsDataURL(file)
+        } else {
+          evidenceFiles.value.push({
+            file: file,
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            preview: null
+          })
+        }
+      })
+    }
+
+    function removeEvidence(index) {
+      evidenceFiles.value.splice(index, 1)
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 Bytes'
+      const k = 1024
+      const sizes = ['Bytes', 'KB', 'MB', 'GB']
+      const i = Math.floor(Math.log(bytes) / Math.log(k))
+      return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
+    }
+
+    async function generateReport() {
+      if (!isFormValid.value) {
+        showNotification('error', t('bugReport.validationError'))
+        return
+      }
+
+      generating.value = true
+
+      try {
+        let finalBugData = { ...bugData.value }
+
+        // Use AI to generate steps, expected result, and actual result
+        if (useAI.value) {
+          try {
+            // Initialize AI service with saved config
+            const savedProvider = aiConfig.value.provider || 'online'
+            const savedApiKey = getApiKey(savedProvider)
+            const savedModel = aiConfig.value.model || ''
+            const savedCustomEndpoint = aiConfig.value.customEndpoint || ''
+
+            initAIService(savedProvider, {
+              apiKey: savedApiKey,
+              model: savedModel,
+              customEndpoint: savedCustomEndpoint
+            })
+
+            const aiResult = await generateBugReportWithAI(bugData.value, locale.value)
+            
+            if (aiResult.stepsToReproduce && aiResult.expectedResult && aiResult.actualResult) {
+              aiGeneratedData.value = aiResult
+              finalBugData = {
+                ...bugData.value,
+                stepsToReproduce: aiResult.stepsToReproduce,
+                expectedResult: aiResult.expectedResult,
+                actualResult: aiResult.actualResult,
+                additionalInfo: aiResult.additionalInfo || bugData.value.additionalInfo
+              }
+            } else {
+              // Fallback if AI doesn't generate complete data
+              showNotification('warning', t('bugReport.aiPartialGeneration') || 'AI generated partial data, using fallback')
+              finalBugData = createFallbackBugData()
+            }
+          } catch (aiError) {
+            console.error('AI generation failed, using fallback:', aiError)
+            showNotification('warning', t('bugReport.aiGenerationFailed') || 'AI generation failed, using fallback')
+            finalBugData = createFallbackBugData()
+          }
+        } else {
+          // Manual mode - use fallback generation
+          finalBugData = createFallbackBugData()
+        }
+
+        const report = formatBugReport(finalBugData, evidenceFiles.value, reportFormat.value)
+        generatedReport.value = report
+        showNotification('success', t('bugReport.reportGenerated'))
+      } catch (error) {
+        console.error('Error generating report:', error)
+        showNotification('error', t('bugReport.generationError'))
+      } finally {
+        generating.value = false
+      }
+    }
+
+    function createFallbackBugData() {
+      // Generate basic steps from description
+      const description = bugData.value.description
+      const sentences = description.split(/[.!?]/).filter(s => s.trim().length > 0)
+      
+      let steps = ''
+      if (sentences.length > 0) {
+        steps = sentences
+          .slice(0, 5)
+          .map((sentence, index) => `${index + 1}. ${sentence.trim()}`)
+          .join('\n')
+      } else {
+        steps = `1. Navigate to the application\n2. Perform the action described\n3. Observe the issue`
+      }
+
+      return {
+        ...bugData.value,
+        stepsToReproduce: steps,
+        expectedResult: 'The feature should work as expected without errors',
+        actualResult: bugData.value.description.substring(0, 200) || 'The issue occurs as described',
+        additionalInfo: bugData.value.additionalInfo || ''
+      }
+    }
+
+    function regenerateReport() {
+      if (generatedReport.value) {
+        generateReport()
+      }
+    }
+
+    async function copyReport() {
+      if (!generatedReport.value) {
+        showNotification('warning', t('bugReport.noReportToCopy'))
+        return
+      }
+
+      try {
+        await navigator.clipboard.writeText(generatedReport.value)
+        showNotification('success', t('bugReport.copied'))
+      } catch (error) {
+        console.error('Error copying report:', error)
+        // Fallback
+        const textArea = document.createElement('textarea')
+        textArea.value = generatedReport.value
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.select()
+        document.execCommand('copy')
+        document.body.removeChild(textArea)
+        showNotification('success', t('bugReport.copied'))
+      }
+    }
+
+    function clearForm() {
+      bugData.value = {
+        title: '',
+        priority: 'Medium',
+        severity: 'Major',
+        description: '',
+        environment: '',
+        browser: '',
+        operatingSystem: '',
+        version: '',
+        additionalInfo: ''
+      }
+      aiGeneratedData.value = {
+        stepsToReproduce: '',
+        expectedResult: '',
+        actualResult: '',
+        additionalInfo: ''
+      }
+      evidenceFiles.value = []
+      generatedReport.value = ''
+      touchedFields.value = {
+        title: false,
+        description: false
+      }
+      showOptionalInfo.value = false
+      detectEnvironment()
+      showNotification('success', t('bugReport.formCleared'))
+    }
+
+    return {
+      bugData,
+      evidenceFiles,
+      generatedReport,
+      reportFormat,
+      generating,
+      isFormValid,
+      useAI,
+      showOptionalInfo,
+      isDragging,
+      touchedFields,
+      fileInput,
+      triggerFileInput,
+      handleFileSelect,
+      handleDrop,
+      removeEvidence,
+      formatFileSize,
+      generateReport,
+      regenerateReport,
+      copyReport,
+      clearForm
+    }
+  }
+}
+</script>
+
+<style scoped>
+.bug-report-view {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  margin-bottom: 3rem;
+  text-align: center;
+  position: relative;
+}
+
+.header-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: var(--primary-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin-top: 0.5rem;
+}
+
+/* Progress Indicator */
+.progress-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 3rem;
+  padding: 1.5rem;
+  background: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.step-number {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--input-bg);
+  border: 3px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--text-secondary);
+  transition: all 0.3s ease;
+}
+
+.progress-step.active .step-number {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  transform: scale(1.1);
+}
+
+.progress-step.completed .step-number {
+  background: #10b981;
+  border-color: #10b981;
+  color: white;
+}
+
+.progress-step.completed .step-number::after {
+  content: '✓';
+  font-size: 1.2rem;
+}
+
+.step-label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-align: center;
+  max-width: 100px;
+}
+
+.progress-step.active .step-label {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.progress-line {
+  width: 80px;
+  height: 3px;
+  background: var(--border-color);
+  margin: 0 1rem;
+  transition: all 0.3s ease;
+}
+
+.progress-line.active {
+  background: var(--primary-color);
+}
+
+.form-section {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.form-section:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.section-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.section-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.label-with-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.label-with-count {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.label-icon {
+  font-size: 1.1rem;
+  margin-right: 0.25rem;
+}
+
+.field-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+.field-indicator.valid {
+  background: #10b981;
+  color: white;
+  animation: scaleIn 0.3s ease;
+}
+
+.field-indicator.invalid {
+  background: #ef4444;
+  color: white;
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.error-message {
+  color: #ef4444;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.char-counter {
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+.text-input,
+.textarea-input,
+.select-input {
+  width: 100%;
+  padding: 0.875rem;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+  font-family: inherit;
+  list-style: none !important;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.select-input option {
+  list-style: none !important;
+  padding: 0.5rem;
+}
+
+.textarea-input {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.text-input:focus,
+.textarea-input:focus,
+.select-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  transform: translateY(-1px);
+}
+
+.input-valid {
+  border-color: #10b981 !important;
+}
+
+.input-valid:focus {
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
+}
+
+.input-invalid {
+  border-color: #ef4444 !important;
+}
+
+.input-invalid:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+}
+
+.select-wrapper {
+  position: relative;
+}
+
+.priority-badge,
+.severity-badge {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.priority-badge.critical,
+.severity-badge.critical,
+.severity-badge.blocker {
+  background: #ef4444;
+  color: white;
+}
+
+.priority-badge.high,
+.severity-badge.major {
+  background: #f59e0b;
+  color: white;
+}
+
+.priority-badge.medium {
+  background: #3b82f6;
+  color: white;
+}
+
+.priority-badge.low,
+.severity-badge.minor,
+.severity-badge.trivial {
+  background: #10b981;
+  color: white;
+}
+
+/* Dark mode styles for select */
+[data-theme='dark'] .select-input {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border-color: #3a3a3a !important;
+}
+
+[data-theme='dark'] .select-input option {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  padding: 0.5rem;
+  list-style: none;
+}
+
+[data-theme='dark'] .select-input option:hover,
+[data-theme='dark'] .select-input option:checked {
+  background: #2a2a2a !important;
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .select-input:hover {
+  border-color: var(--primary-color) !important;
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .select-input:focus {
+  border-color: var(--primary-color) !important;
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .select-input:focus option {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
+/* Light mode styles for select */
+[data-theme='light'] .select-input {
+  background: #f5f5f5 !important;
+  color: #000000 !important;
+  border-color: #e0e0e0 !important;
+}
+
+[data-theme='light'] .select-input option {
+  background: #ffffff !important;
+  color: #000000 !important;
+  padding: 0.5rem;
+}
+
+[data-theme='light'] .select-input option:hover,
+[data-theme='light'] .select-input option:checked {
+  background: #f0f0f0 !important;
+  color: #000000 !important;
+}
+
+[data-theme='light'] .select-input:hover {
+  border-color: var(--primary-color) !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Format select styles */
+[data-theme='dark'] .format-select {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  border-color: #3a3a3a !important;
+  list-style: none !important;
+}
+
+[data-theme='dark'] .format-select option {
+  background: #1a1a1a !important;
+  color: #ffffff !important;
+  list-style: none !important;
+}
+
+[data-theme='light'] .format-select {
+  background: #f5f5f5 !important;
+  color: #000000 !important;
+  border-color: #e0e0e0 !important;
+}
+
+[data-theme='light'] .format-select option {
+  background: #ffffff !important;
+  color: #000000 !important;
+  list-style: none;
+}
+
+.form-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  padding: 0.75rem;
+  background: var(--input-bg);
+  border-radius: 8px;
+  border-left: 3px solid var(--primary-color);
+}
+
+.hint-icon {
+  font-size: 1rem;
+}
+
+.file-count {
+  background: var(--primary-color);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: auto;
+}
+
+.ai-toggle-section {
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(139, 154, 255, 0.05));
+  border-radius: 12px;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+.checkbox-text {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.ai-icon {
+  font-size: 1.5rem;
+}
+
+.ai-badge {
+  background: var(--primary-color);
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: auto;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.ai-toggle {
+  margin-right: 0.75rem;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  accent-color: var(--primary-color);
+  transform: scale(1.2);
+}
+
+.evidence-section {
+  margin-top: 1rem;
+}
+
+.file-upload-area {
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: var(--input-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+.file-upload-area::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.file-upload-area:hover::before {
+  left: 100%;
+}
+
+.file-upload-area:hover {
+  border-color: var(--primary-color);
+  background: var(--card-bg);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.file-upload-area.drag-over {
+  border-color: var(--primary-color);
+  background: rgba(102, 126, 234, 0.05);
+  transform: scale(1.02);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+}
+
+.file-input {
+  display: none;
+}
+
+.upload-content {
+  pointer-events: none;
+}
+
+.upload-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.upload-text {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.upload-hint {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+.evidence-list {
+  margin-top: 1.5rem;
+}
+
+.evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.evidence-fade-enter-active,
+.evidence-fade-leave-active {
+  transition: all 0.3s ease;
+}
+
+.evidence-fade-enter-from {
+  opacity: 0;
+  transform: scale(0.8) translateY(-10px);
+}
+
+.evidence-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.8) translateY(10px);
+}
+
+.evidence-item {
+  position: relative;
+  background: var(--input-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.evidence-item:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(102, 126, 234, 0.2);
+}
+
+.evidence-item:hover .evidence-overlay {
+  opacity: 1;
+}
+
+.evidence-preview {
+  width: 100%;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-bg);
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+}
+
+.evidence-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 10px;
+}
+
+.evidence-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.evidence-icon {
+  font-size: 2rem;
+}
+
+.evidence-info {
+  width: 100%;
+  text-align: center;
+}
+
+.evidence-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+  word-break: break-word;
+}
+
+.evidence-size {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.btn-remove {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.95);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+}
+
+.btn-remove:hover {
+  background: rgba(239, 68, 68, 1);
+  transform: scale(1.15) rotate(90deg);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.6);
+}
+
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 0.875rem 1.75rem;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  min-height: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--primary-gradient);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.generate-btn {
+  min-width: 180px;
+  position: relative;
+  overflow: hidden;
+}
+
+.generate-btn.btn-loading {
+  pointer-events: none;
+}
+
+.btn-icon {
+  font-size: 1.1rem;
+}
+
+.copy-btn {
+  min-width: 140px;
+}
+
+.btn-secondary {
+  background: var(--card-bg);
+  color: var(--text-primary);
+  border: 2px solid var(--border-color);
+}
+
+.btn-secondary:hover {
+  border-color: var(--primary-color);
+  background: var(--input-bg);
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Collapsible Section */
+.collapsible-section {
+  margin: 1.5rem 0;
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.collapsible-section:hover {
+  border-color: var(--primary-color);
+}
+
+.collapsible-header {
+  width: 100%;
+  padding: 1.25rem 1.5rem;
+  background: var(--input-bg);
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+.collapsible-header:hover {
+  background: var(--card-bg);
+}
+
+.collapsible-icon {
+  transition: transform 0.3s ease;
+  font-size: 0.875rem;
+}
+
+.collapsible-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.collapsible-badge {
+  margin-left: auto;
+  background: #10b981;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.collapsible-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+  padding: 0 1.5rem;
+}
+
+.collapsible-content.expanded {
+  max-height: 500px;
+  padding: 1.5rem;
+}
+
+/* Report Section */
+.report-section {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 2.5rem;
+  box-shadow: var(--card-shadow);
+  margin-top: 2rem;
+  border: 2px solid var(--primary-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.report-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--primary-gradient);
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.report-header-left {
+  flex: 1;
+}
+
+.report-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.report-icon {
+  font-size: 2rem;
+  animation: bounce 2s infinite;
+}
+
+.report-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-top: 0.25rem;
+}
+
+.report-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.format-select {
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.report-content {
+  background: var(--input-bg);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2rem;
+  overflow-x: auto;
+  position: relative;
+}
+
+.report-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--primary-gradient);
+  border-radius: 12px 0 0 12px;
+}
+
+.report-text {
+  margin: 0;
+  font-family: 'Courier New', 'Monaco', monospace;
+  font-size: 0.9rem;
+  line-height: 1.8;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  padding-left: 1rem;
+}
+
+/* Animations */
+.slide-up-enter-active {
+  transition: all 0.5s ease;
+}
+
+.slide-up-enter-from {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.slide-up-enter-to {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .bug-report-view {
+    padding: 1rem;
+  }
+
+  .header-icon {
+    font-size: 3rem;
+  }
+
+  .header h1 {
+    font-size: 2rem;
+  }
+
+  .progress-indicator {
+    padding: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .progress-step {
+    flex: 1;
+    min-width: 80px;
+  }
+
+  .step-label {
+    font-size: 0.75rem;
+    max-width: none;
+  }
+
+  .progress-line {
+    width: 40px;
+    margin: 0 0.5rem;
+  }
+
+  .form-section {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+
+  .section-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .select-wrapper {
+    position: relative;
+  }
+
+  .priority-badge,
+  .severity-badge {
+    display: none;
+  }
+
+  .collapsible-content.expanded {
+    max-height: 800px;
+  }
+
+  .report-section {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+
+  .report-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .report-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .report-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .format-select {
+    width: 100%;
+  }
+
+  .copy-btn {
+    width: 100%;
+  }
+
+  .evidence-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .button-group {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .generate-btn {
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .bug-report-view {
+    padding: 0.75rem;
+  }
+
+  .header-icon {
+    font-size: 2.5rem;
+  }
+
+  .header h1 {
+    font-size: 1.75rem;
+  }
+
+  .progress-indicator {
+    padding: 0.75rem;
+  }
+
+  .step-number {
+    width: 32px;
+    height: 32px;
+    font-size: 0.875rem;
+  }
+
+  .step-label {
+    font-size: 0.7rem;
+  }
+
+  .form-section {
+    padding: 1.25rem;
+  }
+
+  .evidence-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+

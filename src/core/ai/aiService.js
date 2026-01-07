@@ -1,24 +1,36 @@
 /**
  * AI Service for Test Plan and Test Case Generation
- * Supports both local (Ollama) and online (Hugging Face) AI models
+ * Supports multiple AI providers: Ollama, Hugging Face, OpenAI, Claude, Gemini
  */
 
 import { AI_PROVIDERS, DEFAULT_OLLAMA_URL } from '@core/constants/aiProviders.js'
 
 let currentProvider = AI_PROVIDERS.ONLINE // Default to online
 let ollamaBaseUrl = DEFAULT_OLLAMA_URL // Default Ollama URL
+let currentConfig = {
+  provider: AI_PROVIDERS.ONLINE,
+  apiKey: '',
+  model: '',
+  customEndpoint: ''
+}
 
 /**
  * Initialize AI service
- * @param {string} provider - 'local' or 'online'
- * @param {string} ollamaUrl - Ollama server URL (default: http://localhost:11434)
+ * @param {string} provider - Provider ID (local, online, openai, claude, gemini, custom)
+ * @param {object} config - Configuration object with apiKey, model, customEndpoint, ollamaUrl
  */
-export function initAIService(
-  provider = AI_PROVIDERS.ONLINE,
-  ollamaUrl = 'http://localhost:11434'
-) {
+export function initAIService(provider = AI_PROVIDERS.ONLINE, config = {}) {
   currentProvider = provider
-  ollamaBaseUrl = ollamaUrl
+  currentConfig = {
+    provider,
+    apiKey: config.apiKey || '',
+    model: config.model || '',
+    customEndpoint: config.customEndpoint || '',
+    ollamaUrl: config.ollamaUrl || DEFAULT_OLLAMA_URL
+  }
+  if (config.ollamaUrl) {
+    ollamaBaseUrl = config.ollamaUrl
+  }
 }
 
 /**
@@ -103,10 +115,20 @@ export async function checkOllamaAvailability(customUrl = null) {
  * @param {string} language - 'en' or 'es'
  */
 export async function generateTestCasesWithAI(projectInfo, format = 'stepByStep', language = 'en') {
-  if (currentProvider === AI_PROVIDERS.LOCAL) {
-    return await generateWithOllama(projectInfo, format, language)
-  } else {
-    return await generateWithHuggingFace(projectInfo, format, language)
+  switch (currentProvider) {
+    case AI_PROVIDERS.LOCAL:
+      return await generateWithOllama(projectInfo, format, language)
+    case AI_PROVIDERS.OPENAI:
+      return await generateWithOpenAI(projectInfo, format, language)
+    case AI_PROVIDERS.CLAUDE:
+      return await generateWithClaude(projectInfo, format, language)
+    case AI_PROVIDERS.GEMINI:
+      return await generateWithGemini(projectInfo, format, language)
+    case AI_PROVIDERS.CUSTOM:
+      return await generateWithCustom(projectInfo, format, language)
+    case AI_PROVIDERS.ONLINE:
+    default:
+      return await generateWithHuggingFace(projectInfo, format, language)
   }
 }
 
@@ -121,10 +143,20 @@ export async function generateTestPlanWithAI(
   planType = 'comprehensive',
   language = 'en'
 ) {
-  if (currentProvider === AI_PROVIDERS.LOCAL) {
-    return await generateTestPlanWithOllama(projectInfo, planType, language)
-  } else {
-    return await generateTestPlanWithHuggingFace(projectInfo, planType, language)
+  switch (currentProvider) {
+    case AI_PROVIDERS.LOCAL:
+      return await generateTestPlanWithOllama(projectInfo, planType, language)
+    case AI_PROVIDERS.OPENAI:
+      return await generateTestPlanWithOpenAI(projectInfo, planType, language)
+    case AI_PROVIDERS.CLAUDE:
+      return await generateTestPlanWithClaude(projectInfo, planType, language)
+    case AI_PROVIDERS.GEMINI:
+      return await generateTestPlanWithGemini(projectInfo, planType, language)
+    case AI_PROVIDERS.CUSTOM:
+      return await generateTestPlanWithCustom(projectInfo, planType, language)
+    case AI_PROVIDERS.ONLINE:
+    default:
+      return await generateTestPlanWithHuggingFace(projectInfo, planType, language)
   }
 }
 
@@ -371,6 +403,381 @@ async function generateTestPlanWithHuggingFacePublic(projectInfo, planType, lang
 }
 
 /**
+ * Generate with OpenAI
+ */
+async function generateWithOpenAI(projectInfo, format, language) {
+  try {
+    const prompt = buildTestCasePrompt(projectInfo, format, language)
+    const apiKey = currentConfig.apiKey || import.meta.env.VITE_OPENAI_API_KEY || ''
+    const model = currentConfig.model || 'gpt-3.5-turbo'
+
+    if (!apiKey) {
+      throw new Error('OpenAI API key is required')
+    }
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 2000
+      })
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(`OpenAI API error: ${error.error?.message || response.statusText}`)
+    }
+
+    const data = await response.json()
+    const generatedText = data.choices?.[0]?.message?.content || ''
+    return parseAIResponse(generatedText, format)
+  } catch (error) {
+    console.error('Error generating with OpenAI:', error)
+    throw new Error(`OpenAI generation failed: ${error.message}`)
+  }
+}
+
+/**
+ * Generate test plan with OpenAI
+ */
+async function generateTestPlanWithOpenAI(projectInfo, planType, language) {
+  try {
+    const prompt = buildTestPlanPrompt(projectInfo, planType, language)
+    const apiKey = currentConfig.apiKey || import.meta.env.VITE_OPENAI_API_KEY || ''
+    const model = currentConfig.model || 'gpt-3.5-turbo'
+
+    if (!apiKey) {
+      throw new Error('OpenAI API key is required')
+    }
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 3000
+      })
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(`OpenAI API error: ${error.error?.message || response.statusText}`)
+    }
+
+    const data = await response.json()
+    const generatedText = data.choices?.[0]?.message?.content || ''
+    return parseTestPlanResponse(generatedText, planType)
+  } catch (error) {
+    console.error('Error generating test plan with OpenAI:', error)
+    throw new Error(`OpenAI test plan generation failed: ${error.message}`)
+  }
+}
+
+/**
+ * Generate with Claude
+ */
+async function generateWithClaude(projectInfo, format, language) {
+  try {
+    const prompt = buildTestCasePrompt(projectInfo, format, language)
+    const apiKey = currentConfig.apiKey || import.meta.env.VITE_CLAUDE_API_KEY || ''
+    const model = currentConfig.model || 'claude-3-5-sonnet-20241022'
+
+    if (!apiKey) {
+      throw new Error('Claude API key is required')
+    }
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: model,
+        max_tokens: 2000,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ]
+      })
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(`Claude API error: ${error.error?.message || response.statusText}`)
+    }
+
+    const data = await response.json()
+    const generatedText = data.content?.[0]?.text || ''
+    return parseAIResponse(generatedText, format)
+  } catch (error) {
+    console.error('Error generating with Claude:', error)
+    throw new Error(`Claude generation failed: ${error.message}`)
+  }
+}
+
+/**
+ * Generate test plan with Claude
+ */
+async function generateTestPlanWithClaude(projectInfo, planType, language) {
+  try {
+    const prompt = buildTestPlanPrompt(projectInfo, planType, language)
+    const apiKey = currentConfig.apiKey || import.meta.env.VITE_CLAUDE_API_KEY || ''
+    const model = currentConfig.model || 'claude-3-5-sonnet-20241022'
+
+    if (!apiKey) {
+      throw new Error('Claude API key is required')
+    }
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: model,
+        max_tokens: 3000,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ]
+      })
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(`Claude API error: ${error.error?.message || response.statusText}`)
+    }
+
+    const data = await response.json()
+    const generatedText = data.content?.[0]?.text || ''
+    return parseTestPlanResponse(generatedText, planType)
+  } catch (error) {
+    console.error('Error generating test plan with Claude:', error)
+    throw new Error(`Claude test plan generation failed: ${error.message}`)
+  }
+}
+
+/**
+ * Generate with Gemini
+ */
+async function generateWithGemini(projectInfo, format, language) {
+  try {
+    const prompt = buildTestCasePrompt(projectInfo, format, language)
+    const apiKey = currentConfig.apiKey || import.meta.env.VITE_GEMINI_API_KEY || ''
+    const model = currentConfig.model || 'gemini-1.5-flash'
+
+    if (!apiKey) {
+      throw new Error('Gemini API key is required')
+    }
+
+    const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: prompt
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2000
+        }
+      })
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(`Gemini API error: ${error.error?.message || response.statusText}`)
+    }
+
+    const data = await response.json()
+    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+    return parseAIResponse(generatedText, format)
+  } catch (error) {
+    console.error('Error generating with Gemini:', error)
+    throw new Error(`Gemini generation failed: ${error.message}`)
+  }
+}
+
+/**
+ * Generate test plan with Gemini
+ */
+async function generateTestPlanWithGemini(projectInfo, planType, language) {
+  try {
+    const prompt = buildTestPlanPrompt(projectInfo, planType, language)
+    const apiKey = currentConfig.apiKey || import.meta.env.VITE_GEMINI_API_KEY || ''
+    const model = currentConfig.model || 'gemini-1.5-flash'
+
+    if (!apiKey) {
+      throw new Error('Gemini API key is required')
+    }
+
+    const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: prompt
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 3000
+        }
+      })
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(`Gemini API error: ${error.error?.message || response.statusText}`)
+    }
+
+    const data = await response.json()
+    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+    return parseTestPlanResponse(generatedText, planType)
+  } catch (error) {
+    console.error('Error generating test plan with Gemini:', error)
+    throw new Error(`Gemini test plan generation failed: ${error.message}`)
+  }
+}
+
+/**
+ * Generate with Custom Provider
+ */
+async function generateWithCustom(projectInfo, format, language) {
+  try {
+    const prompt = buildTestCasePrompt(projectInfo, format, language)
+    const apiKey = currentConfig.apiKey || ''
+    const endpoint = currentConfig.customEndpoint || ''
+
+    if (!endpoint) {
+      throw new Error('Custom endpoint is required')
+    }
+
+    // Try OpenAI-compatible format first
+    const response = await fetch(`${endpoint}/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(apiKey && { Authorization: `Bearer ${apiKey}` })
+      },
+      body: JSON.stringify({
+        model: currentConfig.model || 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 2000
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Custom API error: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    const generatedText = data.choices?.[0]?.message?.content || data.response || ''
+    return parseAIResponse(generatedText, format)
+  } catch (error) {
+    console.error('Error generating with Custom provider:', error)
+    throw new Error(`Custom provider generation failed: ${error.message}`)
+  }
+}
+
+/**
+ * Generate test plan with Custom Provider
+ */
+async function generateTestPlanWithCustom(projectInfo, planType, language) {
+  try {
+    const prompt = buildTestPlanPrompt(projectInfo, planType, language)
+    const apiKey = currentConfig.apiKey || ''
+    const endpoint = currentConfig.customEndpoint || ''
+
+    if (!endpoint) {
+      throw new Error('Custom endpoint is required')
+    }
+
+    const response = await fetch(`${endpoint}/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(apiKey && { Authorization: `Bearer ${apiKey}` })
+      },
+      body: JSON.stringify({
+        model: currentConfig.model || 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 3000
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Custom API error: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    const generatedText = data.choices?.[0]?.message?.content || data.response || ''
+    return parseTestPlanResponse(generatedText, planType)
+  } catch (error) {
+    console.error('Error generating test plan with Custom provider:', error)
+    throw new Error(`Custom provider test plan generation failed: ${error.message}`)
+  }
+}
+
+/**
  * Build prompt for test case generation
  */
 function buildTestCasePrompt(projectInfo, format, language) {
@@ -481,6 +888,419 @@ function parseAIResponse(response, format) {
   } catch (error) {
     console.error('Error parsing AI response:', error)
     return []
+  }
+}
+
+/**
+ * Generate bug report using AI
+ * @param {object} bugInfo - Bug information object with title, description, priority, severity, environment, etc.
+ * @param {string} language - 'en' or 'es'
+ * @returns {Promise<object>} Generated bug report with steps, expected result, actual result, etc.
+ */
+export async function generateBugReportWithAI(bugInfo, language = 'en') {
+  switch (currentProvider) {
+    case AI_PROVIDERS.LOCAL:
+      return await generateBugReportWithOllama(bugInfo, language)
+    case AI_PROVIDERS.OPENAI:
+      return await generateBugReportWithOpenAI(bugInfo, language)
+    case AI_PROVIDERS.CLAUDE:
+      return await generateBugReportWithClaude(bugInfo, language)
+    case AI_PROVIDERS.GEMINI:
+      return await generateBugReportWithGemini(bugInfo, language)
+    case AI_PROVIDERS.CUSTOM:
+      return await generateBugReportWithCustom(bugInfo, language)
+    case AI_PROVIDERS.ONLINE:
+    default:
+      return await generateBugReportWithHuggingFace(bugInfo, language)
+  }
+}
+
+/**
+ * Build prompt for bug report generation
+ */
+function buildBugReportPrompt(bugInfo, language) {
+  const lang = language === 'es' ? 'español' : 'English'
+  
+  const environmentInfo = []
+  if (bugInfo.environment) environmentInfo.push(`Environment: ${bugInfo.environment}`)
+  if (bugInfo.browser) environmentInfo.push(`Browser: ${bugInfo.browser}`)
+  if (bugInfo.operatingSystem) environmentInfo.push(`OS: ${bugInfo.operatingSystem}`)
+  if (bugInfo.version) environmentInfo.push(`Version: ${bugInfo.version}`)
+  
+  const envText = environmentInfo.length > 0 ? `\nEnvironment Information:\n${environmentInfo.join('\n')}` : ''
+
+  return `You are an expert QA engineer. Generate a comprehensive bug report based on the following information.
+
+Language: ${lang}
+
+Bug Information:
+Title: ${bugInfo.title}
+Description: ${bugInfo.description}
+Priority: ${bugInfo.priority}
+Severity: ${bugInfo.severity}${envText}
+${bugInfo.additionalInfo ? `Additional Information: ${bugInfo.additionalInfo}` : ''}
+
+Instructions:
+1. Analyze the bug description carefully
+2. Generate detailed bug report with:
+   - Clear steps to reproduce (numbered, specific actions)
+   - Expected result (what should happen)
+   - Actual result (what actually happened, based on the description)
+   - Additional technical details if needed
+3. Make the steps specific and actionable
+4. Ensure expected and actual results are clear and detailed
+5. The steps should be easy to follow for developers
+
+Generate the bug report in JSON format with the following structure:
+{
+  "stepsToReproduce": "1. Step one\n2. Step two\n3. Step three",
+  "expectedResult": "What should happen",
+  "actualResult": "What actually happened",
+  "additionalInfo": "Any additional technical details"
+}
+
+Generate the bug report now:`
+}
+
+/**
+ * Generate bug report with Ollama
+ */
+async function generateBugReportWithOllama(bugInfo, language) {
+  try {
+    const prompt = buildBugReportPrompt(bugInfo, language)
+
+    const response = await fetch(`${ollamaBaseUrl}/api/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama3.2:1b',
+        prompt: prompt,
+        stream: false,
+        options: {
+          temperature: 0.7,
+          top_p: 0.9
+        }
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Ollama API error: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    return parseBugReportResponse(data.response)
+  } catch (error) {
+    console.error('Error generating bug report with Ollama:', error)
+    throw new Error(`Local AI bug report generation failed: ${error.message}`)
+  }
+}
+
+/**
+ * Generate bug report with OpenAI
+ */
+async function generateBugReportWithOpenAI(bugInfo, language) {
+  try {
+    const prompt = buildBugReportPrompt(bugInfo, language)
+    const apiKey = currentConfig.apiKey || import.meta.env.VITE_OPENAI_API_KEY || ''
+    const model = currentConfig.model || 'gpt-3.5-turbo'
+
+    if (!apiKey) {
+      throw new Error('OpenAI API key is required')
+    }
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1500
+      })
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(`OpenAI API error: ${error.error?.message || response.statusText}`)
+    }
+
+    const data = await response.json()
+    const generatedText = data.choices?.[0]?.message?.content || ''
+    return parseBugReportResponse(generatedText)
+  } catch (error) {
+    console.error('Error generating bug report with OpenAI:', error)
+    throw new Error(`OpenAI bug report generation failed: ${error.message}`)
+  }
+}
+
+/**
+ * Generate bug report with Claude
+ */
+async function generateBugReportWithClaude(bugInfo, language) {
+  try {
+    const prompt = buildBugReportPrompt(bugInfo, language)
+    const apiKey = currentConfig.apiKey || import.meta.env.VITE_CLAUDE_API_KEY || ''
+    const model = currentConfig.model || 'claude-3-5-sonnet-20241022'
+
+    if (!apiKey) {
+      throw new Error('Claude API key is required')
+    }
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: model,
+        max_tokens: 1500,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ]
+      })
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(`Claude API error: ${error.error?.message || response.statusText}`)
+    }
+
+    const data = await response.json()
+    const generatedText = data.content?.[0]?.text || ''
+    return parseBugReportResponse(generatedText)
+  } catch (error) {
+    console.error('Error generating bug report with Claude:', error)
+    throw new Error(`Claude bug report generation failed: ${error.message}`)
+  }
+}
+
+/**
+ * Generate bug report with Gemini
+ */
+async function generateBugReportWithGemini(bugInfo, language) {
+  try {
+    const prompt = buildBugReportPrompt(bugInfo, language)
+    const apiKey = currentConfig.apiKey || import.meta.env.VITE_GEMINI_API_KEY || ''
+    const model = currentConfig.model || 'gemini-1.5-flash'
+
+    if (!apiKey) {
+      throw new Error('Gemini API key is required')
+    }
+
+    const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${apiKey}`
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: prompt
+              }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 1500
+        }
+      })
+    })
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}))
+      throw new Error(`Gemini API error: ${error.error?.message || response.statusText}`)
+    }
+
+    const data = await response.json()
+    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+    return parseBugReportResponse(generatedText)
+  } catch (error) {
+    console.error('Error generating bug report with Gemini:', error)
+    throw new Error(`Gemini bug report generation failed: ${error.message}`)
+  }
+}
+
+/**
+ * Generate bug report with Custom Provider
+ */
+async function generateBugReportWithCustom(bugInfo, language) {
+  try {
+    const prompt = buildBugReportPrompt(bugInfo, language)
+    const apiKey = currentConfig.apiKey || ''
+    const endpoint = currentConfig.customEndpoint || ''
+
+    if (!endpoint) {
+      throw new Error('Custom endpoint is required')
+    }
+
+    const response = await fetch(`${endpoint}/v1/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(apiKey && { Authorization: `Bearer ${apiKey}` })
+      },
+      body: JSON.stringify({
+        model: currentConfig.model || 'gpt-3.5-turbo',
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1500
+      })
+    })
+
+    if (!response.ok) {
+      throw new Error(`Custom API error: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    const generatedText = data.choices?.[0]?.message?.content || data.response || ''
+    return parseBugReportResponse(generatedText)
+  } catch (error) {
+    console.error('Error generating bug report with Custom provider:', error)
+    throw new Error(`Custom provider bug report generation failed: ${error.message}`)
+  }
+}
+
+/**
+ * Generate bug report with Hugging Face
+ */
+async function generateBugReportWithHuggingFace(bugInfo, language) {
+  try {
+    const prompt = buildBugReportPrompt(bugInfo, language)
+    const apiKey = import.meta.env.VITE_HUGGING_FACE_API_KEY || ''
+
+    if (!apiKey) {
+      return await generateBugReportWithHuggingFacePublic(bugInfo, language)
+    }
+
+    const response = await fetch(
+      'https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`
+        },
+        body: JSON.stringify({
+          inputs: prompt,
+          parameters: {
+            max_new_tokens: 1500,
+            temperature: 0.7,
+            top_p: 0.9,
+            return_full_text: false
+          }
+        })
+      }
+    )
+
+    if (!response.ok) {
+      throw new Error(`Hugging Face API error: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    const generatedText = Array.isArray(data) ? data[0].generated_text : data.generated_text
+    return parseBugReportResponse(generatedText)
+  } catch (error) {
+    console.error('Error generating bug report with Hugging Face:', error)
+    return await generateBugReportWithHuggingFacePublic(bugInfo, language)
+  }
+}
+
+/**
+ * Generate bug report with Hugging Face Public Endpoint
+ */
+async function generateBugReportWithHuggingFacePublic(bugInfo, language) {
+  try {
+    const prompt = buildBugReportPrompt(bugInfo, language)
+
+    const response = await fetch(
+      'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          inputs: prompt
+        })
+      }
+    )
+
+    if (!response.ok) {
+      if (response.status === 503) {
+        await new Promise(resolve => setTimeout(resolve, 5000))
+        return generateBugReportWithHuggingFacePublic(bugInfo, language)
+      }
+      throw new Error(`Hugging Face API error: ${response.statusText}`)
+    }
+
+    const data = await response.json()
+    const generatedText = Array.isArray(data) ? data[0].generated_text : data.generated_text
+    return parseBugReportResponse(generatedText)
+  } catch (error) {
+    console.error('Error with Hugging Face public endpoint:', error)
+    throw new Error(`Online AI bug report generation failed: ${error.message}`)
+  }
+}
+
+/**
+ * Parse AI response for bug report
+ */
+function parseBugReportResponse(response) {
+  try {
+    const jsonMatch = response.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0])
+      return {
+        stepsToReproduce: parsed.stepsToReproduce || '',
+        expectedResult: parsed.expectedResult || '',
+        actualResult: parsed.actualResult || '',
+        additionalInfo: parsed.additionalInfo || ''
+      }
+    }
+
+    // Fallback: try to extract information from text
+    const stepsMatch = response.match(/steps?[:\s]+(.*?)(?=expected|actual|$)/is)
+    const expectedMatch = response.match(/expected[:\s]+(.*?)(?=actual|$)/is)
+    const actualMatch = response.match(/actual[:\s]+(.*?)(?=additional|$)/is)
+
+    return {
+      stepsToReproduce: stepsMatch?.[1]?.trim() || '',
+      expectedResult: expectedMatch?.[1]?.trim() || '',
+      actualResult: actualMatch?.[1]?.trim() || '',
+      additionalInfo: ''
+    }
+  } catch (error) {
+    console.error('Error parsing bug report response:', error)
+    return {
+      stepsToReproduce: '',
+      expectedResult: '',
+      actualResult: '',
+      additionalInfo: ''
+    }
   }
 }
 

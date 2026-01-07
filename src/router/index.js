@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import TestPlans from '@views/TestPlans.vue'
 import TestCases from '@views/TestCases.vue'
+import AIConfig from '@views/AIConfig.vue'
+import BugReport from '@views/BugReport.vue'
 
 const routes = [
   {
@@ -16,6 +18,16 @@ const routes = [
     path: '/test-cases',
     name: 'TestCases',
     component: TestCases
+  },
+  {
+    path: '/ai-config',
+    name: 'AIConfig',
+    component: AIConfig
+  },
+  {
+    path: '/bug-report',
+    name: 'BugReport',
+    component: BugReport
   }
 ]
 
