@@ -2655,7 +2655,7 @@ function getPatternBasedSteps(text, functionality, format, variationIndex = 0) {
         if (pattern) {
           if (format === 'gherkin' && pattern.gherkin) {
             const gherkin = pattern.gherkin
-            return `Given ${gherkin.given}\nWhen ${gherkin.when}\nThen ${gherkin.then}`
+            return `Given ${capitalizeTitleCase(gherkin.given)}\nWhen ${capitalizeTitleCase(gherkin.when)}\nThen ${capitalizeTitleCase(gherkin.then)}`
           } else if (format === 'stepByStep' && pattern.stepByStep) {
             return pattern.stepByStep.map((step, index) => `${index + 1}. ${step}`).join('\n')
           }
@@ -2682,7 +2682,7 @@ function getPatternBasedSteps(text, functionality, format, variationIndex = 0) {
         if (pattern) {
           if (format === 'gherkin' && pattern.gherkin) {
             const gherkin = pattern.gherkin
-            return `Given ${gherkin.given}\nWhen ${gherkin.when}\nThen ${gherkin.then}`
+            return `Given ${capitalizeTitleCase(gherkin.given)}\nWhen ${capitalizeTitleCase(gherkin.when)}\nThen ${capitalizeTitleCase(gherkin.then)}`
           } else if (format === 'stepByStep' && pattern.stepByStep) {
             return pattern.stepByStep.map((step, index) => `${index + 1}. ${step}`).join('\n')
           }
@@ -2722,7 +2722,7 @@ function getPatternBasedSteps(text, functionality, format, variationIndex = 0) {
   // Get steps based on format
   if (format === 'gherkin' && pattern.gherkin) {
     const gherkin = pattern.gherkin
-    return `Given ${gherkin.given}\nWhen ${gherkin.when}\nThen ${gherkin.then}`
+    return `Given ${capitalizeTitleCase(gherkin.given)}\nWhen ${capitalizeTitleCase(gherkin.when)}\nThen ${capitalizeTitleCase(gherkin.then)}`
   } else if (format === 'stepByStep' && pattern.stepByStep) {
     return pattern.stepByStep.map((step, index) => `${index + 1}. ${step}`).join('\n')
   }
