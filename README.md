@@ -23,6 +23,7 @@ Generate test cases in two formats:
 
 - **🤖 Local AI (Ollama)**: Run AI models on your machine for complete privacy
 - **🌐 Online AI (Hugging Face)**: Cloud-based AI when you need it
+- **🔑 Custom AI Providers**: Configure your own AI providers (OpenAI GPT, Anthropic Claude, Google Gemini, Custom APIs) with API keys
 - **🧠 Smart Fallback**: Intelligent rule-based generation when AI isn't available
 
 ### 🌍 Multi-language Support
@@ -47,10 +48,12 @@ Generate test documentation in **English** or **Spanish**
 ### 🐛 Bug Report Generator
 
 - **Comprehensive bug reporting** with detailed information fields
-- **Evidence attachment** - upload images, logs, and text files
+- **AI-powered generation** - Automatically generates steps to reproduce, expected/actual results
+- **Evidence attachment** - Upload images, logs, and text files with drag & drop support
 - **Multiple export formats** - Jira, Markdown, and Plain Text
 - **Auto-detection** of browser and operating system
 - **Copy to clipboard** for easy pasting into issue trackers
+- **Beautiful UI/UX** - Progress indicators, real-time validation, visual badges, and collapsible sections
 
 ---
 
@@ -87,9 +90,10 @@ This project is built with amazing open-source technologies. We're grateful to a
 
 - **[Ollama](https://ollama.com/)** - Run large language models locally
 - **[Hugging Face](https://huggingface.co/)** - AI community and platform
-- **[OpenAI API](https://platform.openai.com/)** - GPT models for AI-powered generation
-- **[Anthropic Claude](https://www.anthropic.com/)** - Claude AI models
-- **[Google Gemini](https://ai.google.dev/)** - Google's AI models
+- **[OpenAI API](https://platform.openai.com/)** - GPT models for AI-powered generation (configurable via UI)
+- **[Anthropic Claude](https://www.anthropic.com/)** - Claude AI models (configurable via UI)
+- **[Google Gemini](https://ai.google.dev/)** - Google's AI models (configurable via UI)
+- **Custom API Providers** - Configure any AI provider with custom endpoints
 
 ### Additional Tools
 
@@ -322,11 +326,43 @@ After running `pnpm setup`, Ollama is ready to use:
    - **Gherkin**: BDD format (Given-When-Then) in title case
 4. Select number of test cases per AC (1-5)
    - Each variation generates unique steps (Positive, Negative, Edge Case, Alternative Flow)
-5. **Optional**: Enable AI enhancement for better results
+5. **Optional**: Enable AI enhancement and select your preferred AI provider
 6. Click **Generate Test Cases**
 7. Test cases are automatically **grouped by Acceptance Criteria** with collapsible sections
 8. **Copy individual test cases** with the copy button on each card
 9. Preview export format and download CSV
+
+### Configuring AI Providers
+
+1. Click the **⚙️ Configuration** icon in the header
+2. Select **🤖 AI Configuration**
+3. Choose your AI provider:
+   - **Local AI (Ollama)** - No API key needed
+   - **Online AI (Hugging Face)** - Optional API key for better performance
+   - **OpenAI GPT** - Requires API key
+   - **Anthropic Claude** - Requires API key
+   - **Google Gemini** - Requires API key
+   - **Custom API** - Configure your own endpoint
+4. Enter your API key (if required)
+5. Select the model you want to use
+6. Click **Save Configuration**
+7. Your AI provider will be used for test case and bug report generation
+
+### Generating Bug Reports
+
+1. Navigate to the **🐛 Bug Report** section
+2. Enter the bug **Title** and **Description** (required)
+3. Select **Priority** and **Severity** from dropdowns
+4. **Optional**: Expand "Optional Information" to add environment details (auto-detected by default)
+5. **Upload evidence** - Drag & drop or click to upload images, logs, or text files
+6. **Enable AI** (default) to automatically generate:
+   - Steps to Reproduce
+   - Expected Result
+   - Actual Result
+   - Additional Information
+7. Click **🚀 Generate Report**
+8. Select export format (Jira, Markdown, or Plain Text)
+9. Click **📋 Copy** to copy the formatted report to clipboard
 
 ### Exporting to Test Management Tools
 
