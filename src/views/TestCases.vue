@@ -55,9 +55,9 @@
       </div>
 
       <div class="form-group">
-        <label>
+        <label class="checkbox-label">
           <input type="checkbox" v-model="useAIEnhancement" class="ai-toggle" />
-          <span>🤖 {{ $t('testCase.useAI') || 'Use AI Enhancement' }}</span>
+          <span class="checkbox-text">🤖 {{ $t('testCase.useAI') || 'Use AI Enhancement' }}</span>
         </label>
         <div v-if="useAIEnhancement" class="ai-options">
           <label class="radio-option">
@@ -202,7 +202,8 @@ export default {
     OllamaStatus
   },
   setup() {
-    const { locale } = useI18n()
+    const { locale, t } = useI18n()
+    const { showNotification } = useNotification()
     const projectInfo = ref('')
     const format = ref('stepByStep')
     const testsPerAC = ref(1)
@@ -251,7 +252,7 @@ export default {
 
     const generateTestCasesHandler = async () => {
       if (!projectInfo.value.trim()) {
-        console.warn('Project info is empty')
+        showNotification(t('notifications.invalidInput'), 'warning', 3000)
         return
       }
 
@@ -261,6 +262,9 @@ export default {
         // Configure AI based on user selection
         if (useAIEnhancement.value) {
           await checkOllama()
+          if (!ollamaAvailable.value && aiProvider.value === AI_PROVIDERS.LOCAL) {
+            showNotification(t('notifications.aiNotAvailable'), 'warning', 4000)
+          }
         } else {
           configureAI(false)
         }
@@ -276,8 +280,14 @@ export default {
         if (Array.isArray(generated) && generated.length > 0) {
           testCases.value = generated
           console.log('Test cases generated:', testCases.value.length)
+          showNotification(
+            t('notifications.testCasesGeneratedCount', { count: generated.length }),
+            'success',
+            4000
+          )
         } else {
           console.warn('No test cases generated, but no error occurred')
+          showNotification(t('notifications.noTestCases'), 'warning', 4000)
           // Fallback: create at least one test case
           testCases.value = [
             {
@@ -296,10 +306,7 @@ export default {
         }
       } catch (error) {
         console.error('Error generating test cases:', error)
-        // Show error to user
-        alert(
-          `Error generating test cases: ${error.message}. Falling back to intelligent analyzer.`
-        )
+        showNotification(t('notifications.testCasesError'), 'error', 5000)
         // Fallback to non-AI generation
         try {
           const generated = await generateTestCases(
@@ -347,6 +354,7 @@ export default {
       projectInfo.value = ''
       testCases.value = []
       selectedTool.value = ''
+      showNotification(t('notifications.clearSuccess'), 'success', 2000)
     }
 
     const showPreview = () => {
@@ -364,12 +372,21 @@ export default {
     }
 
     const exportCSV = () => {
-      if (!selectedTool.value || testCases.value.length === 0) return
+      if (!selectedTool.value || testCases.value.length === 0) {
+        showNotification(t('notifications.exportError'), 'error', 3000)
+        return
+      }
 
-      const csvContent = exportToCSV(testCases.value, selectedTool.value)
-      const tool = testManagementTools.find(t => t.id === selectedTool.value)
-      const filename = `test-cases-${tool?.name.toLowerCase() || 'export'}-${Date.now()}.csv`
-      downloadCSV(csvContent, filename)
+      try {
+        const csvContent = exportToCSV(testCases.value, selectedTool.value)
+        const tool = testManagementTools.find(t => t.id === selectedTool.value)
+        const filename = `test-cases-${tool?.name.toLowerCase() || 'export'}-${Date.now()}.csv`
+        downloadCSV(csvContent, filename)
+        showNotification(t('notifications.exportSuccess'), 'success', 3000)
+      } catch (error) {
+        console.error('Error exporting CSV:', error)
+        showNotification(t('notifications.exportError'), 'error', 4000)
+      }
     }
 
     return {
@@ -482,18 +499,26 @@ export default {
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
 }
 
 .form-group label,
 .form-label {
   display: block;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.625rem;
   font-weight: 600;
   color: var(--text-primary);
   font-size: 1rem;
+  line-height: 1.5;
   visibility: visible;
   opacity: 1;
+  align-self: flex-start;
 }
 
 [data-theme='light'] .form-group label {
@@ -541,9 +566,9 @@ export default {
 .radio-option {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.875rem;
   cursor: pointer;
-  padding: 1.25rem 1.75rem;
+  padding: 1rem 1.5rem;
   border-radius: 12px;
   transition: var(--transition);
   border: 1px solid var(--border-color);
@@ -552,6 +577,13 @@ export default {
   min-width: 200px;
   color: var(--text-primary);
   position: relative;
+  min-height: 56px;
+  touch-action: manipulation;
+}
+
+.radio-option:focus-within {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 [data-theme='light'] .radio-option {
@@ -593,13 +625,15 @@ export default {
   position: relative;
   z-index: 1;
   align-self: center;
+  vertical-align: middle;
 }
 
 .radio-label-content {
   display: flex;
   align-items: center;
   flex: 1;
-  margin-left: 0.75rem;
+  margin-left: 0;
+  gap: 0.5rem;
 }
 
 .radio-label-text {
@@ -614,6 +648,8 @@ export default {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
+  align-items: center;
+  margin-top: 0.5rem;
 }
 
 .btn {
@@ -625,10 +661,20 @@ export default {
   transition: var(--transition);
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   font-size: 1rem;
   min-width: auto;
   white-space: nowrap;
+  min-height: 44px;
+  touch-action: manipulation;
+  vertical-align: middle;
+  line-height: 1.5;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 .btn:disabled {

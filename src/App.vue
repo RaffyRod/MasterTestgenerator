@@ -7,12 +7,16 @@
             <span class="logo-icon">🧪</span>
             <h1 class="logo">{{ $t('app.title') }}</h1>
           </div>
-          <div class="nav-links">
-            <router-link to="/test-plans" class="nav-link">
+          <button @click="toggleMobileMenu" class="mobile-menu-toggle" aria-label="Toggle menu">
+            <span v-if="!mobileMenuOpen">☰</span>
+            <span v-else>✕</span>
+          </button>
+          <div class="nav-links" :class="{ 'mobile-open': mobileMenuOpen }">
+            <router-link to="/test-plans" class="nav-link" @click="closeMobileMenu">
               <span class="nav-icon">📋</span>
               <span>{{ $t('nav.testPlans') }}</span>
             </router-link>
-            <router-link to="/test-cases" class="nav-link">
+            <router-link to="/test-cases" class="nav-link" @click="closeMobileMenu">
               <span class="nav-icon">✅</span>
               <span>{{ $t('nav.testCases') }}</span>
             </router-link>
@@ -52,19 +56,25 @@
         DEBUG: Router view should be visible
       </div>
     </main>
+    <NotificationToast />
   </div>
 </template>
 
 <script>
 import { useI18n } from 'vue-i18n'
 import { useTheme } from './composables/useTheme'
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
+import NotificationToast from './components/NotificationToast.vue'
 
 export default {
   name: 'App',
+  components: {
+    NotificationToast
+  },
   setup() {
     const { locale } = useI18n()
     const { currentTheme, toggleTheme, initTheme } = useTheme()
+    const mobileMenuOpen = ref(false)
 
     onMounted(() => {
       try {
@@ -78,9 +88,18 @@ export default {
       }
     })
 
+    const toggleMobileMenu = () => {
+      mobileMenuOpen.value = !mobileMenuOpen.value
+    }
+
+    const closeMobileMenu = () => {
+      mobileMenuOpen.value = false
+    }
+
     return {
       currentLocale: locale,
       currentTheme,
+      mobileMenuOpen,
       setLocale: lang => {
         try {
           locale.value = lang
@@ -89,7 +108,9 @@ export default {
           console.error('Error setting locale:', error)
         }
       },
-      toggleTheme
+      toggleTheme,
+      toggleMobileMenu,
+      closeMobileMenu
     }
   }
 }
@@ -253,6 +274,26 @@ body {
   -webkit-text-fill-color: white;
 }
 
+.mobile-menu-toggle {
+  display: none;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: var(--transition);
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-menu-toggle:hover {
+  background: var(--bg-secondary);
+}
+
 .nav-links {
   display: flex;
   gap: 0.5rem;
@@ -282,6 +323,13 @@ body {
   background: transparent;
   visibility: visible !important;
   opacity: 1 !important;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.nav-link:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 .nav-link:hover {
@@ -360,6 +408,7 @@ body {
   padding: 0.25rem;
   border-radius: 8px;
   border: 1px solid var(--border-color);
+  align-items: center;
 }
 
 [data-theme='light'] .language-selector {
@@ -446,37 +495,85 @@ body {
 
 @media (max-width: 768px) {
   body {
-    padding: 1rem;
+    padding: 0;
   }
 
   .nav-container {
-    flex-direction: column;
-    align-items: stretch;
+    padding: 1rem;
     gap: 1rem;
-    padding: 1.5rem;
   }
 
   .nav-left {
-    flex-direction: column;
-    gap: 1rem;
     width: 100%;
+    justify-content: space-between;
+    position: relative;
+  }
+
+  .mobile-menu-toggle {
+    display: flex;
   }
 
   .logo-wrapper {
-    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .logo {
+    font-size: 1.25rem;
   }
 
   .nav-links {
+    position: absolute;
+    top: calc(100% + 1rem);
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 0.5rem;
+  }
+
+  .nav-links.mobile-open {
+    max-height: 300px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  [data-theme='light'] .nav-links {
+    background: #ffffff;
+    border-color: #e0e0e0;
+  }
+
+  [data-theme='dark'] .nav-links {
+    background: #1a1a1a;
+    border-color: #3a3a3a;
+  }
+
+  .nav-link {
     width: 100%;
-    justify-content: center;
-    flex-wrap: wrap;
+    justify-content: flex-start;
+    padding: 1rem 1.25rem;
+    min-height: 48px;
   }
 
   .nav-right {
     width: 100%;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 0.75rem;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .theme-toggle,
+  .language-selector {
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .main-content {

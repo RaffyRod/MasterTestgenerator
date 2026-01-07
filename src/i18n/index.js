@@ -24,6 +24,7 @@ export const messages = {
       recommendations: 'Recommendations',
       analysis: 'Analysis Summary',
       export: 'Export Test Plan',
+      exportFormat: 'Select Export Format',
       clear: 'Clear',
       loading: 'Generating test plan...'
     },
@@ -72,6 +73,21 @@ export const messages = {
       delete: 'Delete',
       edit: 'Edit',
       add: 'Add'
+    },
+    notifications: {
+      testCasesGenerated: 'Test cases generated successfully',
+      testCasesGeneratedCount: '{count} test cases generated successfully',
+      testCasesError: 'Error generating test cases. Please try again.',
+      testPlanGenerated: 'Test plan generated successfully',
+      testPlanError: 'Error generating test plan. Please try again.',
+      exportSuccess: 'Export completed successfully',
+      exportError: 'Error exporting file. Please try again.',
+      clearSuccess: 'Content cleared successfully',
+      aiNotAvailable: 'AI service is not available. Using intelligent analyzer instead.',
+      aiError: 'AI generation failed. Using intelligent analyzer instead.',
+      invalidInput: 'Please enter project information or acceptance criteria',
+      noTestCases: 'No test cases were generated. Please check your input.',
+      noTestPlan: 'No test plan was generated. Please check your input.'
     }
   },
   es: {
@@ -101,6 +117,7 @@ export const messages = {
       recommendations: 'Recomendaciones',
       analysis: 'Resumen de Análisis',
       export: 'Exportar Plan de Prueba',
+      exportFormat: 'Seleccionar Formato de Exportación',
       clear: 'Limpiar',
       loading: 'Generando plan de prueba...'
     },
@@ -152,6 +169,22 @@ export const messages = {
       delete: 'Eliminar',
       edit: 'Editar',
       add: 'Agregar'
+    },
+    notifications: {
+      testCasesGenerated: 'Casos de prueba generados exitosamente',
+      testCasesGeneratedCount: '{count} casos de prueba generados exitosamente',
+      testCasesError: 'Error al generar casos de prueba. Por favor, inténtalo de nuevo.',
+      testPlanGenerated: 'Plan de prueba generado exitosamente',
+      testPlanError: 'Error al generar plan de prueba. Por favor, inténtalo de nuevo.',
+      exportSuccess: 'Exportación completada exitosamente',
+      exportError: 'Error al exportar archivo. Por favor, inténtalo de nuevo.',
+      clearSuccess: 'Contenido limpiado exitosamente',
+      aiNotAvailable:
+        'El servicio de IA no está disponible. Usando analizador inteligente en su lugar.',
+      aiError: 'La generación con IA falló. Usando analizador inteligente en su lugar.',
+      invalidInput: 'Por favor, ingresa información del proyecto o criterios de aceptación',
+      noTestCases: 'No se generaron casos de prueba. Por favor, verifica tu entrada.',
+      noTestPlan: 'No se generó plan de prueba. Por favor, verifica tu entrada.'
     }
   }
 }

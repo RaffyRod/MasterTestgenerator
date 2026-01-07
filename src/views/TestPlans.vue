@@ -36,7 +36,7 @@
       <div class="output-section" v-if="testPlan">
         <div class="plan-header">
           <h2>{{ testPlan.title }}</h2>
-          <button @click="exportPlan" class="btn btn-export">
+          <button @click="showExportModal = true" class="btn btn-export">
             <span>📥</span>
             <span>{{ $t('testPlan.export') }}</span>
           </button>
@@ -198,13 +198,49 @@
       @select="selectPlanType"
       @confirm="confirmPlanType"
     />
+
+    <!-- Modal for export format selection -->
+    <div v-if="showExportModal" class="export-modal" @click.self="showExportModal = false">
+      <div class="export-modal-content">
+        <div class="export-modal-header">
+          <h3>{{ $t('testPlan.exportFormat') || 'Select Export Format' }}</h3>
+          <button @click="showExportModal = false" class="close-btn">×</button>
+        </div>
+        <div class="export-modal-body">
+          <button @click="exportPlan('markdown')" class="export-format-btn">
+            <span>📄</span>
+            <span>Markdown (.md)</span>
+          </button>
+          <button @click="exportPlan('doc')" class="export-format-btn">
+            <span>📝</span>
+            <span>Word Document (.docx)</span>
+          </button>
+          <button @click="exportPlan('pdf')" class="export-format-btn">
+            <span>📄</span>
+            <span>PDF Document (.pdf)</span>
+          </button>
+          <button @click="exportPlan('json')" class="export-format-btn">
+            <span>📋</span>
+            <span>JSON (.json)</span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import { ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { generateTestPlan } from '../utils/testPlanGenerator'
 import PlanTypeModal from '../components/PlanTypeModal.vue'
+import {
+  exportTestPlanToMarkdown,
+  exportTestPlanToDoc,
+  exportTestPlanToPDF,
+  downloadFile
+} from '../utils/testPlanExport'
+import { useNotification } from '../composables/useNotification'
 
 export default {
   name: 'TestPlans',
@@ -212,11 +248,14 @@ export default {
     PlanTypeModal
   },
   setup() {
+    const { t } = useI18n()
+    const { showNotification } = useNotification()
     const projectInfo = ref('')
     const testPlan = ref(null)
     const loading = ref(false)
     const showPlanTypeModal = ref(false)
     const selectedPlanType = ref(null)
+    const showExportModal = ref(false)
 
     const selectPlanType = typeId => {
       selectedPlanType.value = typeId
@@ -230,7 +269,7 @@ export default {
 
     const generatePlan = (planType = 'comprehensive') => {
       if (!projectInfo.value.trim()) {
-        console.warn('Project info is empty')
+        showNotification(t('notifications.invalidInput'), 'warning', 3000)
         return
       }
 
@@ -239,8 +278,14 @@ export default {
         try {
           testPlan.value = generateTestPlan(projectInfo.value, planType)
           console.log('Test plan generated:', testPlan.value)
+          if (testPlan.value) {
+            showNotification(t('notifications.testPlanGenerated'), 'success', 4000)
+          } else {
+            showNotification(t('notifications.noTestPlan'), 'warning', 4000)
+          }
         } catch (error) {
           console.error('Error generating test plan:', error)
+          showNotification(t('notifications.testPlanError'), 'error', 5000)
         } finally {
           loading.value = false
         }
@@ -251,6 +296,7 @@ export default {
       projectInfo.value = ''
       testPlan.value = null
       selectedPlanType.value = null
+      showNotification(t('notifications.clearSuccess'), 'success', 2000)
     }
 
     const openPlanTypeModal = () => {
@@ -262,17 +308,64 @@ export default {
       showPlanTypeModal.value = false
     }
 
-    const exportPlan = () => {
-      if (!testPlan.value) return
+    const exportPlan = async format => {
+      if (!testPlan.value) {
+        showNotification(t('notifications.exportError'), 'error', 3000)
+        return
+      }
 
-      const content = JSON.stringify(testPlan.value, null, 2)
-      const blob = new Blob([content], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      link.download = 'test-plan.json'
-      link.click()
-      URL.revokeObjectURL(url)
+      showExportModal.value = false
+
+      try {
+        let content
+        let filename
+        let mimeType
+
+        switch (format) {
+          case 'markdown':
+            content = exportTestPlanToMarkdown(testPlan.value)
+            filename = 'test-plan.md'
+            mimeType = 'text/markdown'
+            downloadFile(content, filename, mimeType)
+            showNotification(t('notifications.exportSuccess'), 'success', 3000)
+            break
+
+          case 'doc':
+            const blob = await exportTestPlanToDoc(testPlan.value)
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement('a')
+            link.href = url
+            link.download = 'test-plan.docx'
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            URL.revokeObjectURL(url)
+            showNotification(t('notifications.exportSuccess'), 'success', 3000)
+            break
+
+          case 'pdf':
+            const pdfDoc = exportTestPlanToPDF(testPlan.value)
+            if (pdfDoc) {
+              pdfDoc.save('test-plan.pdf')
+              showNotification(t('notifications.exportSuccess'), 'success', 3000)
+            } else {
+              showNotification(t('notifications.exportError'), 'error', 4000)
+            }
+            break
+
+          case 'json':
+          default:
+            content = JSON.stringify(testPlan.value, null, 2)
+            filename = 'test-plan.json'
+            mimeType = 'application/json'
+            downloadFile(content, filename, mimeType)
+            showNotification(t('notifications.exportSuccess'), 'success', 3000)
+            break
+        }
+      } catch (error) {
+        console.error('Error exporting test plan:', error)
+        showNotification(t('notifications.exportError'), 'error', 4000)
+      }
     }
 
     return {
@@ -281,6 +374,7 @@ export default {
       loading,
       showPlanTypeModal,
       selectedPlanType,
+      showExportModal,
       selectPlanType,
       confirmPlanType,
       openPlanTypeModal,
@@ -336,6 +430,19 @@ export default {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .content-grid {
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
 }
 
 .input-section {
@@ -403,15 +510,23 @@ export default {
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.75rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
 }
 
 .form-group label {
   display: block;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.625rem;
   font-weight: 600;
   color: var(--text-primary);
   font-size: 1rem;
+  line-height: 1.5;
+  align-self: flex-start;
 }
 
 [data-theme='light'] .form-group label {
@@ -455,6 +570,8 @@ export default {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
+  align-items: center;
+  margin-top: 0.5rem;
 }
 
 .btn {
@@ -466,10 +583,15 @@ export default {
   transition: var(--transition);
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
   font-size: 1rem;
   visibility: visible;
   opacity: 1;
+  min-height: 44px;
+  touch-action: manipulation;
+  vertical-align: middle;
+  line-height: 1.5;
 }
 
 .btn:disabled {
@@ -540,6 +662,137 @@ export default {
   background: #45a049;
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
+}
+
+.export-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.export-modal-content {
+  background: var(--bg-primary);
+  border-radius: 16px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--border-color);
+}
+
+[data-theme='light'] .export-modal-content {
+  background: #ffffff !important;
+  border-color: #e0e0e0 !important;
+}
+
+[data-theme='dark'] .export-modal-content {
+  background: var(--bg-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.export-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.export-modal-header h3 {
+  color: var(--text-primary);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: var(--transition);
+  touch-action: manipulation;
+}
+
+.close-btn:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.close-btn:hover {
+  background: var(--bg-secondary);
+}
+
+.export-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.export-format-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  text-align: left;
+  width: 100%;
+  min-height: 56px;
+  touch-action: manipulation;
+}
+
+.export-format-btn:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+[data-theme='light'] .export-format-btn {
+  background: #f5f5f5 !important;
+  border-color: #e0e0e0 !important;
+  color: #000000 !important;
+}
+
+[data-theme='dark'] .export-format-btn {
+  background: #1a1a1a !important;
+  border-color: #3a3a3a !important;
+  color: #ffffff !important;
+}
+
+.export-format-btn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.export-format-btn span:first-child {
+  font-size: 1.5rem;
 }
 
 .spinner {

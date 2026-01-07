@@ -974,38 +974,127 @@ function createEdgeCaseTest(edgeCase, format, id) {
 }
 
 function generateTitleFromAC(text) {
+  if (!text || typeof text !== 'string') {
+    return 'Test Case'
+  }
+
   // Remove AC prefix
   let title = text.replace(/^AC[:\s]+\d*[:\s]*/i, '')
   title = title.replace(/^Acceptance\s+Criteria[:\s]+\d*[:\s]*/i, '')
 
   // Clean up common prefixes
-  title = title.replace(/^(Given|When|Then|As a|I want|User story)[:\s]+/i, '')
+  title = title.replace(/^(Given|When|Then|As a|I want|User story|Scenario)[:\s]+/i, '')
+
+  // Extract key action and object for better titles
+  const lowerTitle = title.toLowerCase()
+
+  // Improve title based on action patterns
+  const actionPatterns = [
+    { pattern: /(?:verify|test)\s+(?:that\s+)?(.+?)(?:$|\.)/i, format: 'Verify {object}' },
+    { pattern: /(?:create|add|new)\s+(?:a\s+)?([a-z\s]+?)(?:$|\.)/i, format: 'Create {object}' },
+    {
+      pattern: /(?:update|edit|modify)\s+(?:the\s+)?([a-z\s]+?)(?:$|\.)/i,
+      format: 'Update {object}'
+    },
+    { pattern: /(?:delete|remove)\s+(?:the\s+)?([a-z\s]+?)(?:$|\.)/i, format: 'Delete {object}' },
+    { pattern: /(?:view|display|show)\s+(?:the\s+)?([a-z\s]+?)(?:$|\.)/i, format: 'View {object}' },
+    {
+      pattern: /(?:search|find|filter)\s+(?:for\s+)?([a-z\s]+?)(?:$|\.)/i,
+      format: 'Search for {object}'
+    },
+    { pattern: /(?:login|sign in|authenticate)/i, format: 'User Login' },
+    { pattern: /(?:logout|sign out)/i, format: 'User Logout' },
+    { pattern: /(?:upload|file)/i, format: 'File Upload' },
+    { pattern: /(?:download|export)/i, format: 'Data Export' },
+    { pattern: /(?:validate|verify|check)/i, format: 'Input Validation' }
+  ]
+
+  for (const { pattern, format } of actionPatterns) {
+    const match = title.match(pattern)
+    if (match && match[1]) {
+      const object = match[1].trim()
+      title = format.replace('{object}', capitalizeTitleCase(object))
+      break
+    } else if (match) {
+      title = format
+      break
+    }
+  }
+
+  // If title still contains Gherkin keywords, clean them
+  title = title.replace(/(?:Given|When|Then|And|But|Dado|Cuando|Entonces|Y|Pero)\s+/gi, '')
+
+  // Take first sentence if multiple sentences
+  const firstSentence = title.split(/[.!?]/)[0].trim()
+  if (firstSentence.length > 10 && firstSentence.length < 100) {
+    title = firstSentence
+  }
 
   // Capitalize and limit length
   title = title.trim()
-  if (title.length > 80) {
-    title = title.substring(0, 77) + '...'
+  if (title.length > 100) {
+    title = title.substring(0, 97) + '...'
   }
 
-  return title.charAt(0).toUpperCase() + title.slice(1)
+  // Ensure proper capitalization
+  title = title.charAt(0).toUpperCase() + title.slice(1)
+
+  // Remove trailing common words that don't add value
+  title = title.replace(/\s+(is|are|should|must|will|can|may|the|a|an)\s*$/i, '')
+
+  return title || 'Test Case'
 }
 
 function generatePreconditions(text, functionality) {
   const preconditions = []
   const lowerText = text.toLowerCase()
 
+  // System-level preconditions
+  preconditions.push('Application is deployed and accessible')
+  preconditions.push('Test environment is configured and stable')
+
   // User-related preconditions
   if (lowerText.includes('user') || lowerText.includes('usuario')) {
-    if (lowerText.includes('login') || lowerText.includes('authenticated')) {
+    if (
+      lowerText.includes('login') ||
+      lowerText.includes('authenticated') ||
+      lowerText.includes('sign in')
+    ) {
+      preconditions.push('Valid user account exists in the system with appropriate permissions')
+      preconditions.push('User is not currently logged in')
+    } else if (lowerText.includes('logout') || lowerText.includes('sign out')) {
       preconditions.push('User is logged in with valid credentials')
+      preconditions.push('User session is active')
     } else {
-      preconditions.push('User account exists in the system')
+      preconditions.push('User account exists in the system with required permissions')
     }
   }
 
   // Data-related preconditions
   if (lowerText.includes('data') || lowerText.includes('datos') || lowerText.includes('record')) {
-    preconditions.push('Test data is available in the system')
+    if (lowerText.includes('create') || lowerText.includes('add') || lowerText.includes('new')) {
+      preconditions.push('Test data prerequisites are met (if applicable)')
+    } else if (
+      lowerText.includes('update') ||
+      lowerText.includes('edit') ||
+      lowerText.includes('modify')
+    ) {
+      preconditions.push('At least one record exists in the system that can be modified')
+      preconditions.push('User has edit permissions for the record')
+    } else if (lowerText.includes('delete') || lowerText.includes('remove')) {
+      preconditions.push('At least one record exists in the system that can be deleted')
+      preconditions.push('User has delete permissions for the record')
+    } else {
+      preconditions.push('Test data is available in the system')
+    }
+  }
+
+  // Page/View preconditions
+  if (lowerText.includes('page') || lowerText.includes('screen') || lowerText.includes('view')) {
+    const pageMatch = text.match(/(?:on|in|at)\s+(?:the\s+)?([a-z\s]+?)(?:\s+page|\s+screen)/i)
+    if (pageMatch) {
+      preconditions.push(`User has access to the ${pageMatch[1].trim()} page`)
+    }
   }
 
   // Functionality-specific preconditions
@@ -1013,17 +1102,46 @@ function generatePreconditions(text, functionality) {
     switch (functionality.type) {
       case 'payment':
         preconditions.push('Payment gateway is configured and accessible')
+        preconditions.push('Valid payment method is available for testing')
+        preconditions.push('Test payment credentials are configured')
         break
       case 'fileUpload':
-        preconditions.push('File upload feature is enabled')
+        preconditions.push('File upload feature is enabled and configured')
+        preconditions.push('Test files are available in the expected format')
+        preconditions.push('File size limits are known')
         break
       case 'api':
         preconditions.push('API endpoint is available and accessible')
+        preconditions.push('API authentication credentials are configured')
+        preconditions.push('API documentation is available for reference')
+        break
+      case 'search':
+        preconditions.push('Searchable data exists in the system')
+        preconditions.push('Search functionality is enabled')
+        break
+      case 'export':
+        preconditions.push('Exportable data exists in the system')
+        preconditions.push('Export feature is enabled and configured')
+        break
+      case 'validation':
+        preconditions.push('Form or input fields are accessible')
+        preconditions.push('Validation rules are defined and documented')
+        break
+      case 'workflow':
+        preconditions.push('Workflow is configured and active')
+        preconditions.push('User has appropriate workflow permissions')
         break
     }
   }
 
-  return preconditions.length > 0 ? preconditions.join('; ') : 'System is ready and accessible'
+  // Browser/Environment preconditions
+  if (lowerText.includes('browser') || lowerText.includes('navegador')) {
+    preconditions.push('Supported browser is installed and updated')
+  }
+
+  return preconditions.length > 0
+    ? preconditions.join('; ')
+    : 'System is ready and accessible; Test environment is configured'
 }
 
 function generateGherkinFromAC(
@@ -1044,6 +1162,38 @@ function generateGherkinFromAC(
   }
 
   const lowerText = text.toLowerCase()
+
+  // Check if text already contains complete Gherkin scenario
+  const gherkinLines = text
+    .split('\n')
+    .filter(line => /^(Given|When|Then|And|But|Dado|Cuando|Entonces|Y|Pero)\s+/i.test(line.trim()))
+
+  if (gherkinLines.length >= 3) {
+    // Already has complete Gherkin, just format it properly
+    return gherkinLines
+      .map(line => {
+        const trimmed = line.trim()
+        const keywordMatch = trimmed.match(
+          /^(Given|When|Then|And|But|Dado|Cuando|Entonces|Y|Pero)\s+(.+)$/i
+        )
+        if (keywordMatch) {
+          const keyword = keywordMatch[1]
+          const content = keywordMatch[2].trim()
+          // Map Spanish to English
+          const keywordMap = {
+            Dado: 'Given',
+            Cuando: 'When',
+            Entonces: 'Then',
+            Y: 'And',
+            Pero: 'But'
+          }
+          const englishKeyword = keywordMap[keyword] || keyword
+          return `${englishKeyword} ${capitalizeTitleCase(content)}`
+        }
+        return capitalizeTitleCase(trimmed)
+      })
+      .join('\n')
+  }
 
   if (acType === 'precondition' || lowerText.startsWith('given')) {
     const cleaned = text.replace(/^(Given|Dado)[:\s]+/i, '').trim()
@@ -1078,6 +1228,7 @@ function generateGherkinFromAC(
     return `Given ${capitalizeTitleCase(givenStep)}\nWhen ${whenStep}\nThen ${capitalizeTitleCase(thenText)}`
   }
 
+  // Generate from full text with better intelligence
   return generateGherkinFromText(text)
 }
 
@@ -1219,135 +1370,63 @@ function generateGherkinFromText(text) {
   const sentences = text.split(/[.!?]/).filter(s => s.trim().length > 0)
   const steps = []
 
-  // Try to extract Given/When/Then from the text
+  // Try to extract Given/When/Then from the text with better patterns
   const givenMatch = text.match(
-    /(?:Given|Dado|I am|I'm|user is|usuario está|system is|sistema está)\s+(.+?)(?:\s+When|\s+Cuando|$)/i
+    /(?:Given|Dado|I am|I'm|user is|usuario está|system is|sistema está|on|in|at)\s+(.+?)(?:\s+When|\s+Cuando|$|\.)/i
   )
-  const whenMatch = text.match(/(?:When|Cuando|I|user|usuario)\s+(.+?)(?:\s+Then|\s+Entonces|$)/i)
+  const whenMatch = text.match(
+    /(?:When|Cuando|I|user|usuario)\s+(.+?)(?:\s+Then|\s+Entonces|$|\.)/i
+  )
   const thenMatch = text.match(
-    /(?:Then|Entonces|should|debe|will|será|result|resultado)\s+(.+?)(?:\.|$)/i
+    /(?:Then|Entonces|should|debe|will|será|result|resultado|verify|check|confirm)\s+(.+?)(?:\.|$)/i
   )
 
-  // Extract Given step
-  if (givenMatch && givenMatch[1]) {
-    steps.push(`Given ${capitalizeTitleCase(givenMatch[1].trim())}`)
+  // Extract Given step with more context
+  if (givenMatch && givenMatch[1] && givenMatch[1].trim().length > 5) {
+    let givenText = givenMatch[1].trim()
+    // Clean up common prefixes
+    givenText = givenText.replace(/^(that|que|the|el|la|los|las)\s+/i, '').trim()
+    steps.push(`Given ${capitalizeTitleCase(givenText)}`)
   } else {
-    // Try to find context/precondition in first sentence
-    const firstSentence = sentences[0]?.trim() || ''
-    if (firstSentence.match(/(?:on|in|at|from|with|using)/i)) {
-      steps.push(`Given ${capitalizeTitleCase(firstSentence)}`)
+    // Use intelligent extraction
+    const intelligentGiven = extractIntelligentGivenStep(text)
+    if (intelligentGiven) {
+      steps.push(`Given ${intelligentGiven}`)
     } else {
-      // Extract page/context from text
-      const pageMatch = text.match(
-        /(?:on|in|at)\s+(?:the\s+)?([a-z\s]+?)(?:\s+page|\s+screen|\s+section|$)/i
-      )
-      if (pageMatch && pageMatch[1]) {
-        steps.push(`Given I Am On The ${capitalizeTitleCase(pageMatch[1].trim())} Page`)
-      } else {
-        steps.push(`Given The System Is In A Valid State`)
-      }
+      steps.push(`Given The System Is In A Valid State`)
     }
   }
 
-  // Extract When step - be more intelligent about actions
+  // Extract When step - use intelligent extraction
   if (whenMatch && whenMatch[1] && whenMatch[1].trim().length > 5) {
-    steps.push(`When ${capitalizeTitleCase(whenMatch[1].trim())}`)
+    let whenText = whenMatch[1].trim()
+    // Clean up common prefixes
+    whenText = whenText.replace(/^(that|que|the|el|la|los|las)\s+/i, '').trim()
+    // Ensure it starts with "I" if it's an action
+    if (!whenText.match(/^(I|The|A|An)\s+/i)) {
+      whenText = `I ${whenText.charAt(0).toLowerCase() + whenText.slice(1)}`
+    }
+    steps.push(`When ${capitalizeTitleCase(whenText)}`)
   } else {
-    // Extract action verbs from text
-    const actionVerbs = [
-      'click',
-      'select',
-      'enter',
-      'type',
-      'fill',
-      'submit',
-      'search',
-      'filter',
-      'navigate',
-      'open',
-      'close',
-      'save',
-      'delete',
-      'edit',
-      'create',
-      'update',
-      'view',
-      'display'
-    ]
-    let foundAction = null
-
-    for (const verb of actionVerbs) {
-      const verbPattern = new RegExp(
-        `(?:${verb}|${verb}ed|${verb}ing)\\s+(?:the\\s+)?([a-z\\s]+?)(?:\\s+button|\\s+field|\\s+link|\\s+menu|\\s+option|$|\\.)`,
-        'i'
-      )
-      const match = text.match(verbPattern)
-      if (match && match[1] && match[1].trim().length > 3) {
-        foundAction = `${verb} ${match[1].trim()}`
-        break
-      }
-    }
-
-    if (foundAction) {
-      steps.push(`When I ${capitalizeTitleCase(foundAction)}`)
-    } else if (sentences.length >= 2) {
-      // Use second sentence as action
-      const actionSentence = sentences[1].trim()
-      if (actionSentence.length > 5) {
-        steps.push(`When ${capitalizeTitleCase(actionSentence)}`)
-      } else {
-        steps.push(`When I Perform The Required Action`)
-      }
-    } else {
-      // Extract from any sentence that contains action words
-      const actionSentence = sentences.find(s =>
-        s.match(
-          /(?:click|select|enter|type|fill|submit|search|filter|navigate|open|save|delete|edit|create|update|view)/i
-        )
-      )
-      if (actionSentence) {
-        steps.push(`When ${capitalizeTitleCase(actionSentence.trim())}`)
-      } else {
-        steps.push(`When I Perform The Required Action`)
-      }
-    }
+    // Use intelligent extraction
+    const intelligentWhen = extractIntelligentWhenStep(text)
+    steps.push(`When ${intelligentWhen}`)
   }
 
-  // Extract Then step - be more intelligent about expected results
+  // Extract Then step - use intelligent extraction
   if (thenMatch && thenMatch[1] && thenMatch[1].trim().length > 5) {
-    steps.push(`Then ${capitalizeTitleCase(thenMatch[1].trim())}`)
+    let thenText = thenMatch[1].trim()
+    // Clean up common prefixes
+    thenText = thenText.replace(/^(that|que|the|el|la|los|las|I|should|must|will)\s+/i, '').trim()
+    // Ensure it starts with "I Should" for consistency
+    if (!thenText.match(/^(I|The|A|An)\s+/i)) {
+      thenText = `I Should ${thenText.charAt(0).toLowerCase() + thenText.slice(1)}`
+    }
+    steps.push(`Then ${capitalizeTitleCase(thenText)}`)
   } else {
-    // Extract expected result from text
-    const expectedPatterns = [
-      /(?:should|must|will|debe|será)\s+(?:see|view|display|show|receive|get|obtain|obtener|ver|mostrar)\s+(.+?)(?:\.|$)/i,
-      /(?:expected|esperado|result|resultado)\s+(?:is|should be|será|es)\s+(.+?)(?:\.|$)/i,
-      /(?:verify|confirm|check|verificar|confirmar)\s+(?:that|que)\s+(.+?)(?:\.|$)/i
-    ]
-
-    let foundExpected = null
-    for (const pattern of expectedPatterns) {
-      const match = text.match(pattern)
-      if (match && match[1] && match[1].trim().length > 5) {
-        foundExpected = match[1].trim()
-        break
-      }
-    }
-
-    if (foundExpected) {
-      steps.push(`Then I Should ${capitalizeTitleCase(foundExpected)}`)
-    } else if (sentences.length >= 3) {
-      // Use third sentence as expected result
-      const expectedSentence = sentences[2].trim()
-      if (expectedSentence.length > 5) {
-        steps.push(`Then ${capitalizeTitleCase(expectedSentence)}`)
-      } else {
-        steps.push(`Then The Expected Result Should Be Achieved`)
-      }
-    } else {
-      // Generate based on context
-      const contextBasedResult = generateContextBasedExpectedResult(text)
-      steps.push(`Then ${contextBasedResult}`)
-    }
+    // Use intelligent extraction
+    const intelligentThen = extractIntelligentThenStep(text)
+    steps.push(`Then ${intelligentThen}`)
   }
 
   return steps.join('\n')
@@ -1404,9 +1483,23 @@ function generateContextBasedExpectedResult(text) {
   return 'The Expected Outcome Should Be Achieved And Verified Successfully'
 }
 
-function generateStepsFromAC(text, acType, variationIndex = 0, totalVariations = 1) {
+function generateStepsFromAC(
+  text,
+  acType,
+  variationIndex = 0,
+  totalVariations = 1,
+  functionality = null
+) {
   if (!text || typeof text !== 'string') {
     return '1. Navigate to the application\n2. Perform the required action\n3. Verify the expected result'
+  }
+
+  // Try to get pattern-based steps first
+  if (functionality) {
+    const patternSteps = getPatternBasedSteps(text, functionality, 'stepByStep', variationIndex)
+    if (patternSteps) {
+      return patternSteps
+    }
   }
 
   // Check if text contains Gherkin format - if so, convert to step-by-step
@@ -1415,39 +1508,11 @@ function generateStepsFromAC(text, acType, variationIndex = 0, totalVariations =
   let baseSteps = ''
 
   if (hasGherkin) {
-    // Convert Gherkin to step-by-step format
+    // Convert Gherkin to step-by-step format with more detail
     baseSteps = convertGherkinToStepByStep(text)
   } else {
-    // Regular step-by-step generation
-    const sentences = text.split(/[.!?]/).filter(s => s.trim().length > 5)
-
-    if (sentences.length === 0) {
-      baseSteps = generateStepsFromText(text)
-    } else {
-      // Convert sentences to numbered steps, removing Gherkin keywords if present
-      baseSteps = sentences
-        .map((sentence, index) => {
-          // Remove Gherkin keywords from sentence
-          let cleanSentence = sentence
-            .trim()
-            .replace(/^(Given|When|Then|And|But|Dado|Cuando|Entonces|Y|Pero)\s+/i, '')
-            .trim()
-
-          // Capitalize first letter
-          if (cleanSentence) {
-            cleanSentence = cleanSentence.charAt(0).toUpperCase() + cleanSentence.slice(1)
-          }
-
-          return cleanSentence ? `${index + 1}. ${cleanSentence}` : null
-        })
-        .filter(Boolean)
-        .join('\n')
-    }
-
-    // Ensure we have at least some steps
-    if (!baseSteps || baseSteps.trim().length === 0) {
-      baseSteps = generateStepsFromText(text)
-    }
+    // Generate detailed step-by-step from text analysis
+    baseSteps = generateDetailedStepsFromText(text, functionality)
   }
 
   // Create variation if needed
@@ -1459,46 +1524,122 @@ function generateStepsFromAC(text, acType, variationIndex = 0, totalVariations =
 }
 
 /**
- * Convert Gherkin format to step-by-step format
+ * Convert Gherkin format to step-by-step format with detailed steps
  */
 function convertGherkinToStepByStep(gherkinText) {
   const steps = []
+  const lowerText = gherkinText.toLowerCase()
 
-  // Extract Given step
+  // Extract Given step with more context
   const givenMatch = gherkinText.match(/(?:Given|Dado)\s+(.+?)(?:\s+When|\s+Cuando|\n|$)/i)
   if (givenMatch && givenMatch[1]) {
     const givenText = givenMatch[1].trim()
-    steps.push(`1. Ensure ${givenText.charAt(0).toLowerCase() + givenText.slice(1)}`)
+    // Add more specific preconditions based on context
+    if (lowerText.includes('page') || lowerText.includes('screen')) {
+      const pageMatch = givenText.match(
+        /(?:on|in|at)\s+(?:the\s+)?([a-z\s]+?)(?:\s+page|\s+screen)/i
+      )
+      if (pageMatch) {
+        steps.push(`1. Navigate to the ${pageMatch[1].trim()} page`)
+        steps.push(`2. Verify the page loads correctly and all elements are visible`)
+      } else {
+        steps.push(`1. Ensure ${givenText.charAt(0).toLowerCase() + givenText.slice(1)}`)
+      }
+    } else if (lowerText.includes('logged') || lowerText.includes('authenticated')) {
+      steps.push(`1. Navigate to the login page`)
+      steps.push(`2. Enter valid credentials (username and password)`)
+      steps.push(`3. Click on the 'Login' or 'Sign In' button`)
+      steps.push(`4. Verify successful login and redirect to the main page`)
+    } else {
+      steps.push(`1. Ensure ${givenText.charAt(0).toLowerCase() + givenText.slice(1)}`)
+    }
   } else {
     steps.push('1. Navigate to the application')
+    steps.push('2. Verify the application loads correctly')
   }
 
-  // Extract When step
+  // Extract When step with detailed actions
   const whenMatch = gherkinText.match(/(?:When|Cuando)\s+(.+?)(?:\s+Then|\s+Entonces|\n|$)/i)
   if (whenMatch && whenMatch[1]) {
     const whenText = whenMatch[1].trim()
-    // Convert to action format
-    let actionText = whenText
-    if (!actionText.match(/^(I|user|usuario)\s+/i)) {
-      actionText = `I ${actionText.charAt(0).toLowerCase() + actionText.slice(1)}`
+    const whenLower = whenText.toLowerCase()
+
+    // Break down complex actions into detailed steps
+    if (whenLower.includes('click') || whenLower.includes('select')) {
+      const elementMatch = whenText.match(
+        /(?:click|select)\s+(?:on\s+)?(?:the\s+)?([a-z\s]+?)(?:\s+button|\s+link|\s+menu|\s+option|$)/i
+      )
+      if (elementMatch) {
+        steps.push(
+          `${steps.length + 1}. Locate the ${elementMatch[1].trim()} ${whenLower.includes('button') ? 'button' : whenLower.includes('link') ? 'link' : 'element'}`
+        )
+        steps.push(
+          `${steps.length + 1}. Click on the ${elementMatch[1].trim()} ${whenLower.includes('button') ? 'button' : whenLower.includes('link') ? 'link' : 'element'}`
+        )
+      } else {
+        steps.push(`${steps.length + 1}. ${capitalizeTitleCase(whenText)}`)
+      }
+    } else if (
+      whenLower.includes('enter') ||
+      whenLower.includes('type') ||
+      whenLower.includes('fill')
+    ) {
+      const fieldMatch = whenText.match(
+        /(?:enter|type|fill)\s+(?:the\s+)?([a-z\s]+?)(?:\s+field|\s+input|$)/i
+      )
+      if (fieldMatch) {
+        steps.push(`${steps.length + 1}. Locate the ${fieldMatch[1].trim()} field`)
+        steps.push(`${steps.length + 1}. Enter valid data in the ${fieldMatch[1].trim()} field`)
+      } else {
+        steps.push(`${steps.length + 1}. ${capitalizeTitleCase(whenText)}`)
+      }
+    } else if (whenLower.includes('submit') || whenLower.includes('save')) {
+      steps.push(`${steps.length + 1}. Review all entered information`)
+      steps.push(`${steps.length + 1}. Click on the 'Submit' or 'Save' button`)
+    } else {
+      // Convert to action format
+      let actionText = whenText
+      if (!actionText.match(/^(I|user|usuario)\s+/i)) {
+        actionText = `I ${actionText.charAt(0).toLowerCase() + actionText.slice(1)}`
+      }
+      steps.push(`${steps.length + 1}. ${capitalizeTitleCase(actionText)}`)
     }
-    steps.push(`${steps.length + 1}. ${capitalizeTitleCase(actionText)}`)
   } else {
     steps.push(`${steps.length + 1}. Perform the required action`)
   }
 
-  // Extract Then step
+  // Extract Then step with detailed verification
   const thenMatch = gherkinText.match(/(?:Then|Entonces)\s+(.+?)(?:\.|\n|$)/i)
   if (thenMatch && thenMatch[1]) {
     const thenText = thenMatch[1].trim()
-    // Convert to verification format
-    let verifyText = thenText
-    if (!verifyText.match(/^(I|should|must|will|verify|check|confirm)/i)) {
-      verifyText = `verify that ${verifyText.charAt(0).toLowerCase() + verifyText.slice(1)}`
+    const thenLower = thenText.toLowerCase()
+
+    // Add detailed verification steps
+    if (thenLower.includes('see') || thenLower.includes('display') || thenLower.includes('show')) {
+      const elementMatch = thenText.match(/(?:see|display|show)\s+(?:the\s+)?([a-z\s]+?)(?:\.|$)/i)
+      if (elementMatch) {
+        steps.push(
+          `${steps.length + 1}. Verify that the ${elementMatch[1].trim()} is displayed correctly`
+        )
+        steps.push(`${steps.length + 1}. Verify all expected information is present and accurate`)
+      } else {
+        steps.push(
+          `${steps.length + 1}. Verify that ${thenText.charAt(0).toLowerCase() + thenText.slice(1)}`
+        )
+        steps.push(`${steps.length + 1}. Confirm the expected outcome is achieved`)
+      }
+    } else {
+      // Convert to verification format
+      let verifyText = thenText
+      if (!verifyText.match(/^(I|should|must|will|verify|check|confirm)/i)) {
+        verifyText = `verify that ${verifyText.charAt(0).toLowerCase() + verifyText.slice(1)}`
+      }
+      steps.push(`${steps.length + 1}. ${capitalizeTitleCase(verifyText)}`)
+      steps.push(`${steps.length + 1}. Confirm all expected results are met`)
     }
-    steps.push(`${steps.length + 1}. ${capitalizeTitleCase(verifyText)}`)
   } else {
-    steps.push(`${steps.length + 1}. Verify the expected result`)
+    steps.push(`${steps.length + 1}. Verify the expected result is achieved`)
+    steps.push(`${steps.length + 1}. Confirm the operation completed successfully`)
   }
 
   return steps.join('\n')
@@ -1551,19 +1692,158 @@ function createStepsVariation(baseSteps, variationIndex) {
   }
 }
 
-function generateStepsFromText(text) {
+/**
+ * Generate detailed step-by-step from text analysis
+ */
+function generateDetailedStepsFromText(text, functionality = null) {
   if (!text || typeof text !== 'string' || text.trim().length === 0) {
     return '1. Navigate to the application\n2. Perform the required action\n3. Verify the expected result'
   }
 
-  const sentences = text.split(/[.!?]/).filter(s => s.trim().length > 5)
+  const lowerText = text.toLowerCase()
+  const steps = []
+  let stepNumber = 1
 
-  if (sentences.length > 0) {
-    return sentences.map((sentence, index) => `${index + 1}. ${sentence.trim()}`).join('\n')
+  // Extract page/context
+  const pageMatch = text.match(
+    /(?:on|in|at)\s+(?:the\s+)?([a-z\s]+?)(?:\s+page|\s+screen|\s+view)/i
+  )
+  if (pageMatch) {
+    steps.push(`${stepNumber++}. Navigate to the ${pageMatch[1].trim()} page`)
+    steps.push(`${stepNumber++}. Verify the page loads correctly and all UI elements are visible`)
+  } else if (lowerText.includes('login') || lowerText.includes('authenticate')) {
+    steps.push(`${stepNumber++}. Navigate to the login page`)
+    steps.push(
+      `${stepNumber++}. Verify the login form is displayed with username and password fields`
+    )
+  } else {
+    steps.push(`${stepNumber++}. Navigate to the application`)
+    steps.push(`${stepNumber++}. Verify the application loads correctly`)
   }
 
-  // Fallback steps
-  return '1. Navigate to the application\n2. Perform the required action\n3. Verify the expected result'
+  // Extract actions with more detail
+  const actionPatterns = [
+    {
+      pattern:
+        /(?:click|select)\s+(?:on\s+)?(?:the\s+)?([a-z\s]+?)(?:\s+button|\s+link|\s+menu|\s+option|$)/i,
+      generate: match => {
+        const element = match[1].trim()
+        const elementType = lowerText.includes('button')
+          ? 'button'
+          : lowerText.includes('link')
+            ? 'link'
+            : 'element'
+        steps.push(`${stepNumber++}. Locate the ${element} ${elementType}`)
+        steps.push(`${stepNumber++}. Click on the ${element} ${elementType}`)
+        steps.push(`${stepNumber++}. Verify the action is triggered correctly`)
+      }
+    },
+    {
+      pattern: /(?:enter|type|fill|input)\s+(?:the\s+)?([a-z\s]+?)(?:\s+field|\s+input|$)/i,
+      generate: match => {
+        const field = match[1].trim()
+        steps.push(`${stepNumber++}. Locate the ${field} field`)
+        steps.push(`${stepNumber++}. Enter valid data in the ${field} field`)
+        steps.push(`${stepNumber++}. Verify the data is entered correctly`)
+      }
+    },
+    {
+      pattern: /(?:create|add|new)\s+(?:a\s+)?([a-z\s]+?)(?:$|\.)/i,
+      generate: match => {
+        const item = match[1].trim()
+        steps.push(`${stepNumber++}. Navigate to the ${item} creation page`)
+        steps.push(`${stepNumber++}. Fill in all required fields with valid data`)
+        steps.push(`${stepNumber++}. Click on the 'Create' or 'Save' button`)
+      }
+    },
+    {
+      pattern: /(?:update|edit|modify)\s+(?:the\s+)?([a-z\s]+?)(?:$|\.)/i,
+      generate: match => {
+        const item = match[1].trim()
+        steps.push(`${stepNumber++}. Navigate to the ${item} list or detail page`)
+        steps.push(`${stepNumber++}. Select an existing ${item} to edit`)
+        steps.push(`${stepNumber++}. Modify the desired fields`)
+        steps.push(`${stepNumber++}. Click on the 'Update' or 'Save' button`)
+      }
+    },
+    {
+      pattern: /(?:delete|remove)\s+(?:the\s+)?([a-z\s]+?)(?:$|\.)/i,
+      generate: match => {
+        const item = match[1].trim()
+        steps.push(`${stepNumber++}. Navigate to the ${item} list or detail page`)
+        steps.push(`${stepNumber++}. Select the ${item} to delete`)
+        steps.push(`${stepNumber++}. Click on the 'Delete' button`)
+        steps.push(`${stepNumber++}. Confirm the deletion in the confirmation dialog`)
+      }
+    },
+    {
+      pattern: /(?:search|find|filter)\s+(?:for\s+)?([a-z\s]+?)(?:$|\.)/i,
+      generate: match => {
+        const query = match[1].trim()
+        steps.push(`${stepNumber++}. Locate the search or filter field`)
+        steps.push(`${stepNumber++}. Enter search criteria: ${query}`)
+        steps.push(`${stepNumber++}. Click on the 'Search' button or press Enter`)
+      }
+    },
+    {
+      pattern: /(?:submit|save)\s+(?:the\s+)?([a-z\s]+?)(?:\s+form|$)/i,
+      generate: match => {
+        steps.push(`${stepNumber++}. Review all entered information`)
+        steps.push(`${stepNumber++}. Verify all required fields are filled`)
+        steps.push(`${stepNumber++}. Click on the 'Submit' or 'Save' button`)
+      }
+    }
+  ]
+
+  let actionFound = false
+  for (const { pattern, generate } of actionPatterns) {
+    const match = text.match(pattern)
+    if (match) {
+      generate(match)
+      actionFound = true
+      break
+    }
+  }
+
+  if (!actionFound) {
+    // Extract from sentences
+    const sentences = text.split(/[.!?]/).filter(s => s.trim().length > 5)
+    if (sentences.length > 0) {
+      sentences.forEach(sentence => {
+        const cleanSentence = sentence
+          .trim()
+          .replace(/^(Given|When|Then|And|But|Dado|Cuando|Entonces|Y|Pero)\s+/i, '')
+          .trim()
+        if (cleanSentence && !cleanSentence.match(/^(I|user|usuario)\s+(?:am|is|are)/i)) {
+          steps.push(
+            `${stepNumber++}. ${cleanSentence.charAt(0).toUpperCase() + cleanSentence.slice(1)}`
+          )
+        }
+      })
+    } else {
+      steps.push(`${stepNumber++}. Perform the required action`)
+    }
+  }
+
+  // Add verification steps
+  if (lowerText.includes('should') || lowerText.includes('must') || lowerText.includes('verify')) {
+    const expectedMatch = text.match(/(?:should|must|will|verify|check|confirm)\s+(.+?)(?:\.|$)/i)
+    if (expectedMatch) {
+      steps.push(`${stepNumber++}. Verify that ${expectedMatch[1].trim().toLowerCase()}`)
+    } else {
+      steps.push(`${stepNumber++}. Verify the expected result is achieved`)
+    }
+    steps.push(`${stepNumber++}. Confirm all expected outcomes are met`)
+  } else {
+    steps.push(`${stepNumber++}. Verify the operation completed successfully`)
+    steps.push(`${stepNumber++}. Confirm the expected result is displayed`)
+  }
+
+  return steps.join('\n')
+}
+
+function generateStepsFromText(text) {
+  return generateDetailedStepsFromText(text)
 }
 
 function generateExpectedResult(

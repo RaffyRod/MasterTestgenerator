@@ -96,6 +96,48 @@ export default {
         name: 'Comprehensive Test Plan',
         icon: '📋',
         description: 'Complete test plan covering all test types'
+      },
+      {
+        id: 'shiftLeft',
+        name: 'Shift-Left Test Plan',
+        icon: '⬅️',
+        description: 'Early testing in SDLC, TDD, unit and integration tests'
+      },
+      {
+        id: 'shiftRight',
+        name: 'Shift-Right Test Plan',
+        icon: '➡️',
+        description: 'Production testing, monitoring, and user feedback'
+      },
+      {
+        id: 'continuous',
+        name: 'Continuous Testing Plan',
+        icon: '🔄',
+        description: 'CI/CD integrated testing with automated pipelines'
+      },
+      {
+        id: 'tdd',
+        name: 'TDD Test Plan',
+        icon: '🧪',
+        description: 'Test-Driven Development methodology'
+      },
+      {
+        id: 'bdd',
+        name: 'BDD Test Plan',
+        icon: '📖',
+        description: 'Behavior-Driven Development with Gherkin scenarios'
+      },
+      {
+        id: 'apiFirst',
+        name: 'API-First Test Plan',
+        icon: '🔌',
+        description: 'API contract testing and integration validation'
+      },
+      {
+        id: 'devops',
+        name: 'DevOps Test Plan',
+        icon: '🚀',
+        description: 'Testing in DevOps pipeline with automation focus'
       }
     ]
 
@@ -266,6 +308,20 @@ export default {
   gap: 1rem;
 }
 
+@media (max-width: 768px) {
+  .plan-type-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .plan-type-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+
 .plan-type-card {
   background: var(--bg-secondary);
   border: 2px solid var(--border-color);
@@ -278,6 +334,49 @@ export default {
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
+  min-height: 140px;
+  touch-action: manipulation;
+}
+
+.plan-type-card:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .plan-type-card {
+    padding: 1.25rem;
+    min-height: 120px;
+  }
+
+  .plan-type-card h3 {
+    font-size: 1rem;
+  }
+
+  .plan-type-card p {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .plan-type-card {
+    padding: 1rem;
+    min-height: 110px;
+    gap: 0.5rem;
+  }
+
+  .plan-type-icon {
+    font-size: 1.5rem;
+  }
+
+  .plan-type-card h3 {
+    font-size: 0.95rem;
+  }
+
+  .plan-type-card p {
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
 }
 
 [data-theme='light'] .plan-type-card {
@@ -339,6 +438,7 @@ export default {
   gap: 1rem;
   padding: 1.5rem 2rem;
   border-top: 1px solid var(--border-color);
+  align-items: center;
 }
 
 .btn {

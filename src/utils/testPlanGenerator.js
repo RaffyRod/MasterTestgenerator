@@ -73,6 +73,42 @@ function getPlanTypeConfig(planType) {
       name: 'Comprehensive Test Plan',
       titlePrefix: 'Comprehensive Test Plan - ',
       focus: 'all aspects of testing including functional, performance, security, and integration'
+    },
+    shiftLeft: {
+      name: 'Shift-Left Test Plan',
+      titlePrefix: 'Shift-Left Test Plan - ',
+      focus: 'early testing in SDLC, unit tests, integration tests, and TDD practices'
+    },
+    shiftRight: {
+      name: 'Shift-Right Test Plan',
+      titlePrefix: 'Shift-Right Test Plan - ',
+      focus: 'production testing, monitoring, A/B testing, and user feedback validation'
+    },
+    continuous: {
+      name: 'Continuous Testing Plan',
+      titlePrefix: 'Continuous Testing Plan - ',
+      focus: 'CI/CD integrated testing, automated test execution, and continuous validation'
+    },
+    tdd: {
+      name: 'TDD Test Plan',
+      titlePrefix: 'TDD Test Plan - ',
+      focus: 'Test-Driven Development with unit tests written before implementation'
+    },
+    bdd: {
+      name: 'BDD Test Plan',
+      titlePrefix: 'BDD Test Plan - ',
+      focus: 'Behavior-Driven Development with Gherkin scenarios and acceptance criteria'
+    },
+    apiFirst: {
+      name: 'API-First Test Plan',
+      titlePrefix: 'API-First Test Plan - ',
+      focus: 'API contract testing, schema validation, and integration testing'
+    },
+    devops: {
+      name: 'DevOps Test Plan',
+      titlePrefix: 'DevOps Test Plan - ',
+      focus:
+        'testing in DevOps pipeline with automation, infrastructure testing, and deployment validation'
     }
   }
   return configs[planType] || configs.comprehensive
@@ -138,6 +174,55 @@ function generateObjectives(projectInfo, analysis = null, planType = 'comprehens
       objectives.push('Validate system stability after modifications')
       objectives.push('Confirm backward compatibility is maintained')
       break
+    case 'shiftLeft':
+      objectives.push('Detect and fix defects early in the development lifecycle')
+      objectives.push('Implement unit tests before or alongside code implementation')
+      objectives.push('Validate requirements and design through early testing')
+      objectives.push('Reduce cost of defect resolution by catching issues early')
+      objectives.push('Improve collaboration between developers and testers from the start')
+      break
+    case 'shiftRight':
+      objectives.push('Validate system behavior in production environment')
+      objectives.push('Monitor real user interactions and system performance')
+      objectives.push('Collect and analyze user feedback for continuous improvement')
+      objectives.push('Perform A/B testing and canary deployments')
+      objectives.push('Ensure system reliability and performance under real-world conditions')
+      break
+    case 'continuous':
+      objectives.push('Execute automated tests continuously in CI/CD pipeline')
+      objectives.push('Provide immediate feedback on code quality and functionality')
+      objectives.push('Ensure rapid and reliable software delivery')
+      objectives.push('Maintain high code quality through automated validation')
+      objectives.push('Enable continuous integration and deployment practices')
+      break
+    case 'tdd':
+      objectives.push('Write unit tests before implementing functionality (Red-Green-Refactor)')
+      objectives.push('Ensure code meets requirements from the start')
+      objectives.push('Maintain high test coverage and code quality')
+      objectives.push('Enable safe refactoring through comprehensive test suite')
+      objectives.push('Document expected behavior through test cases')
+      break
+    case 'bdd':
+      objectives.push('Define system behavior using natural language (Gherkin)')
+      objectives.push('Ensure alignment between business requirements and implementation')
+      objectives.push('Create executable specifications that serve as documentation')
+      objectives.push('Facilitate communication between technical and non-technical stakeholders')
+      objectives.push('Validate acceptance criteria through automated scenarios')
+      break
+    case 'apiFirst':
+      objectives.push('Validate API contracts and schemas before implementation')
+      objectives.push('Ensure API compatibility and versioning compliance')
+      objectives.push('Test API endpoints for functionality, performance, and security')
+      objectives.push('Validate request/response formats and error handling')
+      objectives.push('Ensure seamless integration between API consumers and providers')
+      break
+    case 'devops':
+      objectives.push('Integrate testing seamlessly into DevOps pipeline')
+      objectives.push('Automate test execution in deployment workflows')
+      objectives.push('Validate infrastructure and configuration changes')
+      objectives.push('Ensure rapid feedback on deployment readiness')
+      objectives.push('Maintain quality gates throughout the delivery pipeline')
+      break
     case 'comprehensive':
     default:
       objectives.push('Verify that all functional requirements are met')
@@ -147,49 +232,77 @@ function generateObjectives(projectInfo, analysis = null, planType = 'comprehens
       break
   }
 
-  // Performance objectives
+  // Performance objectives - more specific
   if (
     lowerText.includes('performance') ||
     lowerText.includes('rendimiento') ||
     (analysis && analysis.edgeCases.includes('performance'))
   ) {
-    objectives.push('Validate system performance under load')
-    objectives.push('Ensure response times meet specified requirements')
+    objectives.push('Measure and validate system response times under various load conditions')
+    objectives.push('Identify performance bottlenecks and resource utilization issues')
+    objectives.push('Verify system scalability and capacity limits')
+    objectives.push('Ensure performance metrics meet or exceed specified SLA requirements')
   }
 
-  // Security objectives
+  // Security objectives - more specific
   if (
     lowerText.includes('security') ||
     lowerText.includes('seguridad') ||
     (analysis && analysis.detectedFunctionalities.some(f => f.type === 'authentication'))
   ) {
-    objectives.push('Verify security requirements and data protection')
-    objectives.push('Validate authentication and authorization mechanisms')
+    objectives.push('Identify and document security vulnerabilities and potential attack vectors')
+    objectives.push('Validate authentication mechanisms, session management, and access controls')
+    objectives.push(
+      'Test for common security flaws (SQL injection, XSS, CSRF, authentication bypass)'
+    )
+    objectives.push('Verify data encryption, secure transmission, and privacy compliance')
+    objectives.push('Ensure proper error handling that does not expose sensitive information')
   }
 
-  // API objectives
+  // API objectives - more specific
   if (analysis && analysis.detectedFunctionalities.some(f => f.type === 'api')) {
-    objectives.push('Validate API endpoints and integration points')
-    objectives.push('Ensure proper error handling and response codes')
+    objectives.push(
+      'Validate API endpoint functionality, request/response formats, and status codes'
+    )
+    objectives.push('Test API authentication, authorization, and rate limiting mechanisms')
+    objectives.push('Verify proper error handling, error codes, and error message formats')
+    objectives.push('Ensure API versioning, backward compatibility, and contract compliance')
+    objectives.push('Test API performance, response times, and concurrent request handling')
   }
 
-  // Data objectives
+  // Data objectives - more specific
   if (lowerText.includes('data') || lowerText.includes('database') || lowerText.includes('datos')) {
-    objectives.push('Verify data integrity and persistence')
-    objectives.push('Validate data validation and business rules')
+    objectives.push('Verify data integrity, consistency, and referential integrity constraints')
+    objectives.push('Validate data persistence, retrieval, and transaction handling')
+    objectives.push('Test data validation rules, business logic, and data transformation')
+    objectives.push('Ensure proper data backup, recovery, and data migration procedures')
+    objectives.push('Verify data access controls and data privacy compliance')
   }
 
-  // UI objectives
+  // UI objectives - more specific
   if (
     lowerText.includes('ui') ||
     lowerText.includes('interface') ||
     lowerText.includes('frontend')
   ) {
-    objectives.push('Validate user interface usability and accessibility')
-    objectives.push('Ensure consistent user experience across different browsers and devices')
+    objectives.push('Validate user interface elements, layouts, and visual design consistency')
+    objectives.push('Test user interactions, navigation flows, and user experience')
+    objectives.push('Verify accessibility compliance (WCAG guidelines) and keyboard navigation')
+    objectives.push('Ensure responsive design and cross-browser compatibility')
+    objectives.push('Test UI performance, loading times, and smooth interactions')
   }
 
-  return objectives
+  // Remove duplicates while preserving order
+  const uniqueObjectives = []
+  const seen = new Set()
+  objectives.forEach(obj => {
+    if (!seen.has(obj)) {
+      seen.add(obj)
+      uniqueObjectives.push(obj)
+    }
+  })
+
+  return uniqueObjectives
 }
 
 function generateScope(projectInfo, analysis = null, planType = 'comprehensive') {
@@ -264,6 +377,68 @@ function generateScope(projectInfo, analysis = null, planType = 'comprehensive')
       scope.outOfScope.push('New feature testing (unless affecting existing features)')
       scope.outOfScope.push('Performance testing')
       scope.outOfScope.push('Security testing')
+      break
+    case 'shiftLeft':
+      scope.inScope.push('Unit testing during development phase')
+      scope.inScope.push('Integration testing in early stages')
+      scope.inScope.push('Static code analysis and code reviews')
+      scope.inScope.push('Test-driven development practices')
+      scope.inScope.push('Early requirement and design validation')
+      scope.outOfScope.push('End-to-end system testing (unless critical paths)')
+      scope.outOfScope.push('Production environment testing')
+      scope.outOfScope.push('User acceptance testing')
+      break
+    case 'shiftRight':
+      scope.inScope.push('Production environment testing and monitoring')
+      scope.inScope.push('Real user monitoring and analytics')
+      scope.inScope.push('A/B testing and feature flags validation')
+      scope.inScope.push('Performance monitoring in production')
+      scope.inScope.push('User feedback collection and analysis')
+      scope.outOfScope.push('Unit testing (covered in development phase)')
+      scope.outOfScope.push('Pre-production integration testing')
+      break
+    case 'continuous':
+      scope.inScope.push('Automated test execution in CI/CD pipeline')
+      scope.inScope.push('Continuous integration testing')
+      scope.inScope.push('Automated regression testing')
+      scope.inScope.push('Code quality and security scanning')
+      scope.inScope.push('Automated deployment validation')
+      scope.outOfScope.push('Manual exploratory testing (unless specified)')
+      scope.outOfScope.push('User acceptance testing (separate process)')
+      break
+    case 'tdd':
+      scope.inScope.push('Unit tests written before code implementation')
+      scope.inScope.push('Test coverage for all new functionality')
+      scope.inScope.push('Refactoring validation through test suite')
+      scope.inScope.push('Code quality through test-driven design')
+      scope.outOfScope.push('Integration testing (separate phase)')
+      scope.outOfScope.push('End-to-end testing (separate phase)')
+      break
+    case 'bdd':
+      scope.inScope.push('Gherkin scenario definitions and execution')
+      scope.inScope.push('Acceptance criteria validation')
+      scope.inScope.push('Behavior specification and documentation')
+      scope.inScope.push('Cross-functional collaboration on requirements')
+      scope.outOfScope.push('Low-level unit testing details')
+      scope.outOfScope.push('Technical implementation specifics')
+      break
+    case 'apiFirst':
+      scope.inScope.push('API contract and schema validation')
+      scope.inScope.push('API endpoint functionality testing')
+      scope.inScope.push('Request/response format validation')
+      scope.inScope.push('API versioning and backward compatibility')
+      scope.inScope.push('API integration and consumer testing')
+      scope.outOfScope.push('UI/UX testing (unless API-related)')
+      scope.outOfScope.push('Database testing (unless API-related)')
+      break
+    case 'devops':
+      scope.inScope.push('Automated testing in CI/CD pipeline')
+      scope.inScope.push('Infrastructure as Code (IaC) validation')
+      scope.inScope.push('Configuration and environment testing')
+      scope.inScope.push('Deployment and rollback validation')
+      scope.inScope.push('Monitoring and observability testing')
+      scope.outOfScope.push('Manual testing processes')
+      scope.outOfScope.push('Traditional waterfall testing phases')
       break
     case 'comprehensive':
     default:
@@ -478,6 +653,143 @@ function generateTestStrategy(projectInfo, analysis = null, planType = 'comprehe
         description: 'Test most important user workflows and features'
       })
       break
+    case 'shiftLeft':
+      strategies.push({
+        type: 'Unit Testing',
+        description:
+          'Write and execute unit tests during development phase, ideally before code implementation (TDD)'
+      })
+      strategies.push({
+        type: 'Early Integration Testing',
+        description: 'Test component integration as soon as components are developed'
+      })
+      strategies.push({
+        type: 'Static Code Analysis',
+        description:
+          'Perform automated code quality and security analysis early in the development cycle'
+      })
+      strategies.push({
+        type: 'Requirement Validation',
+        description: 'Validate requirements and design through early testing and prototyping'
+      })
+      break
+    case 'shiftRight':
+      strategies.push({
+        type: 'Production Monitoring',
+        description: 'Monitor system behavior, performance, and errors in production environment'
+      })
+      strategies.push({
+        type: 'User Analytics Testing',
+        description: 'Analyze real user interactions and behavior patterns'
+      })
+      strategies.push({
+        type: 'A/B Testing',
+        description:
+          'Test different versions of features with real users to determine optimal solutions'
+      })
+      strategies.push({
+        type: 'Canary Deployments',
+        description: 'Gradually roll out changes to a subset of users to validate in production'
+      })
+      break
+    case 'continuous':
+      strategies.push({
+        type: 'CI/CD Pipeline Testing',
+        description:
+          'Execute automated tests in continuous integration pipeline on every code commit'
+      })
+      strategies.push({
+        type: 'Automated Regression Testing',
+        description:
+          'Run comprehensive regression test suite automatically to catch regressions early'
+      })
+      strategies.push({
+        type: 'Quality Gates',
+        description: 'Implement quality gates that must pass before code can be merged or deployed'
+      })
+      strategies.push({
+        type: 'Continuous Monitoring',
+        description: 'Monitor test results and code quality metrics continuously'
+      })
+      break
+    case 'tdd':
+      strategies.push({
+        type: 'Red-Green-Refactor Cycle',
+        description:
+          'Follow TDD cycle: Write failing test (Red), implement code to pass (Green), refactor (Refactor)'
+      })
+      strategies.push({
+        type: 'Unit Test Coverage',
+        description: 'Maintain high unit test coverage to ensure all code paths are tested'
+      })
+      strategies.push({
+        type: 'Test-First Development',
+        description:
+          'Write tests before implementation to define expected behavior and requirements'
+      })
+      strategies.push({
+        type: 'Refactoring Safety',
+        description:
+          'Use comprehensive test suite to safely refactor code while maintaining functionality'
+      })
+      break
+    case 'bdd':
+      strategies.push({
+        type: 'Gherkin Scenario Testing',
+        description: 'Define and execute test scenarios using Gherkin syntax (Given-When-Then)'
+      })
+      strategies.push({
+        type: 'Acceptance Criteria Validation',
+        description: 'Validate that acceptance criteria are met through executable specifications'
+      })
+      strategies.push({
+        type: 'Behavior Specification',
+        description: 'Use natural language scenarios to specify and validate system behavior'
+      })
+      strategies.push({
+        type: 'Cross-Functional Collaboration',
+        description:
+          'Facilitate communication between developers, testers, and business stakeholders'
+      })
+      break
+    case 'apiFirst':
+      strategies.push({
+        type: 'API Contract Testing',
+        description:
+          'Validate API contracts and schemas before implementation to ensure compatibility'
+      })
+      strategies.push({
+        type: 'API Endpoint Testing',
+        description:
+          'Test all API endpoints for functionality, request/response validation, and error handling'
+      })
+      strategies.push({
+        type: 'API Integration Testing',
+        description: 'Test integration between API consumers and providers'
+      })
+      strategies.push({
+        type: 'API Versioning Testing',
+        description: 'Validate backward compatibility and versioning strategies'
+      })
+      break
+    case 'devops':
+      strategies.push({
+        type: 'Pipeline Integration Testing',
+        description: 'Integrate testing seamlessly into DevOps CI/CD pipeline'
+      })
+      strategies.push({
+        type: 'Infrastructure Testing',
+        description: 'Test Infrastructure as Code (IaC) and configuration changes'
+      })
+      strategies.push({
+        type: 'Automated Deployment Testing',
+        description: 'Validate deployments and rollback procedures automatically'
+      })
+      strategies.push({
+        type: 'Observability Testing',
+        description: 'Test monitoring, logging, and alerting systems'
+      })
+      break
     case 'comprehensive':
     default:
       // Always include functional and regression testing for comprehensive
@@ -525,12 +837,13 @@ function generateTestStrategy(projectInfo, analysis = null, planType = 'comprehe
     }
   }
 
-  // Traditional strategy detection
+  // Traditional strategy detection - more specific
   if (lowerText.includes('integration') || lowerText.includes('integración')) {
     if (!strategies.some(s => s.type === 'Integration Testing')) {
       strategies.push({
         type: 'Integration Testing',
-        description: 'Test interactions between different system components and external services'
+        description:
+          'Test interactions between different system components, APIs, and external services. Verify data flow, error handling, and system compatibility across integrated modules.'
       })
     }
   }
@@ -540,32 +853,89 @@ function generateTestStrategy(projectInfo, analysis = null, planType = 'comprehe
     lowerText.includes('interface') ||
     lowerText.includes('frontend')
   ) {
-    strategies.push({
-      type: 'UI Testing',
-      description: 'Validate user interface elements, interactions, and user experience'
-    })
+    if (!strategies.some(s => s.type === 'UI Testing')) {
+      strategies.push({
+        type: 'UI Testing',
+        description:
+          'Validate user interface elements, layouts, interactions, and user experience. Test accessibility, responsive design, cross-browser compatibility, and UI performance.'
+      })
+    }
   }
 
   if (lowerText.includes('database') || lowerText.includes('data')) {
-    strategies.push({
-      type: 'Data Testing',
-      description: 'Verify data integrity, persistence, and business rule validation'
-    })
+    if (!strategies.some(s => s.type === 'Data Testing')) {
+      strategies.push({
+        type: 'Data Testing',
+        description:
+          'Verify data integrity, persistence, validation rules, and business logic. Test CRUD operations, transactions, data migration, and data access controls.'
+      })
+    }
   }
 
-  return strategies
+  // Remove duplicates while preserving order
+  const uniqueStrategies = []
+  const seen = new Set()
+  strategies.forEach(strategy => {
+    const key = strategy.type
+    if (!seen.has(key)) {
+      seen.add(key)
+      uniqueStrategies.push(strategy)
+    }
+  })
+
+  return uniqueStrategies
 }
 
 function generateTestItems(projectInfo, acceptanceCriteria = null, planType = 'comprehensive') {
   const items = []
+  const planTypeConfig = getPlanTypeConfig(planType)
+
+  const prefixMap = {
+    performance: 'PT',
+    security: 'ST',
+    integration: 'IT',
+    system: 'SYS',
+    acceptance: 'AT',
+    regression: 'RT',
+    shiftLeft: 'SL',
+    shiftRight: 'SR',
+    continuous: 'CT',
+    tdd: 'TDD',
+    bdd: 'BDD',
+    apiFirst: 'API',
+    devops: 'DO'
+  }
+  const prefix = prefixMap[planType] || 'TC'
+
+  const typePrefixes = {
+    performance: 'Performance',
+    security: 'Security',
+    integration: 'Integration',
+    shiftLeft: 'Shift-Left',
+    shiftRight: 'Shift-Right',
+    continuous: 'Continuous',
+    tdd: 'TDD',
+    bdd: 'BDD',
+    apiFirst: 'API',
+    devops: 'DevOps'
+  }
 
   // Use acceptance criteria if available
   if (acceptanceCriteria && acceptanceCriteria.length > 0) {
     acceptanceCriteria.forEach((ac, index) => {
+      // Adjust item name based on plan type
+      let itemName = ac.text.substring(0, 100)
+      let itemDescription = ac.text
+
+      if (typePrefixes[planType]) {
+        itemName = `${typePrefixes[planType]}: ${itemName}`
+        itemDescription = `${typePrefixes[planType]} testing for: ${ac.text}`
+      }
+
       items.push({
-        id: `TC-${index + 1}`,
-        name: ac.text.substring(0, 100),
-        description: ac.text,
+        id: `${prefix}-${index + 1}`,
+        name: itemName,
+        description: itemDescription,
         type: ac.type
       })
     })
@@ -574,9 +944,15 @@ function generateTestItems(projectInfo, acceptanceCriteria = null, planType = 'c
     const lines = projectInfo.split('\n').filter(line => line.trim().length > 0)
     lines.forEach((line, index) => {
       if (line.trim().length > 0) {
+        let itemName = line.trim().substring(0, 100)
+
+        if (typePrefixes[planType]) {
+          itemName = `${typePrefixes[planType]}: ${itemName}`
+        }
+
         items.push({
-          id: `TC-${index + 1}`,
-          name: line.trim().substring(0, 100),
+          id: `${prefix}-${index + 1}`,
+          name: itemName,
           description: line.trim()
         })
       }
@@ -584,10 +960,23 @@ function generateTestItems(projectInfo, acceptanceCriteria = null, planType = 'c
   }
 
   if (items.length === 0) {
+    const defaultNames = {
+      performance: 'Performance test',
+      security: 'Security test',
+      integration: 'Integration test',
+      shiftLeft: 'Shift-Left unit test',
+      shiftRight: 'Shift-Right production test',
+      continuous: 'Continuous integration test',
+      tdd: 'TDD unit test',
+      bdd: 'BDD scenario test',
+      apiFirst: 'API contract test',
+      devops: 'DevOps pipeline test'
+    }
+    const defaultName = defaultNames[planType] || 'Main functionality test'
     items.push({
-      id: 'TC-1',
-      name: 'Main functionality test',
-      description: 'Test the main functionality described in the project information'
+      id: `${prefix}-1`,
+      name: defaultName,
+      description: `Test the main functionality described in the project information (${planTypeConfig.name})`
     })
   }
 
