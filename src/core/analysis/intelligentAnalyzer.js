@@ -505,8 +505,12 @@ export function extractAcceptanceCriteria(text) {
     for (const pattern of acPatterns) {
       const match = trimmed.match(pattern)
       if (match) {
+        // Try to extract AC number from the match
+        const acNumberMatch = trimmed.match(/^AC[:\s]+(\d+)/i)
+        const acId = acNumberMatch ? parseInt(acNumberMatch[1], 10) : criteria.length + 1
+
         criteria.push({
-          id: criteria.length + 1,
+          id: acId,
           text: match[1].trim(),
           line: index + 1,
           type: detectACType(trimmed)
@@ -587,14 +591,16 @@ export async function generateIntelligentTestCases(
       )
       for (let acIndex = 0; acIndex < acceptanceCriteria.length; acIndex++) {
         const ac = acceptanceCriteria[acIndex]
-        console.log(`Processing AC ${acIndex + 1}: ${ac.text.substring(0, 50)}...`)
+        // Use the AC's id if available, otherwise use acIndex + 1
+        const acId = ac.id || acIndex + 1
+        console.log(`Processing AC ${acId} (index ${acIndex}): ${ac.text.substring(0, 50)}...`)
         const functionality = findMatchingFunctionality(ac.text, analysis.detectedFunctionalities)
 
         // Generate multiple test cases per AC if requested
         for (let tcIndex = 0; tcIndex < validTestsPerAC; tcIndex++) {
           try {
             console.log(
-              `Attempting to generate test case ${tcIndex + 1}/${validTestsPerAC} for AC ${acIndex + 1}`
+              `Attempting to generate test case ${tcIndex + 1}/${validTestsPerAC} for AC ${acId}`
             )
             const testCase = await createTestCaseFromAC(
               ac,
@@ -604,30 +610,36 @@ export async function generateIntelligentTestCases(
               tcIndex,
               validTestsPerAC,
               useAIForTitle,
-              acIndex + 1
+              acId
             )
             if (testCase) {
               testCases.push(testCase)
               console.log(
-                `✓ Successfully generated test case ${testCases.length} for AC ${acIndex + 1}, variation ${tcIndex + 1}: "${testCase.title}"`
+                `✓ Successfully generated test case ${testCases.length} for AC ${acId}, variation ${tcIndex + 1}: "${testCase.title}"`
               )
             } else {
               console.warn(
-                `✗ Failed to generate test case for AC ${acIndex + 1}, variation ${tcIndex + 1} - createTestCaseFromAC returned null`
+                `✗ Failed to generate test case for AC ${acId}, variation ${tcIndex + 1} - createTestCaseFromAC returned null`
               )
             }
           } catch (error) {
             console.error(
-              `✗ Error generating test case for AC ${acIndex + 1}, variation ${tcIndex + 1}:`,
+              `✗ Error generating test case for AC ${acId}, variation ${tcIndex + 1}:`,
               error
             )
             console.error('Error stack:', error.stack)
             // Continue with next variation - don't fail completely
           }
         }
+        const generatedForThisAC = testCases.filter(tc => tc.acId === acId).length
         console.log(
-          `Completed AC ${acIndex + 1}: Generated ${testCases.filter(tc => tc.acId === acIndex + 1).length} test cases`
+          `Completed AC ${acId}: Generated ${generatedForThisAC} test cases (expected ${validTestsPerAC})`
         )
+        if (generatedForThisAC !== validTestsPerAC) {
+          console.warn(
+            `⚠ WARNING: AC ${acId} generated ${generatedForThisAC} test cases but ${validTestsPerAC} were requested!`
+          )
+        }
       }
       console.log(`Total test cases generated: ${testCases.length}`)
     } else {
