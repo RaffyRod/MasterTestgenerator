@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import TestPlans from '../views/TestPlans.vue'
-import TestCases from '../views/TestCases.vue'
+import TestPlans from '@views/TestPlans.vue'
+import TestCases from '@views/TestCases.vue'
 
 const routes = [
   {
@@ -25,4 +25,3 @@ const router = createRouter({
 })
 
 export default router
-

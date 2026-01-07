@@ -3,7 +3,8 @@
  * Analyzes patterns and generates intelligent recommendations
  */
 
-import testCasePatterns from '../data/patterns/test-case-patterns.json'
+import testCasePatterns from '@shared/data/patterns/test-case-patterns.json'
+import { generateIntelligentTitle } from '@core/ai/aiService.js'
 
 const FUNCTIONALITY_PATTERNS = {
   authentication: {
@@ -538,11 +539,12 @@ function detectACType(text) {
   return 'requirement'
 }
 
-export function generateIntelligentTestCases(
+export async function generateIntelligentTestCases(
   projectInfo,
   format = 'stepByStep',
   analysis = null,
-  testsPerAC = 1
+  testsPerAC = 1,
+  useAIForTitle = false
 ) {
   if (!projectInfo || projectInfo.trim().length === 0) {
     return []
@@ -567,24 +569,25 @@ export function generateIntelligentTestCases(
 
   // Generate test cases from AC
   if (acceptanceCriteria.length > 0) {
-    acceptanceCriteria.forEach((ac, acIndex) => {
+    for (const ac of acceptanceCriteria) {
       const functionality = findMatchingFunctionality(ac.text, analysis.detectedFunctionalities)
 
       // Generate multiple test cases per AC if requested
       for (let tcIndex = 0; tcIndex < validTestsPerAC; tcIndex++) {
-        const testCase = createTestCaseFromAC(
+        const testCase = await createTestCaseFromAC(
           ac,
           functionality,
           format,
           testCases.length + 1,
           tcIndex,
-          validTestsPerAC
+          validTestsPerAC,
+          useAIForTitle
         )
         if (testCase) {
           testCases.push(testCase)
         }
       }
-    })
+    }
   } else {
     // Generate test cases from detected functionalities only if no ACs found
     if (analysis.detectedFunctionalities && analysis.detectedFunctionalities.length > 0) {
@@ -690,13 +693,14 @@ function findMatchingFunctionality(text, functionalities) {
   return bestMatch
 }
 
-function createTestCaseFromAC(
+async function createTestCaseFromAC(
   ac,
   functionality,
   format,
   id,
   variationIndex = 0,
-  totalVariations = 1
+  totalVariations = 1,
+  useAIForTitle = false
 ) {
   if (!ac || !ac.text) {
     return null
@@ -707,12 +711,14 @@ function createTestCaseFromAC(
 
   // Generate variations if multiple test cases per AC
   let acText = ac.text
-  let title = generateTitleFromAC(ac.text)
+  let title = useAIForTitle
+    ? await generateTitleFromACWithAI(ac.text)
+    : generateTitleFromAC(ac.text)
 
   if (totalVariations > 1 && variationIndex > 0) {
     // Create variation of the AC for additional test cases
     acText = createACVariation(ac.text, variationIndex, totalVariations)
-    title = generateTitleFromAC(acText)
+    title = useAIForTitle ? await generateTitleFromACWithAI(acText) : generateTitleFromAC(acText)
 
     // Add variation suffix to title
     const variationSuffixes = [
@@ -759,7 +765,8 @@ function createTestCaseFromAC(
       thenMatch,
       title,
       steps,
-      variationIndex
+      variationIndex,
+      totalVariations
     ),
     scenario: extractScenario(acText),
     given: givenMatch ? givenMatch[1].trim() : null,
@@ -973,6 +980,19 @@ function createEdgeCaseTest(edgeCase, format, id) {
   }
 }
 
+/**
+ * Generate title from AC using AI if available, otherwise use intelligent fallback
+ */
+async function generateTitleFromACWithAI(text) {
+  try {
+    const title = await generateIntelligentTitle(text, 'en', 'testCase')
+    return title || generateTitleFromAC(text)
+  } catch (error) {
+    console.warn('AI title generation failed, using fallback:', error)
+    return generateTitleFromAC(text)
+  }
+}
+
 function generateTitleFromAC(text) {
   if (!text || typeof text !== 'string') {
     return 'Test Case'
@@ -983,64 +1003,101 @@ function generateTitleFromAC(text) {
   title = title.replace(/^Acceptance\s+Criteria[:\s]+\d*[:\s]*/i, '')
 
   // Clean up common prefixes
-  title = title.replace(/^(Given|When|Then|As a|I want|User story|Scenario)[:\s]+/i, '')
+  title = title.replace(
+    /^(Given|When|Then|As a|I want|User story|Scenario|Dado|Cuando|Entonces)[:\s]+/i,
+    ''
+  )
+
+  // Remove Gherkin keywords completely
+  title = title.replace(/(?:Given|When|Then|And|But|Dado|Cuando|Entonces|Y|Pero)\s+/gi, ' ')
 
   // Extract key action and object for better titles
   const lowerTitle = title.toLowerCase()
 
-  // Improve title based on action patterns
+  // Improved pattern matching for better titles
   const actionPatterns = [
-    { pattern: /(?:verify|test)\s+(?:that\s+)?(.+?)(?:$|\.)/i, format: 'Verify {object}' },
-    { pattern: /(?:create|add|new)\s+(?:a\s+)?([a-z\s]+?)(?:$|\.)/i, format: 'Create {object}' },
+    // View/Display/Browse patterns - most common
     {
-      pattern: /(?:update|edit|modify)\s+(?:the\s+)?([a-z\s]+?)(?:$|\.)/i,
-      format: 'Update {object}'
+      pattern:
+        /(?:view|display|show|see|browse|list)\s+(?:the\s+)?(?:list\s+of\s+)?([a-z\s]+?)(?:$|\.|,|successfully)/i,
+      format: match => {
+        const obj = match[1].trim().replace(/\s+/g, ' ')
+        return `View ${capitalizeTitleCase(obj)}`
+      }
     },
-    { pattern: /(?:delete|remove)\s+(?:the\s+)?([a-z\s]+?)(?:$|\.)/i, format: 'Delete {object}' },
-    { pattern: /(?:view|display|show)\s+(?:the\s+)?([a-z\s]+?)(?:$|\.)/i, format: 'View {object}' },
+    // Create patterns
     {
-      pattern: /(?:search|find|filter)\s+(?:for\s+)?([a-z\s]+?)(?:$|\.)/i,
-      format: 'Search for {object}'
+      pattern: /(?:create|add|new)\s+(?:a\s+)?(?:new\s+)?([a-z\s]+?)(?:$|\.|,)/i,
+      format: match => `Create ${capitalizeTitleCase(match[1].trim())}`
     },
-    { pattern: /(?:login|sign in|authenticate)/i, format: 'User Login' },
-    { pattern: /(?:logout|sign out)/i, format: 'User Logout' },
-    { pattern: /(?:upload|file)/i, format: 'File Upload' },
-    { pattern: /(?:download|export)/i, format: 'Data Export' },
-    { pattern: /(?:validate|verify|check)/i, format: 'Input Validation' }
+    // Update patterns
+    {
+      pattern: /(?:update|edit|modify|change)\s+(?:the\s+)?([a-z\s]+?)(?:$|\.|,)/i,
+      format: match => `Update ${capitalizeTitleCase(match[1].trim())}`
+    },
+    // Delete patterns
+    {
+      pattern: /(?:delete|remove)\s+(?:the\s+)?([a-z\s]+?)(?:$|\.|,)/i,
+      format: match => `Delete ${capitalizeTitleCase(match[1].trim())}`
+    },
+    // Verify/Test patterns
+    {
+      pattern: /(?:verify|test)\s+(?:that\s+)?(.+?)(?:$|\.|,)/i,
+      format: match => `Verify ${capitalizeTitleCase(match[1].trim())}`
+    },
+    // Login patterns
+    {
+      pattern: /(?:login|sign in|authenticate)/i,
+      format: () => 'User Login'
+    },
+    // Search patterns
+    {
+      pattern: /(?:search|find|filter)\s+(?:for\s+)?([a-z\s]+?)(?:$|\.|,)/i,
+      format: match => `Search ${capitalizeTitleCase(match[1].trim())}`
+    }
   ]
 
   for (const { pattern, format } of actionPatterns) {
     const match = title.match(pattern)
-    if (match && match[1]) {
-      const object = match[1].trim()
-      title = format.replace('{object}', capitalizeTitleCase(object))
-      break
-    } else if (match) {
-      title = format
+    if (match) {
+      title = format(match)
       break
     }
   }
 
-  // If title still contains Gherkin keywords, clean them
-  title = title.replace(/(?:Given|When|Then|And|But|Dado|Cuando|Entonces|Y|Pero)\s+/gi, '')
+  // If no pattern matched, extract first meaningful phrase
+  if (title === text || title.length > 80) {
+    // Remove common filler words at start
+    title = title.replace(/^(the|a|an|i|i should|i can|i want|user can|user should)\s+/i, '')
 
-  // Take first sentence if multiple sentences
-  const firstSentence = title.split(/[.!?]/)[0].trim()
-  if (firstSentence.length > 10 && firstSentence.length < 100) {
-    title = firstSentence
+    // Take first sentence or first 60 chars
+    const firstSentence = title.split(/[.!?,]/)[0].trim()
+    if (firstSentence.length > 10 && firstSentence.length < 60) {
+      title = firstSentence
+    } else {
+      title = title.substring(0, 60).trim()
+      // Remove incomplete word at end
+      const lastSpace = title.lastIndexOf(' ')
+      if (lastSpace > 20) {
+        title = title.substring(0, lastSpace)
+      }
+    }
   }
 
   // Capitalize and limit length
   title = title.trim()
-  if (title.length > 100) {
-    title = title.substring(0, 97) + '...'
+  if (title.length > 60) {
+    title = title.substring(0, 57) + '...'
   }
 
   // Ensure proper capitalization
   title = title.charAt(0).toUpperCase() + title.slice(1)
 
-  // Remove trailing common words that don't add value
-  title = title.replace(/\s+(is|are|should|must|will|can|may|the|a|an)\s*$/i, '')
+  // Remove trailing filler words
+  title = title.replace(
+    /\s+(is|are|should|must|will|can|may|the|a|an|successfully|successful|see|view)\s*$/i,
+    ''
+  )
 
   return title || 'Test Case'
 }
@@ -1502,25 +1559,25 @@ function generateStepsFromAC(
     }
   }
 
-  // Check if text contains Gherkin format - if so, convert to step-by-step
+  // For multiple variations, generate different steps based on variation index
+  if (totalVariations > 1) {
+    if (variationIndex === 0) {
+      // Base case: Generate concise, basic steps
+      return generateBasicSteps(text, functionality)
+    } else {
+      // Variations: Generate detailed, specific steps for each variation type
+      return createStepsVariation('', variationIndex, text, functionality)
+    }
+  }
+
+  // Single test case: Generate standard detailed steps
   const hasGherkin = /(?:Given|When|Then|And|But|Dado|Cuando|Entonces|Y|Pero)\s+/i.test(text)
 
-  let baseSteps = ''
-
   if (hasGherkin) {
-    // Convert Gherkin to step-by-step format with more detail
-    baseSteps = convertGherkinToStepByStep(text)
+    return convertGherkinToStepByStep(text)
   } else {
-    // Generate detailed step-by-step from text analysis
-    baseSteps = generateDetailedStepsFromText(text, functionality)
+    return generateDetailedStepsFromText(text, functionality)
   }
-
-  // Create variation if needed
-  if (totalVariations > 1 && variationIndex > 0) {
-    return createStepsVariation(baseSteps, variationIndex)
-  }
-
-  return baseSteps
 }
 
 /**
@@ -1648,43 +1705,212 @@ function convertGherkinToStepByStep(gherkinText) {
 /**
  * Create a variation of step-by-step test case
  */
-function createStepsVariation(baseSteps, variationIndex) {
-  const steps = baseSteps.split('\n')
+/**
+ * Generate basic, concise steps for the base test case (variationIndex 0)
+ */
+function generateBasicSteps(text, functionality = null) {
+  if (!text || typeof text !== 'string') {
+    return '1. Navigate to the application\n2. Perform the required action\n3. Verify the expected result'
+  }
+
+  const lowerText = text.toLowerCase()
+  const steps = []
+
+  // Generate very basic, minimal steps for base test case
+  // These should be different from Positive Path which has detailed steps
+  if (
+    lowerText.includes('view') ||
+    lowerText.includes('display') ||
+    lowerText.includes('list') ||
+    lowerText.includes('see')
+  ) {
+    steps.push('1. Open the application')
+    steps.push('2. Access the list or view section')
+    steps.push('3. Select a record to view')
+    steps.push('4. Confirm the record information is shown')
+  } else if (
+    lowerText.includes('create') ||
+    lowerText.includes('add') ||
+    lowerText.includes('new')
+  ) {
+    steps.push('1. Open the create form')
+    steps.push('2. Enter the required information')
+    steps.push('3. Submit the form')
+    steps.push('4. Confirm the record was created')
+  } else if (
+    lowerText.includes('update') ||
+    lowerText.includes('edit') ||
+    lowerText.includes('modify')
+  ) {
+    steps.push('1. Open the record to modify')
+    steps.push('2. Change the necessary fields')
+    steps.push('3. Save the changes')
+    steps.push('4. Confirm the update was successful')
+  } else if (lowerText.includes('delete') || lowerText.includes('remove')) {
+    steps.push('1. Open the record to remove')
+    steps.push('2. Initiate the delete action')
+    steps.push('3. Confirm the deletion')
+    steps.push('4. Verify the record is removed')
+  } else {
+    steps.push('1. Navigate to the application')
+    steps.push('2. Perform the required action')
+    steps.push('3. Verify the expected result')
+  }
+
+  return steps.join('\n')
+}
+
+function createStepsVariation(baseSteps, variationIndex, acText = '', functionality = null) {
+  const lowerText = acText.toLowerCase()
 
   switch (variationIndex) {
-    case 1: // Positive path - add verification steps
-      return (
-        baseSteps +
-        '\n' +
-        `${steps.length + 1}. Verify the operation completed successfully\n${steps.length + 2}. Confirm all expected outcomes are met`
-      )
+    case 1: // Positive path - comprehensive detailed steps
+      let positiveSteps = []
 
-    case 2: // Negative path - modify steps for error scenarios
+      if (
+        lowerText.includes('view') ||
+        lowerText.includes('display') ||
+        lowerText.includes('list') ||
+        lowerText.includes('see')
+      ) {
+        // Comprehensive view test case - completely different approach from base
+        positiveSteps.push('1. Launch the application and authenticate if required')
+        positiveSteps.push('2. Navigate to the main list or view page using the navigation menu')
+        positiveSteps.push(
+          '3. Verify the page loads completely with all UI elements rendered correctly'
+        )
+        positiveSteps.push(
+          '4. Use the search or filter functionality to locate the specific record (if available)'
+        )
+        positiveSteps.push(
+          '5. Identify the target record in the list by reviewing key identifying information'
+        )
+        positiveSteps.push(
+          "6. Click on the record row or the dedicated 'View' button to access detailed view"
+        )
+        positiveSteps.push('7. Wait for the detailed view page to load completely')
+        positiveSteps.push('8. Verify all record details are displayed in the detail view panel')
+        positiveSteps.push(
+          '9. Cross-reference each data field with expected values from the source system'
+        )
+        positiveSteps.push(
+          '10. Verify data formatting matches the specified format (dates, numbers, text)'
+        )
+        positiveSteps.push('11. Verify all mandatory fields are populated and visible')
+        positiveSteps.push('12. Verify optional fields display correctly when they contain data')
+        positiveSteps.push(
+          '13. Test all interactive navigation elements (back, edit, delete buttons)'
+        )
+        positiveSteps.push('14. Verify data sorting functionality works correctly if available')
+        positiveSteps.push('15. Verify filtering options function as expected if applicable')
+        positiveSteps.push('16. Test the responsive design by resizing the browser window')
+        positiveSteps.push('17. Verify no data corruption or truncation is visible')
+        positiveSteps.push(
+          '18. Confirm the system maintains data integrity throughout the view operation'
+        )
+      } else if (
+        lowerText.includes('create') ||
+        lowerText.includes('add') ||
+        lowerText.includes('new')
+      ) {
+        positiveSteps.push('1. Navigate to the create or add new page')
+        positiveSteps.push('2. Fill in all required fields with valid data')
+        positiveSteps.push('3. Verify all input fields accept the entered values')
+        positiveSteps.push("4. Click on the 'Save' or 'Create' button")
+        positiveSteps.push('5. Verify the new record is created successfully')
+        positiveSteps.push('6. Verify the new record appears in the list/view')
+        positiveSteps.push('7. Verify all entered data is saved correctly')
+        positiveSteps.push('8. Verify system generates a unique identifier (if applicable)')
+      } else if (
+        lowerText.includes('update') ||
+        lowerText.includes('edit') ||
+        lowerText.includes('modify')
+      ) {
+        positiveSteps.push('1. Navigate to the list or view page')
+        positiveSteps.push('2. Locate the record to be updated')
+        positiveSteps.push("3. Click on the 'Edit' or 'Update' button")
+        positiveSteps.push('4. Modify the desired fields with new valid values')
+        positiveSteps.push("5. Click on the 'Save' or 'Update' button")
+        positiveSteps.push('6. Verify the updated information is reflected immediately')
+        positiveSteps.push('7. Verify previous values are replaced with new values')
+        positiveSteps.push('8. Verify changes persist after page refresh')
+      } else if (lowerText.includes('delete') || lowerText.includes('remove')) {
+        positiveSteps.push('1. Navigate to the list or view page')
+        positiveSteps.push('2. Locate the record to be deleted')
+        positiveSteps.push("3. Click on the 'Delete' or 'Remove' button")
+        positiveSteps.push('4. Confirm the deletion action when prompted')
+        positiveSteps.push('5. Verify the record is removed from the list/view')
+        positiveSteps.push('6. Verify deletion confirmation message is displayed')
+        positiveSteps.push('7. Verify the record cannot be accessed after deletion')
+      } else {
+        // Generic positive path - enhance base steps
+        positiveSteps = steps.map((step, idx) => {
+          const stepLower = step.toLowerCase()
+          if (stepLower.includes('verify') || stepLower.includes('check')) {
+            return `${idx + 1}. ${step} with complete validation`
+          }
+          return step
+        })
+        positiveSteps.push(`${steps.length + 1}. Verify the operation completed successfully`)
+        positiveSteps.push(`${steps.length + 2}. Confirm all expected outcomes are met`)
+        positiveSteps.push(
+          `${steps.length + 3}. Verify system state is consistent after the operation`
+        )
+      }
+
+      return positiveSteps.join('\n')
+
+    case 2: // Negative path - modify for error scenarios
       const negativeSteps = steps.map((step, idx) => {
-        if (idx === steps.length - 1) {
-          return `${idx + 1}. ${step.replace(/verify|check|confirm/i, 'verify error').replace(/expected result/i, 'error message')}`
+        const stepLower = step.toLowerCase()
+        // Modify steps to introduce errors
+        if (
+          stepLower.includes('enter') ||
+          stepLower.includes('fill') ||
+          stepLower.includes('input')
+        ) {
+          return `${idx + 1}. ${step.replace(/valid|correct|proper/i, 'invalid').replace(/enter|fill|input/i, 'enter invalid')}`
+        } else if (stepLower.includes('click') && idx < steps.length - 2) {
+          return step // Keep navigation steps
+        } else if (stepLower.includes('verify') || stepLower.includes('check')) {
+          return `${idx + 1}. Verify appropriate error message is displayed`
         }
         return step
       })
-      return (
-        negativeSteps.join('\n') +
-        `\n${steps.length + 1}. Verify appropriate error message is displayed\n${steps.length + 2}. Confirm system state is maintained`
-      )
 
-    case 3: // Edge case - add boundary testing steps
-      return (
-        baseSteps +
-        '\n' +
-        `${steps.length + 1}. Test with boundary values\n${steps.length + 2}. Verify system handles edge cases correctly`
-      )
+      // Add negative path specific steps
+      negativeSteps.push(`${steps.length + 1}. Verify the system displays a clear error message`)
+      negativeSteps.push(`${steps.length + 2}. Verify the operation was not completed`)
+      negativeSteps.push(`${steps.length + 3}. Verify system state remains unchanged`)
+
+      return negativeSteps.join('\n')
+
+    case 3: // Edge case - add boundary testing
+      const edgeSteps = steps.map((step, idx) => {
+        const stepLower = step.toLowerCase()
+        if (stepLower.includes('enter') || stepLower.includes('fill')) {
+          return `${idx + 1}. ${step.replace(/valid|correct/i, 'boundary value').replace(/enter|fill/i, 'enter boundary')}`
+        }
+        return step
+      })
+
+      edgeSteps.push(`${steps.length + 1}. Test with minimum boundary value`)
+      edgeSteps.push(`${steps.length + 2}. Test with maximum boundary value`)
+      edgeSteps.push(`${steps.length + 3}. Verify system handles boundary conditions correctly`)
+
+      return edgeSteps.join('\n')
 
     case 4: // Alternative flow
       const altSteps = steps.map((step, idx) => {
-        if (idx === 1) {
-          return `${idx + 1}. ${step.replace(/required action|perform/i, 'alternative approach')}`
+        const stepLower = step.toLowerCase()
+        if (idx === 1 || stepLower.includes('click') || stepLower.includes('select')) {
+          return `${idx + 1}. ${step.replace(/click|select|choose/i, 'use alternative method to').replace(/button|link|option/i, 'alternative option')}`
         }
         return step
       })
+
+      altSteps.push(`${steps.length + 1}. Verify the alternative approach achieves the same result`)
+
       return altSteps.join('\n')
 
     default:
@@ -1853,10 +2079,55 @@ function generateExpectedResult(
   thenMatch = null,
   title = null,
   steps = null,
-  variationIndex = 0
+  variationIndex = 0,
+  totalVariations = 1
 ) {
   if (!text || typeof text !== 'string') {
     return 'Operation completes successfully and expected behavior is verified'
+  }
+
+  // Generate different expected results based on variation
+  const lowerText = text.toLowerCase()
+
+  // For multiple variations, generate specific expected results
+  if (totalVariations > 1) {
+    if (variationIndex === 0) {
+      // Base case: Simple, concise expected result
+      if (
+        lowerText.includes('view') ||
+        lowerText.includes('display') ||
+        lowerText.includes('list')
+      ) {
+        return 'Record details are displayed correctly'
+      } else if (lowerText.includes('create') || lowerText.includes('add')) {
+        return 'Record is created successfully'
+      } else if (lowerText.includes('update') || lowerText.includes('edit')) {
+        return 'Record is updated successfully'
+      } else if (lowerText.includes('delete') || lowerText.includes('remove')) {
+        return 'Record is deleted successfully'
+      }
+    } else if (variationIndex === 1) {
+      // Positive path: Comprehensive expected result
+      if (
+        lowerText.includes('view') ||
+        lowerText.includes('display') ||
+        lowerText.includes('list')
+      ) {
+        return 'All record details are displayed accurately with complete information. All data fields are visible, properly formatted, and match expected values. Navigation and interaction elements function correctly, and the system maintains data integrity.'
+      } else if (lowerText.includes('create') || lowerText.includes('add')) {
+        return 'New record is created successfully with all entered data saved correctly. The record appears in the list/view with accurate information. System generates appropriate identifiers and maintains data consistency.'
+      } else if (lowerText.includes('update') || lowerText.includes('edit')) {
+        return 'Record is updated successfully with all changes saved and reflected immediately. Previous values are replaced with new values, and changes persist after page refresh. System maintains data integrity and updates related records if applicable.'
+      } else if (lowerText.includes('delete') || lowerText.includes('remove')) {
+        return 'Record is deleted successfully and removed from the system. Deletion confirmation is displayed, and the record cannot be accessed after deletion. Related records or dependencies are handled correctly.'
+      }
+    } else if (variationIndex === 2) {
+      // Negative path: Error handling expected result
+      return 'Appropriate error message is displayed clearly. The operation is not completed, and system state remains unchanged. User can correct the input and retry the operation.'
+    } else if (variationIndex === 3) {
+      // Edge case: Boundary handling expected result
+      return 'System handles boundary conditions correctly. Both minimum and maximum boundary values are processed appropriately, and the system maintains stability and data integrity.'
+    }
   }
 
   // Try to get expected result from patterns first
@@ -1869,7 +2140,7 @@ function generateExpectedResult(
 
   // Combine all text sources for better analysis
   const combinedText = [text, title, steps].filter(Boolean).join(' ')
-  const lowerText = combinedText.toLowerCase()
+  const combinedLowerText = combinedText.toLowerCase()
 
   // Priority 1: Use extracted "Then" match if available
   if (thenMatch && thenMatch[1]) {
@@ -2605,4 +2876,248 @@ function getPatternBasedExpectedResult(text, functionality, variationIndex = 0) 
   }
 
   return pattern.expectedResult
+}
+
+/**
+ * Intelligently extract a clean title from project information
+ * Removes common prefixes, limits length, and creates a professional title
+ * Uses AI when available for better titles
+ */
+export async function extractIntelligentTitle(
+  projectInfo,
+  planType = 'comprehensive',
+  useAI = false
+) {
+  if (!projectInfo || projectInfo.trim().length === 0) {
+    return 'Test Plan'
+  }
+
+  const lines = projectInfo.split('\n').filter(line => line.trim().length > 0)
+  let title = ''
+
+  // Try to find a meaningful title from the first few lines
+  for (let i = 0; i < Math.min(3, lines.length); i++) {
+    const line = lines[i].trim()
+
+    // Skip common prefixes and metadata
+    const skipPatterns = [
+      /^(project|proyecto|sistema|system|aplicación|application|app|feature|funcionalidad|requirement|requisito|user story|historia de usuario|ac|acceptance criteria|criterio de aceptación)[:-\s]+/i,
+      /^(title|título|name|nombre)[:-\s]+/i,
+      /^#+\s+/,
+      /^-\s+/,
+      /^\d+\.\s+/
+    ]
+
+    let cleanLine = line
+    for (const pattern of skipPatterns) {
+      cleanLine = cleanLine.replace(pattern, '').trim()
+    }
+
+    // Look for lines that seem like titles (not too long, not too short, starts with capital)
+    if (cleanLine.length >= 10 && cleanLine.length <= 80 && /^[A-ZÁÉÍÓÚÑ]/.test(cleanLine)) {
+      title = cleanLine
+      break
+    }
+  }
+
+  // If no good title found, extract from first line
+  if (!title && lines.length > 0) {
+    let firstLine = lines[0].trim()
+
+    // Remove common prefixes
+    firstLine = firstLine.replace(
+      /^(project|proyecto|sistema|system|aplicación|application|app|feature|funcionalidad)[:-\s]+/i,
+      ''
+    )
+    firstLine = firstLine.replace(/^#+\s+/, '')
+    firstLine = firstLine.replace(/^-\s+/, '')
+    firstLine = firstLine.replace(/^\d+\.\s+/, '')
+
+    // Limit length and clean up
+    title = firstLine.substring(0, 60).trim()
+
+    // If title ends with incomplete word, remove last word
+    if (
+      title.length === 60 &&
+      !title.endsWith('.') &&
+      !title.endsWith('!') &&
+      !title.endsWith('?')
+    ) {
+      const lastSpace = title.lastIndexOf(' ')
+      if (lastSpace > 30) {
+        title = title.substring(0, lastSpace)
+      }
+    }
+  }
+
+  // If still no title, generate from detected functionalities
+  if (!title || title.length < 5) {
+    const analysis = analyzeProjectInfo(projectInfo)
+    if (analysis && analysis.detectedFunctionalities.length > 0) {
+      const funcs = analysis.detectedFunctionalities
+        .slice(0, 2)
+        .map(f => f.type.charAt(0).toUpperCase() + f.type.slice(1))
+        .join(' & ')
+      title = `${funcs} Testing`
+    } else {
+      title = 'Test Plan'
+    }
+  }
+
+  // Capitalize first letter if needed
+  title = title.charAt(0).toUpperCase() + title.slice(1)
+
+  return title
+}
+
+/**
+ * Intelligently generate a clean test item name from text
+ * Creates professional, concise names instead of copying raw text
+ */
+export function generateIntelligentItemName(text, planType = 'comprehensive', index = 0) {
+  if (!text || text.trim().length === 0) {
+    return `Test Item ${index + 1}`
+  }
+
+  const cleanText = text.trim()
+  const lowerText = cleanText.toLowerCase()
+
+  // Remove common prefixes
+  let name = cleanText
+    .replace(/^(given|when|then|dado|cuando|entonces)[:-\s]+/i, '')
+    .replace(/^(as a|como|user|usuario|i want|quiero|so that|para que)[:-\s]+/i, '')
+    .replace(/^(ac|acceptance criteria|criterio de aceptación|requirement|requisito)[:-\s]+/i, '')
+    .replace(/^#+\s+/, '')
+    .replace(/^-\s+/, '')
+    .replace(/^\d+[.)]\s+/, '')
+    .trim()
+
+  // Extract key action or functionality
+  const actionPatterns = [
+    /(?:should|debe|must|debe|can|puede)\s+(?:be able to|poder)?\s*([^.!?]+)/i,
+    /(?:verify|validar|test|probar|check|verificar)\s+([^.!?]+)/i,
+    /(?:user|usuario)\s+(?:can|puede|should|debe)\s+([^.!?]+)/i,
+    /(?:when|cuando)\s+([^.!?]+)/i,
+    /(?:then|entonces)\s+([^.!?]+)/i
+  ]
+
+  for (const pattern of actionPatterns) {
+    const match = name.match(pattern)
+    if (match && match[1]) {
+      name = match[1].trim()
+      break
+    }
+  }
+
+  // Detect functionality type and create appropriate name
+  const analysis = analyzeProjectInfo(cleanText)
+  if (analysis && analysis.detectedFunctionalities.length > 0) {
+    const func = analysis.detectedFunctionalities[0]
+    const funcName = func.type.charAt(0).toUpperCase() + func.type.slice(1)
+
+    // Create name based on functionality
+    if (func.type === 'authentication') {
+      if (lowerText.includes('login') || lowerText.includes('iniciar sesión')) {
+        name = 'User Authentication'
+      } else if (lowerText.includes('logout') || lowerText.includes('cerrar sesión')) {
+        name = 'User Logout'
+      } else if (lowerText.includes('password') || lowerText.includes('contraseña')) {
+        name = 'Password Management'
+      } else {
+        name = 'Authentication Flow'
+      }
+    } else if (func.type === 'crud') {
+      if (
+        lowerText.includes('create') ||
+        lowerText.includes('crear') ||
+        lowerText.includes('add') ||
+        lowerText.includes('agregar')
+      ) {
+        name = 'Create Record'
+      } else if (
+        lowerText.includes('read') ||
+        lowerText.includes('leer') ||
+        lowerText.includes('view') ||
+        lowerText.includes('ver')
+      ) {
+        name = 'View Records'
+      } else if (
+        lowerText.includes('update') ||
+        lowerText.includes('actualizar') ||
+        lowerText.includes('edit') ||
+        lowerText.includes('editar')
+      ) {
+        name = 'Update Record'
+      } else if (
+        lowerText.includes('delete') ||
+        lowerText.includes('eliminar') ||
+        lowerText.includes('remove') ||
+        lowerText.includes('remover')
+      ) {
+        name = 'Delete Record'
+      } else {
+        name = 'CRUD Operations'
+      }
+    } else if (func.type === 'validation') {
+      name = 'Input Validation'
+    } else if (func.type === 'payment') {
+      name = 'Payment Processing'
+    } else if (func.type === 'search') {
+      name = 'Search Functionality'
+    } else if (func.type === 'export') {
+      name = 'Data Export'
+    } else if (func.type === 'fileUpload') {
+      name = 'File Upload'
+    } else if (func.type === 'api') {
+      name = 'API Integration'
+    } else if (func.type === 'workflow') {
+      name = 'Workflow Management'
+    } else {
+      name = `${funcName} Testing`
+    }
+  } else {
+    // If no functionality detected, extract key words
+    const words = name.split(/\s+/).filter(w => w.length > 3)
+    if (words.length > 0) {
+      // Take first 3-5 meaningful words
+      name = words.slice(0, Math.min(5, words.length)).join(' ')
+    }
+  }
+
+  // Clean up and limit length
+  name = name.replace(/\s+/g, ' ').trim().substring(0, 60)
+
+  // Remove trailing incomplete words if needed
+  if (name.length === 60 && !name.endsWith('.') && !name.endsWith('!') && !name.endsWith('?')) {
+    const lastSpace = name.lastIndexOf(' ')
+    if (lastSpace > 20) {
+      name = name.substring(0, lastSpace)
+    }
+  }
+
+  // Capitalize first letter
+  name = name.charAt(0).toUpperCase() + name.slice(1)
+
+  // Add plan type prefix if needed
+  const typePrefixes = {
+    performance: 'Performance',
+    security: 'Security',
+    integration: 'Integration',
+    shiftLeft: 'Shift-Left',
+    shiftRight: 'Shift-Right',
+    continuous: 'Continuous',
+    tdd: 'TDD',
+    bdd: 'BDD',
+    apiFirst: 'API',
+    devops: 'DevOps'
+  }
+
+  if (
+    typePrefixes[planType] &&
+    !name.toLowerCase().startsWith(typePrefixes[planType].toLowerCase())
+  ) {
+    name = `${typePrefixes[planType]}: ${name}`
+  }
+
+  return name || `Test Item ${index + 1}`
 }

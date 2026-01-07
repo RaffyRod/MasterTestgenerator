@@ -62,9 +62,9 @@
 
 <script>
 import { useI18n } from 'vue-i18n'
-import { useTheme } from './composables/useTheme'
+import { useTheme } from '@shared/composables/useTheme.js'
 import { onMounted, ref } from 'vue'
-import NotificationToast from './components/NotificationToast.vue'
+import NotificationToast from '@shared/components/NotificationToast.vue'
 
 export default {
   name: 'App',

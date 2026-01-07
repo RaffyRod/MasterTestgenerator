@@ -232,15 +232,15 @@
 <script>
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { generateTestPlan } from '../utils/testPlanGenerator'
-import PlanTypeModal from '../components/PlanTypeModal.vue'
+import { generateTestPlan } from '@features/test-plans/generators/testPlanGenerator.js'
+import PlanTypeModal from '@features/test-plans/components/PlanTypeModal.vue'
 import {
   exportTestPlanToMarkdown,
   exportTestPlanToDoc,
   exportTestPlanToPDF,
   downloadFile
-} from '../utils/testPlanExport'
-import { useNotification } from '../composables/useNotification'
+} from '@features/test-plans/utils/testPlanExport.js'
+import { useNotification } from '@shared/composables/useNotification.js'
 
 export default {
   name: 'TestPlans',
@@ -267,29 +267,29 @@ export default {
       generatePlan(typeId)
     }
 
-    const generatePlan = (planType = 'comprehensive') => {
+    const generatePlan = async (planType = 'comprehensive') => {
       if (!projectInfo.value.trim()) {
         showNotification(t('notifications.invalidInput'), 'warning', 3000)
         return
       }
 
       loading.value = true
-      setTimeout(() => {
-        try {
-          testPlan.value = generateTestPlan(projectInfo.value, planType)
-          console.log('Test plan generated:', testPlan.value)
-          if (testPlan.value) {
-            showNotification(t('notifications.testPlanGenerated'), 'success', 4000)
-          } else {
-            showNotification(t('notifications.noTestPlan'), 'warning', 4000)
-          }
-        } catch (error) {
-          console.error('Error generating test plan:', error)
-          showNotification(t('notifications.testPlanError'), 'error', 5000)
-        } finally {
-          loading.value = false
+      try {
+        // For now, we don't have a UI toggle for AI in test plans, but we can enable it in the future
+        const useAIForTitle = false // Can be made configurable later
+        testPlan.value = await generateTestPlan(projectInfo.value, planType, useAIForTitle)
+        console.log('Test plan generated:', testPlan.value)
+        if (testPlan.value) {
+          showNotification(t('notifications.testPlanGenerated'), 'success', 4000)
+        } else {
+          showNotification(t('notifications.noTestPlan'), 'warning', 4000)
         }
-      }, 500)
+      } catch (error) {
+        console.error('Error generating test plan:', error)
+        showNotification(t('notifications.testPlanError'), 'error', 5000)
+      } finally {
+        loading.value = false
+      }
     }
 
     const clearPlan = () => {

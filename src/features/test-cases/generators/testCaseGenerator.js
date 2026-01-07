@@ -1,9 +1,12 @@
-import { generateIntelligentTestCases, analyzeProjectInfo } from './intelligentAnalyzer'
+import {
+  generateIntelligentTestCases,
+  analyzeProjectInfo
+} from '@core/analysis/intelligentAnalyzer.js'
 import {
   generateTestCasesWithAI,
   checkOllamaAvailability,
   AI_PROVIDERS
-} from '../services/aiService'
+} from '@core/ai/aiService.js'
 
 let useAI = false
 let aiProvider = AI_PROVIDERS.ONLINE
@@ -57,7 +60,13 @@ export async function generateTestCases(
 
   // Use intelligent analyzer for better test case generation
   const analysis = analyzeProjectInfo(projectInfo)
-  const testCases = generateIntelligentTestCases(projectInfo, format, analysis, validTestsPerAC)
+  const testCases = await generateIntelligentTestCases(
+    projectInfo,
+    format,
+    analysis,
+    validTestsPerAC,
+    useAIEnhancement
+  )
 
   return testCases
 }

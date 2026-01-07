@@ -23,7 +23,7 @@
 
 <script>
 import { computed } from 'vue'
-import { useNotification } from '../composables/useNotification'
+import { useNotification } from '@shared/composables/useNotification.js'
 
 export default {
   name: 'NotificationToast',

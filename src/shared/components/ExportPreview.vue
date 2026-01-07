@@ -5,17 +5,20 @@
         <h2>{{ $t('export.preview') }}</h2>
         <button @click="close" class="close-btn">&times;</button>
       </div>
-      
+
       <div class="modal-content">
         <div class="preview-info">
           <div class="info-item">
-            <strong>{{ $t('export.tool') }}:</strong> {{ toolName }}
+            <strong>{{ $t('export.tool') }}:</strong>
+            {{ toolName }}
           </div>
           <div class="info-item">
-            <strong>{{ $t('export.columns') }}:</strong> {{ previewData.columns.length }}
+            <strong>{{ $t('export.columns') }}:</strong>
+            {{ previewData.columns.length }}
           </div>
           <div class="info-item">
-            <strong>{{ $t('export.rows') }}:</strong> {{ previewData.rows.length }}
+            <strong>{{ $t('export.rows') }}:</strong>
+            {{ previewData.rows.length }}
           </div>
         </div>
 
@@ -110,7 +113,7 @@ export default {
   padding: 1rem;
 }
 
-[data-theme="light"] .export-preview-overlay {
+[data-theme='light'] .export-preview-overlay {
   background: rgba(0, 0, 0, 0.6);
 }
 
@@ -157,7 +160,7 @@ export default {
   border-radius: 16px 16px 0 0;
 }
 
-[data-theme="light"] .modal-header {
+[data-theme='light'] .modal-header {
   background: var(--bg-secondary);
 }
 
@@ -274,7 +277,7 @@ export default {
   position: sticky;
   top: 0;
   z-index: 10;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .preview-table th {
@@ -364,7 +367,7 @@ export default {
   .export-preview-modal {
     max-width: 95%;
   }
-  
+
   .preview-table-container {
     overflow-x: auto;
   }
@@ -374,38 +377,38 @@ export default {
   .export-preview-overlay {
     padding: 0.5rem;
   }
-  
+
   .export-preview-modal {
     width: 100%;
     max-height: 95vh;
     border-radius: 12px;
   }
-  
+
   .modal-header,
   .modal-content,
   .modal-footer {
     padding: 1.25rem;
   }
-  
+
   .preview-info {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .modal-footer {
     flex-direction: column-reverse;
     gap: 0.75rem;
   }
-  
+
   .btn {
     width: 100%;
     justify-content: center;
   }
-  
+
   .preview-table {
     font-size: 0.8rem;
   }
-  
+
   .preview-table th,
   .preview-table td {
     padding: 0.5rem;
@@ -417,15 +420,15 @@ export default {
     max-height: 98vh;
     border-radius: 8px;
   }
-  
+
   .modal-header h2 {
     font-size: 1.25rem;
   }
-  
+
   .preview-table {
     font-size: 0.75rem;
   }
-  
+
   .preview-table th,
   .preview-table td {
     padding: 0.375rem;
@@ -433,4 +436,3 @@ export default {
   }
 }
 </style>
-

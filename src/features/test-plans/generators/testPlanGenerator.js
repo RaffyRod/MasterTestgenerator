@@ -1,6 +1,15 @@
-import { analyzeProjectInfo, extractAcceptanceCriteria } from './intelligentAnalyzer'
+import {
+  analyzeProjectInfo,
+  extractAcceptanceCriteria,
+  extractIntelligentTitle,
+  generateIntelligentItemName
+} from '@core/analysis/intelligentAnalyzer.js'
 
-export function generateTestPlan(projectInfo, planType = 'comprehensive') {
+export async function generateTestPlan(
+  projectInfo,
+  planType = 'comprehensive',
+  useAIForTitle = false
+) {
   if (!projectInfo || projectInfo.trim().length === 0) {
     return null
   }
@@ -11,8 +20,9 @@ export function generateTestPlan(projectInfo, planType = 'comprehensive') {
 
   const planTypeConfig = getPlanTypeConfig(planType)
 
+  const intelligentTitle = await extractIntelligentTitle(projectInfo, planType, useAIForTitle)
   const plan = {
-    title: `${planTypeConfig.titlePrefix}${extractPlanTitle(projectInfo)}`,
+    title: `${planTypeConfig.titlePrefix}${intelligentTitle}`,
     type: planTypeConfig.name,
     objectives: generateObjectives(projectInfo, analysis, planType),
     scope: generateScope(projectInfo, analysis, planType),
@@ -112,17 +122,6 @@ function getPlanTypeConfig(planType) {
     }
   }
   return configs[planType] || configs.comprehensive
-}
-
-function extractPlanTitle(projectInfo) {
-  const lines = projectInfo.split('\n')
-  const firstLine = lines[0]?.trim()
-
-  if (firstLine && firstLine.length > 0) {
-    return `Test Plan: ${firstLine.substring(0, 100)}`
-  }
-
-  return 'Test Plan'
 }
 
 function generateObjectives(projectInfo, analysis = null, planType = 'comprehensive') {
@@ -923,14 +922,9 @@ function generateTestItems(projectInfo, acceptanceCriteria = null, planType = 'c
   // Use acceptance criteria if available
   if (acceptanceCriteria && acceptanceCriteria.length > 0) {
     acceptanceCriteria.forEach((ac, index) => {
-      // Adjust item name based on plan type
-      let itemName = ac.text.substring(0, 100)
-      let itemDescription = ac.text
-
-      if (typePrefixes[planType]) {
-        itemName = `${typePrefixes[planType]}: ${itemName}`
-        itemDescription = `${typePrefixes[planType]} testing for: ${ac.text}`
-      }
+      // Use intelligent name generation
+      const itemName = generateIntelligentItemName(ac.text, planType, index)
+      const itemDescription = ac.text.length > 200 ? `${ac.text.substring(0, 200)}...` : ac.text
 
       items.push({
         id: `${prefix}-${index + 1}`,
@@ -940,20 +934,18 @@ function generateTestItems(projectInfo, acceptanceCriteria = null, planType = 'c
       })
     })
   } else {
-    // Fallback to line-based extraction
+    // Fallback to line-based extraction with intelligent naming
     const lines = projectInfo.split('\n').filter(line => line.trim().length > 0)
     lines.forEach((line, index) => {
       if (line.trim().length > 0) {
-        let itemName = line.trim().substring(0, 100)
-
-        if (typePrefixes[planType]) {
-          itemName = `${typePrefixes[planType]}: ${itemName}`
-        }
+        const itemName = generateIntelligentItemName(line.trim(), planType, index)
+        const description =
+          line.trim().length > 200 ? `${line.trim().substring(0, 200)}...` : line.trim()
 
         items.push({
           id: `${prefix}-${index + 1}`,
           name: itemName,
-          description: line.trim()
+          description: description
         })
       }
     })

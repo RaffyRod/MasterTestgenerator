@@ -3,13 +3,10 @@
  * Supports both local (Ollama) and online (Hugging Face) AI models
  */
 
-const AI_PROVIDERS = {
-  LOCAL: 'local',
-  ONLINE: 'online'
-}
+import { AI_PROVIDERS, DEFAULT_OLLAMA_URL } from '@core/constants/aiProviders.js'
 
 let currentProvider = AI_PROVIDERS.ONLINE // Default to online
-let ollamaBaseUrl = 'http://localhost:11434' // Default Ollama URL
+let ollamaBaseUrl = DEFAULT_OLLAMA_URL // Default Ollama URL
 
 /**
  * Initialize AI service
@@ -515,4 +512,217 @@ function parseTestPlanResponse(response, planType) {
   }
 }
 
-export { AI_PROVIDERS }
+/**
+ * Generate intelligent title from text using AI
+ * @param {string} text - Text to generate title from (AC, requirement, etc.)
+ * @param {string} language - 'en' or 'es'
+ * @param {string} type - 'testCase' or 'testPlan'
+ * @returns {Promise<string>} - Generated intelligent title
+ */
+export async function generateIntelligentTitle(text, language = 'en', type = 'testCase') {
+  if (!text || text.trim().length === 0) {
+    return type === 'testCase' ? 'Test Case' : 'Test Plan'
+  }
+
+  const lang = language === 'es' ? 'español' : 'English'
+  const typeLabel = type === 'testCase' ? 'test case' : 'test plan'
+
+  const prompt = `You are an expert QA engineer. Generate a concise, professional ${typeLabel} title from the following text.
+
+Language: ${lang}
+Text: ${text}
+
+Requirements:
+1. Create a short, clear title (maximum 60 characters)
+2. Remove all Gherkin keywords (Given, When, Then, etc.)
+3. Remove common prefixes (AC, Acceptance Criteria, etc.)
+4. Focus on the main action and object
+5. Use professional QA terminology
+6. Do NOT copy the text verbatim - create a smart, concise title
+7. Return ONLY the title, nothing else
+
+Examples:
+- "Given I am on the login page, When I enter valid credentials, Then I should be logged in" → "User Login with Valid Credentials"
+- "The Browse province section is expanded, I view it, I should successfully see a list of provinces" → "View Province List"
+- "AC1: User can create a new order" → "Create New Order"
+
+Generate the title now:`
+
+  try {
+    if (currentProvider === AI_PROVIDERS.LOCAL) {
+      return await generateTitleWithOllama(prompt)
+    } else {
+      return await generateTitleWithHuggingFace(prompt)
+    }
+  } catch (error) {
+    console.warn('AI title generation failed, using fallback:', error)
+    // Fallback to intelligent non-AI generation
+    return generateIntelligentTitleFallback(text, type)
+  }
+}
+
+/**
+ * Generate title with Ollama
+ */
+async function generateTitleWithOllama(prompt) {
+  const response = await fetch(`${ollamaBaseUrl}/api/generate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'llama3.2:1b',
+      prompt: prompt,
+      stream: false,
+      options: {
+        temperature: 0.3,
+        num_predict: 100
+      }
+    })
+  })
+
+  if (!response.ok) {
+    throw new Error('Ollama API error')
+  }
+
+  const data = await response.json()
+  const title = data.response?.trim() || ''
+
+  // Clean up the response
+  return title
+    .replace(/^Title:\s*/i, '')
+    .replace(/^"|"$/g, '')
+    .trim()
+    .substring(0, 60)
+}
+
+/**
+ * Generate title with Hugging Face
+ */
+async function generateTitleWithHuggingFace(prompt) {
+  const apiKey = import.meta.env.VITE_HUGGING_FACE_API_KEY || ''
+
+  const response = await fetch(
+    'https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(apiKey && { Authorization: `Bearer ${apiKey}` })
+      },
+      body: JSON.stringify({
+        inputs: prompt,
+        parameters: {
+          max_new_tokens: 50,
+          temperature: 0.3,
+          return_full_text: false
+        }
+      })
+    }
+  )
+
+  if (!response.ok) {
+    throw new Error('Hugging Face API error')
+  }
+
+  const data = await response.json()
+  const generatedText = Array.isArray(data) ? data[0].generated_text : data.generated_text
+  const title = generatedText?.trim() || ''
+
+  // Clean up the response
+  return title
+    .replace(/^Title:\s*/i, '')
+    .replace(/^"|"$/g, '')
+    .trim()
+    .substring(0, 60)
+}
+
+/**
+ * Fallback intelligent title generation without AI
+ */
+function generateIntelligentTitleFallback(text, type = 'testCase') {
+  if (!text || typeof text !== 'string') {
+    return type === 'testCase' ? 'Test Case' : 'Test Plan'
+  }
+
+  // Remove common prefixes
+  let title = text
+    .replace(/^AC[:\s]+\d*[:\s]*/i, '')
+    .replace(/^Acceptance\s+Criteria[:\s]+\d*[:\s]*/i, '')
+    .replace(/^(Given|When|Then|As a|I want|User story|Scenario|Dado|Cuando|Entonces)[:\s]+/i, '')
+    .trim()
+
+  // Remove Gherkin keywords
+  title = title.replace(/(?:Given|When|Then|And|But|Dado|Cuando|Entonces|Y|Pero)\s+/gi, ' ')
+
+  // Extract key action and object
+  const lowerTitle = title.toLowerCase()
+
+  // Pattern-based title generation
+  const patterns = [
+    // View/Display patterns
+    {
+      pattern:
+        /(?:view|display|show|see|browse|list)\s+(?:the\s+)?(?:list\s+of\s+)?([a-z\s]+?)(?:$|\.|,)/i,
+      format: match => `View ${capitalizeWords(match[1])}`
+    },
+    // Create patterns
+    {
+      pattern: /(?:create|add|new)\s+(?:a\s+)?(?:new\s+)?([a-z\s]+?)(?:$|\.|,)/i,
+      format: match => `Create ${capitalizeWords(match[1])}`
+    },
+    // Update patterns
+    {
+      pattern: /(?:update|edit|modify|change)\s+(?:the\s+)?([a-z\s]+?)(?:$|\.|,)/i,
+      format: match => `Update ${capitalizeWords(match[1])}`
+    },
+    // Delete patterns
+    {
+      pattern: /(?:delete|remove)\s+(?:the\s+)?([a-z\s]+?)(?:$|\.|,)/i,
+      format: match => `Delete ${capitalizeWords(match[1])}`
+    },
+    // Login patterns
+    {
+      pattern: /(?:login|sign in|authenticate)/i,
+      format: () => 'User Login'
+    },
+    // Search patterns
+    {
+      pattern: /(?:search|find|filter)\s+(?:for\s+)?([a-z\s]+?)(?:$|\.|,)/i,
+      format: match => `Search ${capitalizeWords(match[1])}`
+    }
+  ]
+
+  for (const { pattern, format } of patterns) {
+    const match = title.match(pattern)
+    if (match) {
+      title = format(match)
+      break
+    }
+  }
+
+  // Clean up: take first meaningful phrase
+  const sentences = title.split(/[.!?,]/)
+  title = sentences[0]?.trim() || title
+
+  // Remove trailing filler words
+  title = title.replace(
+    /\s+(is|are|should|must|will|can|may|the|a|an|successfully|successful)\s*$/i,
+    ''
+  )
+
+  // Limit length and capitalize
+  title = title.trim().substring(0, 60)
+  title = title.charAt(0).toUpperCase() + title.slice(1)
+
+  return title || (type === 'testCase' ? 'Test Case' : 'Test Plan')
+}
+
+function capitalizeWords(text) {
+  return text
+    .trim()
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ')
+    .substring(0, 40)
+}
+
+export { AI_PROVIDERS } from '@core/constants/aiProviders.js'

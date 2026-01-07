@@ -9,9 +9,9 @@ const themes = {
 export function useTheme() {
   const currentTheme = ref(themes.dark)
 
-  const setTheme = (theme) => {
+  const setTheme = theme => {
     if (!themes[theme]) return
-    
+
     currentTheme.value = theme
     document.documentElement.setAttribute('data-theme', theme)
     localStorage.setItem(THEME_KEY, theme)
@@ -39,4 +39,3 @@ export function useTheme() {
     initTheme
   }
 }
-

@@ -189,12 +189,17 @@ import {
   configureAI,
   checkOllamaAvailability,
   AI_PROVIDERS
-} from '../utils/testCaseGenerator'
-import { initAIService } from '../services/aiService'
-import { TEST_MANAGEMENT_TOOLS, exportToCSV, getPreviewData, downloadCSV } from '../utils/csvExport'
-import ExportPreview from '../components/ExportPreview.vue'
-import OllamaStatus from '../components/OllamaStatus.vue'
-import { useNotification } from '../composables/useNotification'
+} from '@features/test-cases/generators/testCaseGenerator.js'
+import { initAIService } from '@core/ai/aiService.js'
+import {
+  TEST_MANAGEMENT_TOOLS,
+  exportToCSV,
+  getPreviewData,
+  downloadCSV
+} from '@features/test-cases/utils/csvExport.js'
+import ExportPreview from '@shared/components/ExportPreview.vue'
+import OllamaStatus from '@shared/components/OllamaStatus.vue'
+import { useNotification } from '@shared/composables/useNotification.js'
 
 export default {
   name: 'TestCases',
@@ -917,11 +922,8 @@ export default {
   word-wrap: break-word;
   overflow-wrap: break-word;
   hyphens: auto;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  display: block;
+  overflow: visible;
 }
 
 [data-theme='light'] .card-title {
