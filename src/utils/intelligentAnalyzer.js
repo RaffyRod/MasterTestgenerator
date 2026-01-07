@@ -3,6 +3,8 @@
  * Analyzes patterns and generates intelligent recommendations
  */
 
+import testCasePatterns from '../data/patterns/test-case-patterns.json'
+
 const FUNCTIONALITY_PATTERNS = {
   authentication: {
     keywords: [
@@ -729,12 +731,12 @@ function createTestCaseFromAC(
 
   const gherkinSteps =
     format === 'gherkin'
-      ? generateGherkinFromAC(acText, ac.type, variationIndex, totalVariations)
+      ? generateGherkinFromAC(acText, ac.type, variationIndex, totalVariations, functionality)
       : null
   const stepByStep =
     format === 'gherkin'
       ? null
-      : generateStepsFromAC(acText, ac.type, variationIndex, totalVariations)
+      : generateStepsFromAC(acText, ac.type, variationIndex, totalVariations, functionality)
 
   // Extract Given/When/Then from Gherkin or text
   const givenMatch = acText.match(/(?:Given|Dado)\s+(.+?)(?:\s+When|\s+Cuando|$)/i)
@@ -750,7 +752,15 @@ function createTestCaseFromAC(
     type: testType,
     preconditions: generatePreconditions(acText, functionality),
     steps,
-    expectedResult: generateExpectedResult(acText, ac.type, functionality, thenMatch, title, steps),
+    expectedResult: generateExpectedResult(
+      acText,
+      ac.type,
+      functionality,
+      thenMatch,
+      title,
+      steps,
+      variationIndex
+    ),
     scenario: extractScenario(acText),
     given: givenMatch ? givenMatch[1].trim() : null,
     when: whenMatch ? whenMatch[1].trim() : null,
@@ -1016,9 +1026,21 @@ function generatePreconditions(text, functionality) {
   return preconditions.length > 0 ? preconditions.join('; ') : 'System is ready and accessible'
 }
 
-function generateGherkinFromAC(text, acType) {
+function generateGherkinFromAC(
+  text,
+  acType,
+  variationIndex = 0,
+  totalVariations = 1,
+  functionality = null
+) {
   if (!text || typeof text !== 'string') {
     return 'Given The System Is In A Valid State\nWhen The User Performs The Required Action\nThen The Expected Result Should Be Achieved'
+  }
+
+  // Try to get pattern-based Gherkin first
+  const patternGherkin = getPatternBasedSteps(text, functionality, 'gherkin', variationIndex)
+  if (patternGherkin) {
+    return patternGherkin
   }
 
   const lowerText = text.toLowerCase()
@@ -1550,10 +1572,19 @@ function generateExpectedResult(
   functionality = null,
   thenMatch = null,
   title = null,
-  steps = null
+  steps = null,
+  variationIndex = 0
 ) {
   if (!text || typeof text !== 'string') {
     return 'Operation completes successfully and expected behavior is verified'
+  }
+
+  // Try to get expected result from patterns first
+  if (functionality && functionality.type) {
+    const patternExpected = getPatternBasedExpectedResult(text, functionality, variationIndex)
+    if (patternExpected) {
+      return patternExpected
+    }
   }
 
   // Combine all text sources for better analysis
@@ -1972,4 +2003,326 @@ function capitalizeTitleCase(text) {
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ')
+}
+
+/**
+ * Get pattern-based steps from JSON patterns
+ */
+function getPatternBasedSteps(text, functionality, format, variationIndex = 0) {
+  if (!text || !functionality || !functionality.type) {
+    return null
+  }
+
+  const funcType = functionality.type
+  const lowerText = text.toLowerCase()
+
+  // Get patterns for this functionality
+  const patterns = testCasePatterns[funcType]
+  if (!patterns) {
+    return null
+  }
+
+  // Determine which pattern to use based on text content and variation index
+  let patternKey = null
+  let pattern = null
+
+  // Determine pattern based on variation index and text content
+  if (variationIndex === 0 || variationIndex === 1) {
+    // Positive flow
+    if (funcType === 'authentication') {
+      patternKey =
+        lowerText.includes('invalid') || lowerText.includes('wrong') ? 'negative' : 'positive'
+    } else if (funcType === 'crud') {
+      if (lowerText.includes('create') || lowerText.includes('add') || lowerText.includes('new')) {
+        patternKey = 'create'
+      } else if (
+        lowerText.includes('read') ||
+        lowerText.includes('view') ||
+        lowerText.includes('display')
+      ) {
+        patternKey = 'read'
+      } else if (
+        lowerText.includes('update') ||
+        lowerText.includes('edit') ||
+        lowerText.includes('modify')
+      ) {
+        patternKey = 'update'
+      } else if (lowerText.includes('delete') || lowerText.includes('remove')) {
+        patternKey = 'delete'
+      } else {
+        patternKey = 'create' // Default
+      }
+    } else if (funcType === 'validation') {
+      if (lowerText.includes('required') || lowerText.includes('mandatory')) {
+        patternKey = 'requiredFields'
+      } else if (lowerText.includes('format') || lowerText.includes('pattern')) {
+        patternKey = 'formatValidation'
+      } else if (lowerText.includes('boundary') || lowerText.includes('limit')) {
+        patternKey = 'boundaryValues'
+      } else {
+        patternKey = 'requiredFields' // Default
+      }
+    } else if (funcType === 'payment') {
+      patternKey =
+        lowerText.includes('fail') || lowerText.includes('decline') || lowerText.includes('error')
+          ? 'paymentFailure'
+          : 'successfulPayment'
+    } else if (funcType === 'search') {
+      if (lowerText.includes('no result') || lowerText.includes('empty')) {
+        patternKey = 'noResults'
+      } else if (lowerText.includes('filter') || lowerText.includes('advanced')) {
+        patternKey = 'advancedSearch'
+      } else {
+        patternKey = 'basicSearch'
+      }
+    } else if (funcType === 'export') {
+      patternKey = 'exportData'
+    } else if (funcType === 'fileUpload') {
+      patternKey =
+        lowerText.includes('invalid') || lowerText.includes('wrong')
+          ? 'invalidFile'
+          : 'successfulUpload'
+    } else if (funcType === 'api') {
+      patternKey =
+        lowerText.includes('error') || lowerText.includes('invalid') || lowerText.includes('fail')
+          ? 'apiError'
+          : 'apiRequest'
+    } else if (funcType === 'workflow') {
+      patternKey =
+        lowerText.includes('approval') || lowerText.includes('approve')
+          ? 'workflowApproval'
+          : 'workflowExecution'
+    } else {
+      // Use generic patterns
+      const genericPatterns = testCasePatterns.generic
+      if (genericPatterns) {
+        patternKey =
+          lowerText.includes('invalid') || lowerText.includes('error') || lowerText.includes('fail')
+            ? 'negativeFlow'
+            : 'basicFlow'
+        pattern = genericPatterns[patternKey]
+        if (pattern) {
+          if (format === 'gherkin' && pattern.gherkin) {
+            const gherkin = pattern.gherkin
+            return `Given ${gherkin.given}\nWhen ${gherkin.when}\nThen ${gherkin.then}`
+          } else if (format === 'stepByStep' && pattern.stepByStep) {
+            return pattern.stepByStep.map((step, index) => `${index + 1}. ${step}`).join('\n')
+          }
+        }
+      }
+      return null
+    }
+  } else if (variationIndex === 2) {
+    // Negative flow
+    if (funcType === 'authentication') {
+      patternKey = 'negative'
+    } else if (funcType === 'crud') {
+      patternKey = 'delete' // Use delete as negative example
+    } else if (funcType === 'validation') {
+      patternKey = 'formatValidation'
+    } else if (funcType === 'payment') {
+      patternKey = 'paymentFailure'
+    } else if (funcType === 'fileUpload') {
+      patternKey = 'invalidFile'
+    } else {
+      const genericPatterns = testCasePatterns.generic
+      if (genericPatterns && genericPatterns.negativeFlow) {
+        pattern = genericPatterns.negativeFlow
+        if (pattern) {
+          if (format === 'gherkin' && pattern.gherkin) {
+            const gherkin = pattern.gherkin
+            return `Given ${gherkin.given}\nWhen ${gherkin.when}\nThen ${gherkin.then}`
+          } else if (format === 'stepByStep' && pattern.stepByStep) {
+            return pattern.stepByStep.map((step, index) => `${index + 1}. ${step}`).join('\n')
+          }
+        }
+      }
+      return null
+    }
+  } else {
+    // Use generic patterns for other variations
+    const genericPatterns = testCasePatterns.generic
+    if (genericPatterns && genericPatterns.basicFlow) {
+      pattern = genericPatterns.basicFlow
+      if (pattern) {
+        if (format === 'gherkin' && pattern.gherkin) {
+          const gherkin = pattern.gherkin
+          return `Given ${gherkin.given}\nWhen ${gherkin.when}\nThen ${gherkin.then}`
+        } else if (format === 'stepByStep' && pattern.stepByStep) {
+          return pattern.stepByStep.map((step, index) => `${index + 1}. ${step}`).join('\n')
+        }
+      }
+    }
+    return null
+  }
+
+  // Get the pattern
+  pattern = patterns[patternKey]
+  if (!pattern) {
+    // Fallback to first available pattern
+    const firstKey = Object.keys(patterns)[0]
+    pattern = patterns[firstKey]
+  }
+
+  if (!pattern) {
+    return null
+  }
+
+  // Get steps based on format
+  if (format === 'gherkin' && pattern.gherkin) {
+    const gherkin = pattern.gherkin
+    return `Given ${gherkin.given}\nWhen ${gherkin.when}\nThen ${gherkin.then}`
+  } else if (format === 'stepByStep' && pattern.stepByStep) {
+    return pattern.stepByStep.map((step, index) => `${index + 1}. ${step}`).join('\n')
+  }
+
+  return null
+}
+
+/**
+ * Get pattern-based expected result from JSON patterns
+ */
+function getPatternBasedExpectedResult(text, functionality, variationIndex = 0) {
+  if (!text || !functionality || !functionality.type) {
+    return null
+  }
+
+  const funcType = functionality.type
+  const lowerText = text.toLowerCase()
+
+  // Get patterns for this functionality
+  const patterns = testCasePatterns[funcType]
+  if (!patterns) {
+    return null
+  }
+
+  // Determine which pattern to use based on text content and variation index
+  let patternKey = null
+  let pattern = null
+
+  // Determine pattern based on variation index and text content
+  if (variationIndex === 0 || variationIndex === 1) {
+    // Positive flow
+    if (funcType === 'authentication') {
+      patternKey =
+        lowerText.includes('invalid') || lowerText.includes('wrong') ? 'negative' : 'positive'
+    } else if (funcType === 'crud') {
+      if (lowerText.includes('create') || lowerText.includes('add') || lowerText.includes('new')) {
+        patternKey = 'create'
+      } else if (
+        lowerText.includes('read') ||
+        lowerText.includes('view') ||
+        lowerText.includes('display')
+      ) {
+        patternKey = 'read'
+      } else if (
+        lowerText.includes('update') ||
+        lowerText.includes('edit') ||
+        lowerText.includes('modify')
+      ) {
+        patternKey = 'update'
+      } else if (lowerText.includes('delete') || lowerText.includes('remove')) {
+        patternKey = 'delete'
+      } else {
+        patternKey = 'create' // Default
+      }
+    } else if (funcType === 'validation') {
+      if (lowerText.includes('required') || lowerText.includes('mandatory')) {
+        patternKey = 'requiredFields'
+      } else if (lowerText.includes('format') || lowerText.includes('pattern')) {
+        patternKey = 'formatValidation'
+      } else if (lowerText.includes('boundary') || lowerText.includes('limit')) {
+        patternKey = 'boundaryValues'
+      } else {
+        patternKey = 'requiredFields' // Default
+      }
+    } else if (funcType === 'payment') {
+      patternKey =
+        lowerText.includes('fail') || lowerText.includes('decline') || lowerText.includes('error')
+          ? 'paymentFailure'
+          : 'successfulPayment'
+    } else if (funcType === 'search') {
+      if (lowerText.includes('no result') || lowerText.includes('empty')) {
+        patternKey = 'noResults'
+      } else if (lowerText.includes('filter') || lowerText.includes('advanced')) {
+        patternKey = 'advancedSearch'
+      } else {
+        patternKey = 'basicSearch'
+      }
+    } else if (funcType === 'export') {
+      patternKey = 'exportData'
+    } else if (funcType === 'fileUpload') {
+      patternKey =
+        lowerText.includes('invalid') || lowerText.includes('wrong')
+          ? 'invalidFile'
+          : 'successfulUpload'
+    } else if (funcType === 'api') {
+      patternKey =
+        lowerText.includes('error') || lowerText.includes('invalid') || lowerText.includes('fail')
+          ? 'apiError'
+          : 'apiRequest'
+    } else if (funcType === 'workflow') {
+      patternKey =
+        lowerText.includes('approval') || lowerText.includes('approve')
+          ? 'workflowApproval'
+          : 'workflowExecution'
+    } else {
+      const genericPatterns = testCasePatterns.generic
+      if (genericPatterns) {
+        patternKey =
+          lowerText.includes('invalid') || lowerText.includes('error') || lowerText.includes('fail')
+            ? 'negativeFlow'
+            : 'basicFlow'
+        pattern = genericPatterns[patternKey]
+        if (pattern && pattern.expectedResult) {
+          return pattern.expectedResult
+        }
+      }
+      return null
+    }
+  } else if (variationIndex === 2) {
+    // Negative flow
+    if (funcType === 'authentication') {
+      patternKey = 'negative'
+    } else if (funcType === 'crud') {
+      patternKey = 'delete'
+    } else if (funcType === 'validation') {
+      patternKey = 'formatValidation'
+    } else if (funcType === 'payment') {
+      patternKey = 'paymentFailure'
+    } else if (funcType === 'fileUpload') {
+      patternKey = 'invalidFile'
+    } else {
+      const genericPatterns = testCasePatterns.generic
+      if (
+        genericPatterns &&
+        genericPatterns.negativeFlow &&
+        genericPatterns.negativeFlow.expectedResult
+      ) {
+        return genericPatterns.negativeFlow.expectedResult
+      }
+      return null
+    }
+  } else {
+    // Use generic patterns for other variations
+    const genericPatterns = testCasePatterns.generic
+    if (genericPatterns && genericPatterns.basicFlow && genericPatterns.basicFlow.expectedResult) {
+      return genericPatterns.basicFlow.expectedResult
+    }
+    return null
+  }
+
+  // Get the pattern
+  pattern = patterns[patternKey]
+  if (!pattern) {
+    // Fallback to first available pattern
+    const firstKey = Object.keys(patterns)[0]
+    pattern = patterns[firstKey]
+  }
+
+  if (!pattern || !pattern.expectedResult) {
+    return null
+  }
+
+  return pattern.expectedResult
 }

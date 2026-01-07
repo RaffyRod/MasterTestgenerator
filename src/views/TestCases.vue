@@ -592,11 +592,12 @@ export default {
   margin: 0;
   position: relative;
   z-index: 1;
+  align-self: center;
 }
 
 .radio-label-content {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   flex: 1;
   margin-left: 0.75rem;
 }
@@ -605,6 +606,8 @@ export default {
   font-size: 1rem;
   line-height: 1.5;
   color: inherit;
+  display: flex;
+  align-items: center;
 }
 
 .button-group {

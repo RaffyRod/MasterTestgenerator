@@ -1,0 +1,428 @@
+{
+  "authentication": {
+    "positive": {
+      "stepByStep": [
+        "Navigate to the login page",
+        "Enter valid username in the username field",
+        "Enter valid password in the password field",
+        "Click on the 'Login' or 'Sign In' button",
+        "Verify successful login by checking the redirect to dashboard or home page",
+        "Verify user session is established and user information is displayed"
+      ],
+      "gherkin": {
+        "given": "I am on the login page",
+        "when": "I enter valid credentials (username and password)",
+        "then": "I should be successfully logged in and redirected to the dashboard"
+      },
+      "expectedResult": "User is successfully authenticated and redirected to the main application page"
+    },
+    "negative": {
+      "stepByStep": [
+        "Navigate to the login page",
+        "Enter invalid username in the username field",
+        "Enter invalid password in the password field",
+        "Click on the 'Login' or 'Sign In' button",
+        "Verify an error message is displayed indicating invalid credentials",
+        "Verify the user remains on the login page and is not authenticated"
+      ],
+      "gherkin": {
+        "given": "I am on the login page",
+        "when": "I enter invalid credentials (incorrect username or password)",
+        "then": "I should see an error message and remain on the login page"
+      },
+      "expectedResult": "Error message is displayed and user authentication fails"
+    },
+    "passwordReset": {
+      "stepByStep": [
+        "Navigate to the login page",
+        "Click on the 'Forgot Password' or 'Reset Password' link",
+        "Enter a registered email address in the email field",
+        "Click on the 'Send Reset Link' or 'Submit' button",
+        "Verify a confirmation message is displayed",
+        "Check the email inbox for the password reset link"
+      ],
+      "gherkin": {
+        "given": "I am on the login page and have forgotten my password",
+        "when": "I request a password reset with my registered email address",
+        "then": "I should receive a password reset link via email"
+      },
+      "expectedResult": "Password reset email is sent successfully to the registered email address"
+    }
+  },
+  "crud": {
+    "create": {
+      "stepByStep": [
+        "Navigate to the create new record page or section",
+        "Fill in all required fields with valid data",
+        "Fill in optional fields if applicable",
+        "Click on the 'Save', 'Create', or 'Submit' button",
+        "Verify a success message is displayed confirming the record creation",
+        "Verify the new record appears in the list or view with the correct data"
+      ],
+      "gherkin": {
+        "given": "I am on the create new record page",
+        "when": "I fill in all required fields with valid data and submit the form",
+        "then": "A new record should be created and displayed in the list"
+      },
+      "expectedResult": "New record is successfully created with all provided data and appears in the system"
+    },
+    "read": {
+      "stepByStep": [
+        "Navigate to the list or view page",
+        "Locate the specific record to view",
+        "Click on the record or the 'View' button",
+        "Verify all record details are displayed correctly",
+        "Verify the data matches the expected values",
+        "Verify all fields are readable and properly formatted"
+      ],
+      "gherkin": {
+        "given": "I am on the records list page",
+        "when": "I select a record to view",
+        "then": "I should see all the record details displayed correctly"
+      },
+      "expectedResult": "Record details are displayed accurately with all expected information"
+    },
+    "update": {
+      "stepByStep": [
+        "Navigate to the list or view page",
+        "Locate the record to update",
+        "Click on the 'Edit' or 'Update' button for the record",
+        "Modify the desired fields with new valid data",
+        "Click on the 'Save' or 'Update' button",
+        "Verify a success message is displayed confirming the update",
+        "Verify the updated data is reflected in the record"
+      ],
+      "gherkin": {
+        "given": "I am viewing an existing record",
+        "when": "I modify the record fields and save the changes",
+        "then": "The record should be updated with the new data"
+      },
+      "expectedResult": "Record is successfully updated with the new data and changes are persisted"
+    },
+    "delete": {
+      "stepByStep": [
+        "Navigate to the list or view page",
+        "Locate the record to delete",
+        "Click on the 'Delete' or 'Remove' button for the record",
+        "Confirm the deletion in the confirmation dialog",
+        "Verify a success message is displayed confirming the deletion",
+        "Verify the record no longer appears in the list"
+      ],
+      "gherkin": {
+        "given": "I am viewing a record that can be deleted",
+        "when": "I click delete and confirm the deletion",
+        "then": "The record should be removed from the system"
+      },
+      "expectedResult": "Record is successfully deleted and no longer appears in the system"
+    }
+  },
+  "validation": {
+    "requiredFields": {
+      "stepByStep": [
+        "Navigate to the form or input page",
+        "Leave required fields empty",
+        "Attempt to submit the form",
+        "Verify validation error messages are displayed for each required field",
+        "Verify the form is not submitted",
+        "Verify error messages are clear and indicate which fields are required"
+      ],
+      "gherkin": {
+        "given": "I am on a form with required fields",
+        "when": "I attempt to submit the form without filling required fields",
+        "then": "I should see validation error messages for each empty required field"
+      },
+      "expectedResult": "Form validation prevents submission and displays clear error messages for required fields"
+    },
+    "formatValidation": {
+      "stepByStep": [
+        "Navigate to the form or input page",
+        "Enter invalid format data in a field (e.g., invalid email, phone number, date)",
+        "Click on the 'Submit' or 'Save' button or move to the next field",
+        "Verify a format validation error message is displayed",
+        "Verify the error message indicates the expected format",
+        "Verify the form is not submitted with invalid data"
+      ],
+      "gherkin": {
+        "given": "I am on a form with format-validated fields",
+        "when": "I enter data in an invalid format",
+        "then": "I should see a validation error message indicating the expected format"
+      },
+      "expectedResult": "Format validation error is displayed with clear instructions on the expected format"
+    },
+    "boundaryValues": {
+      "stepByStep": [
+        "Navigate to the form or input page",
+        "Enter the minimum allowed value in a numeric field",
+        "Verify the value is accepted",
+        "Enter a value below the minimum allowed",
+        "Verify a validation error is displayed",
+        "Enter the maximum allowed value",
+        "Verify the value is accepted",
+        "Enter a value above the maximum allowed",
+        "Verify a validation error is displayed"
+      ],
+      "gherkin": {
+        "given": "I am on a form with numeric fields that have boundary limits",
+        "when": "I enter values at the boundary limits or outside them",
+        "then": "I should see appropriate validation messages for values outside the allowed range"
+      },
+      "expectedResult": "Boundary value validation works correctly, accepting values within range and rejecting values outside range"
+    }
+  },
+  "payment": {
+    "successfulPayment": {
+      "stepByStep": [
+        "Navigate to the checkout or payment page",
+        "Review the order summary and total amount",
+        "Enter valid payment information (card number, expiry date, CVV)",
+        "Enter billing address information if required",
+        "Click on the 'Pay' or 'Complete Purchase' button",
+        "Verify payment processing indicator is displayed",
+        "Verify payment confirmation page is displayed",
+        "Verify order confirmation is received",
+        "Verify payment transaction ID is displayed"
+      ],
+      "gherkin": {
+        "given": "I have items in my cart and I am on the checkout page",
+        "when": "I enter valid payment information and complete the payment",
+        "then": "The payment should be processed successfully and I should receive a confirmation"
+      },
+      "expectedResult": "Payment is processed successfully, order is confirmed, and transaction details are displayed"
+    },
+    "paymentFailure": {
+      "stepByStep": [
+        "Navigate to the checkout or payment page",
+        "Enter invalid or declined payment information",
+        "Click on the 'Pay' or 'Complete Purchase' button",
+        "Verify payment processing indicator is displayed",
+        "Verify payment failure error message is displayed",
+        "Verify the error message is clear and actionable",
+        "Verify the user remains on the payment page",
+        "Verify the order is not processed"
+      ],
+      "gherkin": {
+        "given": "I am on the checkout page with items in my cart",
+        "when": "I attempt to pay with invalid or declined payment information",
+        "then": "I should see a payment failure error message and remain on the payment page"
+      },
+      "expectedResult": "Payment failure is handled gracefully with a clear error message and no order is processed"
+    }
+  },
+  "search": {
+    "basicSearch": {
+      "stepByStep": [
+        "Navigate to the search page or search field",
+        "Enter a search term in the search input field",
+        "Click on the 'Search' button or press Enter",
+        "Verify search results are displayed",
+        "Verify results are relevant to the search term",
+        "Verify the number of results is displayed if applicable"
+      ],
+      "gherkin": {
+        "given": "I am on the search page",
+        "when": "I enter a search term and execute the search",
+        "then": "I should see relevant search results displayed"
+      },
+      "expectedResult": "Search returns relevant results matching the search term"
+    },
+    "advancedSearch": {
+      "stepByStep": [
+        "Navigate to the search page",
+        "Click on 'Advanced Search' or expand search options",
+        "Fill in multiple search criteria (filters, date ranges, categories, etc.)",
+        "Click on the 'Search' or 'Apply Filters' button",
+        "Verify filtered results are displayed based on all criteria",
+        "Verify the applied filters are clearly indicated",
+        "Verify results match all specified criteria"
+      ],
+      "gherkin": {
+        "given": "I am on the search page with advanced search options",
+        "when": "I apply multiple search filters and execute the search",
+        "then": "I should see results that match all the specified criteria"
+      },
+      "expectedResult": "Advanced search returns filtered results matching all specified criteria"
+    },
+    "noResults": {
+      "stepByStep": [
+        "Navigate to the search page or search field",
+        "Enter a search term that does not match any records",
+        "Click on the 'Search' button or press Enter",
+        "Verify a 'No results found' message is displayed",
+        "Verify suggestions or alternative search terms are provided if applicable",
+        "Verify the search interface remains functional"
+      ],
+      "gherkin": {
+        "given": "I am on the search page",
+        "when": "I search for a term that has no matching results",
+        "then": "I should see a 'No results found' message with helpful suggestions"
+      },
+      "expectedResult": "No results message is displayed with helpful suggestions for alternative searches"
+    }
+  },
+  "export": {
+    "exportData": {
+      "stepByStep": [
+        "Navigate to the data list or report page",
+        "Select the data or records to export (if applicable)",
+        "Click on the 'Export' button or menu option",
+        "Select the export format (CSV, Excel, PDF, etc.)",
+        "Click on 'Download' or 'Export' to confirm",
+        "Verify the export file is downloaded",
+        "Open the exported file and verify data is correctly formatted",
+        "Verify all expected data is included in the export"
+      ],
+      "gherkin": {
+        "given": "I am viewing data that can be exported",
+        "when": "I select the export option and choose a format",
+        "then": "I should receive a file with the data in the selected format"
+      },
+      "expectedResult": "Data is successfully exported in the selected format with all expected information"
+    }
+  },
+  "fileUpload": {
+    "successfulUpload": {
+      "stepByStep": [
+        "Navigate to the file upload page or section",
+        "Click on the 'Choose File', 'Browse', or 'Upload' button",
+        "Select a valid file from the file system",
+        "Verify the selected file name is displayed",
+        "Click on the 'Upload' or 'Submit' button",
+        "Verify upload progress indicator is displayed",
+        "Verify success message is displayed upon completion",
+        "Verify the uploaded file is accessible or displayed in the file list"
+      ],
+      "gherkin": {
+        "given": "I am on the file upload page",
+        "when": "I select a valid file and initiate the upload",
+        "then": "The file should be uploaded successfully and I should see a confirmation"
+      },
+      "expectedResult": "File is successfully uploaded and accessible in the system"
+    },
+    "invalidFile": {
+      "stepByStep": [
+        "Navigate to the file upload page or section",
+        "Click on the 'Choose File' or 'Browse' button",
+        "Select an invalid file (wrong format, too large, etc.)",
+        "Verify file validation error message is displayed",
+        "Verify the error message indicates the issue (format, size, etc.)",
+        "Verify the file is not uploaded",
+        "Verify the upload interface remains functional"
+      ],
+      "gherkin": {
+        "given": "I am on the file upload page with file restrictions",
+        "when": "I attempt to upload an invalid file",
+        "then": "I should see a validation error message and the file should not be uploaded"
+      },
+      "expectedResult": "File validation prevents invalid files from being uploaded with a clear error message"
+    }
+  },
+  "api": {
+    "apiRequest": {
+      "stepByStep": [
+        "Prepare the API request with required headers and authentication",
+        "Set the request method (GET, POST, PUT, DELETE, etc.)",
+        "Set the API endpoint URL",
+        "Include request body or parameters as required",
+        "Send the API request",
+        "Verify the response status code is as expected (200, 201, etc.)",
+        "Verify the response body contains expected data",
+        "Verify response headers are correct",
+        "Verify response time is within acceptable limits"
+      ],
+      "gherkin": {
+        "given": "I have valid API credentials and endpoint information",
+        "when": "I send an API request with the required parameters",
+        "then": "I should receive a successful response with the expected data"
+      },
+      "expectedResult": "API request is successful and returns expected data with correct status code"
+    },
+    "apiError": {
+      "stepByStep": [
+        "Prepare the API request",
+        "Send an API request with invalid parameters or missing required data",
+        "Verify the response status code indicates an error (400, 401, 404, 500, etc.)",
+        "Verify the error response body contains an error message",
+        "Verify the error message is clear and actionable",
+        "Verify appropriate error handling is implemented"
+      ],
+      "gherkin": {
+        "given": "I am making an API request",
+        "when": "I send a request with invalid or missing required parameters",
+        "then": "I should receive an appropriate error response with a clear error message"
+      },
+      "expectedResult": "API returns appropriate error response with clear error message for invalid requests"
+    }
+  },
+  "workflow": {
+    "workflowExecution": {
+      "stepByStep": [
+        "Navigate to the workflow initiation page",
+        "Review workflow requirements and prerequisites",
+        "Initiate the workflow by clicking 'Start' or 'Begin'",
+        "Complete each step of the workflow in sequence",
+        "Verify progress indicators show current step",
+        "Verify each step can be completed successfully",
+        "Verify workflow completion confirmation is displayed",
+        "Verify final status or outcome is as expected"
+      ],
+      "gherkin": {
+        "given": "I have access to a workflow that needs to be executed",
+        "when": "I complete all required steps in the workflow",
+        "then": "The workflow should be completed successfully with the expected outcome"
+      },
+      "expectedResult": "Workflow is executed successfully through all steps with expected final outcome"
+    },
+    "workflowApproval": {
+      "stepByStep": [
+        "Navigate to the pending approvals section",
+        "Locate the item requiring approval",
+        "Review the item details and context",
+        "Click on 'Approve' or 'Reject' button",
+        "Enter approval comments if required",
+        "Confirm the approval or rejection action",
+        "Verify approval status is updated",
+        "Verify notification is sent to relevant parties"
+      ],
+      "gherkin": {
+        "given": "I am a user with approval permissions and there is a pending item",
+        "when": "I review and approve or reject the item",
+        "then": "The approval status should be updated and notifications should be sent"
+      },
+      "expectedResult": "Approval action is processed successfully and status is updated with notifications sent"
+    }
+  },
+  "generic": {
+    "basicFlow": {
+      "stepByStep": [
+        "Navigate to the relevant page or section",
+        "Verify the page loads correctly",
+        "Perform the main action or interaction",
+        "Verify the action is executed successfully",
+        "Verify expected results are displayed",
+        "Verify system state is updated correctly"
+      ],
+      "gherkin": {
+        "given": "I am on the relevant page",
+        "when": "I perform the main action",
+        "then": "I should see the expected results"
+      },
+      "expectedResult": "Action is completed successfully with expected results displayed"
+    },
+    "negativeFlow": {
+      "stepByStep": [
+        "Navigate to the relevant page or section",
+        "Attempt to perform an action with invalid or incomplete data",
+        "Verify appropriate error messages are displayed",
+        "Verify the action is not executed",
+        "Verify system state remains unchanged",
+        "Verify user can correct the issue and retry"
+      ],
+      "gherkin": {
+        "given": "I am on the relevant page",
+        "when": "I attempt to perform an action with invalid data",
+        "then": "I should see error messages and the action should not be executed"
+      },
+      "expectedResult": "Error handling prevents invalid actions and displays clear error messages"
+    }
+  }
+}

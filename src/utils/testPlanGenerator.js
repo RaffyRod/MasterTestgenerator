@@ -90,14 +90,62 @@ function extractPlanTitle(projectInfo) {
 }
 
 function generateObjectives(projectInfo, analysis = null, planType = 'comprehensive') {
-  const objectives = [
-    'Verify that all functional requirements are met',
-    'Ensure system reliability and stability',
-    'Validate user acceptance criteria',
-    'Identify and document defects'
-  ]
-
+  const objectives = []
   const lowerText = projectInfo.toLowerCase()
+  const planTypeConfig = getPlanTypeConfig(planType)
+
+  // Base objectives based on plan type
+  switch (planType) {
+    case 'functional':
+      objectives.push('Verify that all functional requirements are met according to specifications')
+      objectives.push('Validate user stories and business logic implementation')
+      objectives.push('Ensure all features work as expected')
+      objectives.push('Identify functional defects and inconsistencies')
+      break
+    case 'performance':
+      objectives.push('Validate system performance under normal and peak load conditions')
+      objectives.push('Measure and verify response times meet specified requirements')
+      objectives.push('Identify performance bottlenecks and optimization opportunities')
+      objectives.push('Ensure system scalability and resource utilization efficiency')
+      break
+    case 'security':
+      objectives.push('Identify security vulnerabilities and potential threats')
+      objectives.push('Validate authentication and authorization mechanisms')
+      objectives.push('Ensure data protection and privacy compliance')
+      objectives.push('Test for common security flaws (SQL injection, XSS, CSRF, etc.)')
+      break
+    case 'integration':
+      objectives.push('Verify integration between different system components')
+      objectives.push('Validate API endpoints and data exchange')
+      objectives.push('Ensure proper error handling in integration points')
+      objectives.push('Test compatibility with external systems and services')
+      break
+    case 'system':
+      objectives.push('Validate end-to-end system functionality')
+      objectives.push('Test complete user workflows and scenarios')
+      objectives.push('Ensure system meets business requirements')
+      objectives.push('Verify system behavior in production-like environment')
+      break
+    case 'acceptance':
+      objectives.push('Validate that system meets user acceptance criteria')
+      objectives.push('Ensure business requirements are fully satisfied')
+      objectives.push('Verify system is ready for production deployment')
+      objectives.push('Confirm user expectations are met')
+      break
+    case 'regression':
+      objectives.push('Verify existing functionality is not broken by new changes')
+      objectives.push('Ensure previously fixed defects remain resolved')
+      objectives.push('Validate system stability after modifications')
+      objectives.push('Confirm backward compatibility is maintained')
+      break
+    case 'comprehensive':
+    default:
+      objectives.push('Verify that all functional requirements are met')
+      objectives.push('Ensure system reliability and stability')
+      objectives.push('Validate user acceptance criteria')
+      objectives.push('Identify and document defects')
+      break
+  }
 
   // Performance objectives
   if (
@@ -151,6 +199,77 @@ function generateScope(projectInfo, analysis = null, planType = 'comprehensive')
   }
 
   const lowerText = projectInfo.toLowerCase()
+  const planTypeConfig = getPlanTypeConfig(planType)
+
+  // Base scope based on plan type
+  switch (planType) {
+    case 'functional':
+      scope.inScope.push('All functional requirements and user stories')
+      scope.inScope.push('Business logic and feature implementation')
+      scope.inScope.push('User interface functionality and interactions')
+      scope.outOfScope.push('Performance and load testing')
+      scope.outOfScope.push('Security penetration testing')
+      scope.outOfScope.push('Infrastructure and deployment testing')
+      break
+    case 'performance':
+      scope.inScope.push('System performance under various load conditions')
+      scope.inScope.push('Response time and throughput measurements')
+      scope.inScope.push('Resource utilization (CPU, memory, network)')
+      scope.inScope.push('Scalability and capacity planning')
+      scope.outOfScope.push('Functional feature testing (unless performance-related)')
+      scope.outOfScope.push('Security testing')
+      scope.outOfScope.push('User interface design validation')
+      break
+    case 'security':
+      scope.inScope.push('Authentication and authorization mechanisms')
+      scope.inScope.push('Data encryption and protection')
+      scope.inScope.push('Security vulnerabilities and threat assessment')
+      scope.inScope.push('Compliance with security standards')
+      scope.outOfScope.push('Performance testing')
+      scope.outOfScope.push('User experience and UI design')
+      scope.outOfScope.push('Business logic validation (unless security-related)')
+      break
+    case 'integration':
+      scope.inScope.push('Integration between system components')
+      scope.inScope.push('API endpoints and data exchange')
+      scope.inScope.push('External system integrations')
+      scope.inScope.push('Third-party service integrations')
+      scope.outOfScope.push('Individual component unit testing')
+      scope.outOfScope.push('User interface testing')
+      scope.outOfScope.push('Performance testing (unless integration-related)')
+      break
+    case 'system':
+      scope.inScope.push('End-to-end system functionality')
+      scope.inScope.push('Complete user workflows')
+      scope.inScope.push('System behavior in production-like environment')
+      scope.inScope.push('Cross-module interactions')
+      scope.outOfScope.push('Unit testing of individual components')
+      scope.outOfScope.push('Code-level testing')
+      scope.outOfScope.push('Infrastructure setup and configuration')
+      break
+    case 'acceptance':
+      scope.inScope.push('User acceptance criteria validation')
+      scope.inScope.push('Business requirements fulfillment')
+      scope.inScope.push('User workflows and scenarios')
+      scope.inScope.push('Production readiness assessment')
+      scope.outOfScope.push('Technical implementation details')
+      scope.outOfScope.push('Performance optimization')
+      scope.outOfScope.push('Security penetration testing')
+      break
+    case 'regression':
+      scope.inScope.push('Previously tested functionality')
+      scope.inScope.push('Fixed defects verification')
+      scope.inScope.push('Critical user paths')
+      scope.inScope.push('Core business features')
+      scope.outOfScope.push('New feature testing (unless affecting existing features)')
+      scope.outOfScope.push('Performance testing')
+      scope.outOfScope.push('Security testing')
+      break
+    case 'comprehensive':
+    default:
+      // Use existing logic for comprehensive
+      break
+  }
 
   // Add scope based on detected functionalities
   if (analysis) {
@@ -230,16 +349,149 @@ function generateTestStrategy(projectInfo, analysis = null, planType = 'comprehe
   const strategies = []
   const lowerText = projectInfo.toLowerCase()
 
-  // Always include functional and regression testing
-  strategies.push({
-    type: 'Functional Testing',
-    description: 'Verify that all features work according to specifications and acceptance criteria'
-  })
-
-  strategies.push({
-    type: 'Regression Testing',
-    description: 'Ensure existing functionality is not broken by new changes'
-  })
+  // Strategy based on plan type
+  switch (planType) {
+    case 'functional':
+      strategies.push({
+        type: 'Functional Testing',
+        description:
+          'Verify that all features work according to specifications and acceptance criteria'
+      })
+      strategies.push({
+        type: 'User Story Validation',
+        description: 'Test each user story to ensure it meets acceptance criteria'
+      })
+      strategies.push({
+        type: 'Business Logic Testing',
+        description: 'Validate business rules and logic implementation'
+      })
+      strategies.push({
+        type: 'Regression Testing',
+        description: 'Ensure existing functionality is not broken by new changes'
+      })
+      break
+    case 'performance':
+      strategies.push({
+        type: 'Load Testing',
+        description: 'Test system behavior under expected load conditions'
+      })
+      strategies.push({
+        type: 'Stress Testing',
+        description: 'Test system limits and behavior under extreme load'
+      })
+      strategies.push({
+        type: 'Volume Testing',
+        description: 'Test system with large amounts of data'
+      })
+      strategies.push({
+        type: 'Scalability Testing',
+        description: 'Verify system can handle growth in load and data'
+      })
+      break
+    case 'security':
+      strategies.push({
+        type: 'Authentication Testing',
+        description: 'Validate user authentication mechanisms and password policies'
+      })
+      strategies.push({
+        type: 'Authorization Testing',
+        description: 'Verify access control and permission enforcement'
+      })
+      strategies.push({
+        type: 'Vulnerability Testing',
+        description: 'Identify security vulnerabilities (SQL injection, XSS, CSRF, etc.)'
+      })
+      strategies.push({
+        type: 'Data Protection Testing',
+        description: 'Verify data encryption, privacy, and compliance'
+      })
+      break
+    case 'integration':
+      strategies.push({
+        type: 'API Integration Testing',
+        description: 'Test API endpoints, request/response validation, and error handling'
+      })
+      strategies.push({
+        type: 'Component Integration',
+        description: 'Verify interactions between different system components'
+      })
+      strategies.push({
+        type: 'External System Integration',
+        description: 'Test integration with third-party services and external systems'
+      })
+      strategies.push({
+        type: 'Data Flow Testing',
+        description: 'Validate data exchange and transformation between systems'
+      })
+      break
+    case 'system':
+      strategies.push({
+        type: 'End-to-End Testing',
+        description: 'Test complete user workflows from start to finish'
+      })
+      strategies.push({
+        type: 'System Integration Testing',
+        description: 'Verify all system components work together correctly'
+      })
+      strategies.push({
+        type: 'User Acceptance Testing',
+        description: 'Validate system meets business requirements and user expectations'
+      })
+      strategies.push({
+        type: 'Production Readiness Testing',
+        description: 'Verify system is ready for production deployment'
+      })
+      break
+    case 'acceptance':
+      strategies.push({
+        type: 'User Acceptance Testing',
+        description: 'Validate system meets user acceptance criteria'
+      })
+      strategies.push({
+        type: 'Business Requirements Validation',
+        description: 'Verify all business requirements are satisfied'
+      })
+      strategies.push({
+        type: 'User Workflow Testing',
+        description: 'Test real-world user scenarios and workflows'
+      })
+      strategies.push({
+        type: 'Production Readiness Assessment',
+        description: 'Evaluate if system is ready for production use'
+      })
+      break
+    case 'regression':
+      strategies.push({
+        type: 'Regression Testing',
+        description: 'Ensure existing functionality is not broken by new changes'
+      })
+      strategies.push({
+        type: 'Smoke Testing',
+        description: 'Quick verification of critical functionality after changes'
+      })
+      strategies.push({
+        type: 'Sanity Testing',
+        description: 'Verify that specific bug fixes work correctly'
+      })
+      strategies.push({
+        type: 'Critical Path Testing',
+        description: 'Test most important user workflows and features'
+      })
+      break
+    case 'comprehensive':
+    default:
+      // Always include functional and regression testing for comprehensive
+      strategies.push({
+        type: 'Functional Testing',
+        description:
+          'Verify that all features work according to specifications and acceptance criteria'
+      })
+      strategies.push({
+        type: 'Regression Testing',
+        description: 'Ensure existing functionality is not broken by new changes'
+      })
+      break
+  }
 
   // Add strategies based on detected functionalities
   if (analysis) {
