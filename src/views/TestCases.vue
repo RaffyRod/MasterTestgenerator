@@ -427,20 +427,41 @@ export default {
         }
       } catch (error) {
         console.error('Error generating test cases:', error)
-        showNotification(t('notifications.testCasesError'), 'error', 5000)
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          projectInfo: projectInfo.value.substring(0, 100),
+          format: format.value,
+          testsPerAC: testsPerAC.value
+        })
+        showNotification(
+          `${t('notifications.testCasesError')}: ${error.message || 'Unknown error'}`,
+          'error',
+          5000
+        )
         // Fallback to non-AI generation
         try {
           const generated = await generateTestCases(
             projectInfo.value,
             format.value,
             locale.value,
-            false
+            false,
+            testsPerAC.value
           )
           if (Array.isArray(generated) && generated.length > 0) {
             testCases.value = generated
+            showNotification(
+              t('notifications.testCasesGeneratedCount', { count: generated.length }),
+              'success',
+              4000
+            )
           }
         } catch (fallbackError) {
           console.error('Fallback generation also failed:', fallbackError)
+          console.error('Fallback error details:', {
+            message: fallbackError.message,
+            stack: fallbackError.stack
+          })
         }
       } finally {
         loading.value = false

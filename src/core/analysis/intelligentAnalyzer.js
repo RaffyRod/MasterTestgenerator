@@ -550,133 +550,169 @@ export async function generateIntelligentTestCases(
     return []
   }
 
-  if (!analysis) {
-    analysis = analyzeProjectInfo(projectInfo)
-  }
+  try {
+    if (!analysis) {
+      analysis = analyzeProjectInfo(projectInfo)
+    }
 
-  // Ensure analysis is valid
-  if (!analysis) {
-    // Fallback: create a default test case
-    return [createDefaultTestCase(projectInfo, format)]
-  }
+    // Ensure analysis is valid
+    if (!analysis) {
+      // Fallback: create a default test case
+      return [createDefaultTestCase(projectInfo, format)]
+    }
 
-  const testCases = []
-  const acceptanceCriteria = extractAcceptanceCriteria(projectInfo)
-  const sentences = projectInfo.split(/[.!?\n]/).filter(s => s.trim().length > 10)
+    const testCases = []
+    const acceptanceCriteria = extractAcceptanceCriteria(projectInfo)
+    const sentences = projectInfo.split(/[.!?\n]/).filter(s => s.trim().length > 10)
 
-  // Validate testsPerAC
-  const validTestsPerAC = Math.max(1, Math.min(5, parseInt(testsPerAC) || 1))
+    // Validate testsPerAC
+    const validTestsPerAC = Math.max(1, Math.min(5, parseInt(testsPerAC) || 1))
 
-  // Generate test cases from AC
-  if (acceptanceCriteria.length > 0) {
-    for (let acIndex = 0; acIndex < acceptanceCriteria.length; acIndex++) {
-      const ac = acceptanceCriteria[acIndex]
-      const functionality = findMatchingFunctionality(ac.text, analysis.detectedFunctionalities)
+    // Generate test cases from AC
+    if (acceptanceCriteria.length > 0) {
+      console.log(
+        `Found ${acceptanceCriteria.length} acceptance criteria, generating test cases...`
+      )
+      for (let acIndex = 0; acIndex < acceptanceCriteria.length; acIndex++) {
+        const ac = acceptanceCriteria[acIndex]
+        console.log(`Processing AC ${acIndex + 1}: ${ac.text.substring(0, 50)}...`)
+        const functionality = findMatchingFunctionality(ac.text, analysis.detectedFunctionalities)
 
-      // Generate multiple test cases per AC if requested
-      for (let tcIndex = 0; tcIndex < validTestsPerAC; tcIndex++) {
-        const testCase = await createTestCaseFromAC(
-          ac,
-          functionality,
-          format,
-          testCases.length + 1,
-          tcIndex,
-          validTestsPerAC,
-          useAIForTitle,
-          acIndex + 1
-        )
-        if (testCase) {
-          testCases.push(testCase)
+        // Generate multiple test cases per AC if requested
+        for (let tcIndex = 0; tcIndex < validTestsPerAC; tcIndex++) {
+          try {
+            const testCase = await createTestCaseFromAC(
+              ac,
+              functionality,
+              format,
+              testCases.length + 1,
+              tcIndex,
+              validTestsPerAC,
+              useAIForTitle,
+              acIndex + 1
+            )
+            if (testCase) {
+              testCases.push(testCase)
+              console.log(
+                `Generated test case ${testCases.length} for AC ${acIndex + 1}, variation ${tcIndex + 1}`
+              )
+            } else {
+              console.warn(
+                `Failed to generate test case for AC ${acIndex + 1}, variation ${tcIndex + 1}`
+              )
+            }
+          } catch (error) {
+            console.error(
+              `Error generating test case for AC ${acIndex + 1}, variation ${tcIndex + 1}:`,
+              error
+            )
+            // Continue with next variation
+          }
         }
       }
-    }
-  } else {
-    // Generate test cases from detected functionalities only if no ACs found
-    if (analysis.detectedFunctionalities && analysis.detectedFunctionalities.length > 0) {
-      // Limit to validTestsPerAC per functionality
-      analysis.detectedFunctionalities
-        .slice(0, Math.ceil(10 / validTestsPerAC))
-        .forEach((func, index) => {
-          if (func && func.scenarios && Array.isArray(func.scenarios)) {
-            const scenariosToUse = func.scenarios.slice(0, validTestsPerAC)
-            scenariosToUse.forEach((scenario, sIndex) => {
-              const testCase = createTestCaseFromScenario(
-                scenario,
-                func,
-                format,
-                testCases.length + 1
-              )
-              if (
-                testCase &&
-                !testCases.some(tc => tc.title.toLowerCase() === testCase.title.toLowerCase())
-              ) {
-                testCases.push(testCase)
-              }
-            })
+      console.log(`Total test cases generated: ${testCases.length}`)
+    } else {
+      // Generate test cases from detected functionalities only if no ACs found
+      if (analysis.detectedFunctionalities && analysis.detectedFunctionalities.length > 0) {
+        // Limit to validTestsPerAC per functionality
+        analysis.detectedFunctionalities
+          .slice(0, Math.ceil(10 / validTestsPerAC))
+          .forEach((func, index) => {
+            if (func && func.scenarios && Array.isArray(func.scenarios)) {
+              const scenariosToUse = func.scenarios.slice(0, validTestsPerAC)
+              scenariosToUse.forEach((scenario, sIndex) => {
+                const testCase = createTestCaseFromScenario(
+                  scenario,
+                  func,
+                  format,
+                  testCases.length + 1
+                )
+                if (
+                  testCase &&
+                  !testCases.some(tc => tc.title.toLowerCase() === testCase.title.toLowerCase())
+                ) {
+                  testCases.push(testCase)
+                }
+              })
+            }
+          })
+      }
+
+      // Generate test cases from sentences if no AC found and no functionalities
+      if (testCases.length === 0 && sentences.length > 0) {
+        const sentencesToUse = sentences.slice(0, validTestsPerAC)
+        sentencesToUse.forEach((sentence, index) => {
+          const functionality = findMatchingFunctionality(
+            sentence,
+            analysis.detectedFunctionalities
+          )
+          const testCase = createTestCaseFromSentence(sentence, functionality, format, index + 1)
+          if (testCase) {
+            testCases.push(testCase)
           }
         })
+      }
     }
 
-    // Generate test cases from sentences if no AC found and no functionalities
-    if (testCases.length === 0 && sentences.length > 0) {
-      const sentencesToUse = sentences.slice(0, validTestsPerAC)
-      sentencesToUse.forEach((sentence, index) => {
-        const functionality = findMatchingFunctionality(sentence, analysis.detectedFunctionalities)
-        const testCase = createTestCaseFromSentence(sentence, functionality, format, index + 1)
-        if (testCase) {
-          testCases.push(testCase)
-        }
-      })
+    // Add edge case test cases only if we have room and user wants more than 1 per AC
+    // This ensures we respect the testsPerAC limit when ACs are present
+    if (validTestsPerAC > 1 && acceptanceCriteria.length > 0) {
+      // Only add a few edge cases if we have space
+      const maxEdgeCases = Math.min(
+        3,
+        Math.max(0, acceptanceCriteria.length * validTestsPerAC - testCases.length)
+      )
+      if (analysis.edgeCases && Array.isArray(analysis.edgeCases) && maxEdgeCases > 0) {
+        analysis.edgeCases.slice(0, maxEdgeCases).forEach((edgeCase, index) => {
+          const testCase = createEdgeCaseTest(edgeCase, format, testCases.length + 1)
+          if (
+            testCase &&
+            !testCases.some(tc => tc.title.toLowerCase() === testCase.title.toLowerCase())
+          ) {
+            testCases.push(testCase)
+          }
+        })
+      }
+    } else if (acceptanceCriteria.length === 0) {
+      // If no ACs, add edge cases normally
+      if (analysis.edgeCases && Array.isArray(analysis.edgeCases)) {
+        analysis.edgeCases.slice(0, validTestsPerAC).forEach((edgeCase, index) => {
+          const testCase = createEdgeCaseTest(edgeCase, format, testCases.length + 1)
+          if (testCase) {
+            testCases.push(testCase)
+          }
+        })
+      }
     }
+
+    // Ensure minimum test cases
+    if (testCases.length === 0) {
+      testCases.push(createDefaultTestCase(projectInfo, format))
+    }
+
+    // Calculate expected total based on testsPerAC
+    const expectedTotal =
+      acceptanceCriteria.length > 0
+        ? acceptanceCriteria.length * validTestsPerAC
+        : Math.min(validTestsPerAC * 5, 20) // If no ACs, limit to reasonable number
+
+    // Limit to expected total or reasonable maximum
+    const maxLimit =
+      acceptanceCriteria.length > 0
+        ? expectedTotal
+        : Math.min(50, analysis.estimatedTestCases || 20)
+
+    return testCases.slice(0, maxLimit)
+  } catch (error) {
+    console.error('Error in generateIntelligentTestCases:', error)
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      projectInfoLength: projectInfo?.length
+    })
+    // Return at least one default test case on error
+    return [createDefaultTestCase(projectInfo, format)]
   }
-
-  // Add edge case test cases only if we have room and user wants more than 1 per AC
-  // This ensures we respect the testsPerAC limit when ACs are present
-  if (validTestsPerAC > 1 && acceptanceCriteria.length > 0) {
-    // Only add a few edge cases if we have space
-    const maxEdgeCases = Math.min(
-      3,
-      Math.max(0, acceptanceCriteria.length * validTestsPerAC - testCases.length)
-    )
-    if (analysis.edgeCases && Array.isArray(analysis.edgeCases) && maxEdgeCases > 0) {
-      analysis.edgeCases.slice(0, maxEdgeCases).forEach((edgeCase, index) => {
-        const testCase = createEdgeCaseTest(edgeCase, format, testCases.length + 1)
-        if (
-          testCase &&
-          !testCases.some(tc => tc.title.toLowerCase() === testCase.title.toLowerCase())
-        ) {
-          testCases.push(testCase)
-        }
-      })
-    }
-  } else if (acceptanceCriteria.length === 0) {
-    // If no ACs, add edge cases normally
-    if (analysis.edgeCases && Array.isArray(analysis.edgeCases)) {
-      analysis.edgeCases.slice(0, validTestsPerAC).forEach((edgeCase, index) => {
-        const testCase = createEdgeCaseTest(edgeCase, format, testCases.length + 1)
-        if (testCase) {
-          testCases.push(testCase)
-        }
-      })
-    }
-  }
-
-  // Ensure minimum test cases
-  if (testCases.length === 0) {
-    testCases.push(createDefaultTestCase(projectInfo, format))
-  }
-
-  // Calculate expected total based on testsPerAC
-  const expectedTotal =
-    acceptanceCriteria.length > 0
-      ? acceptanceCriteria.length * validTestsPerAC
-      : Math.min(validTestsPerAC * 5, 20) // If no ACs, limit to reasonable number
-
-  // Limit to expected total or reasonable maximum
-  const maxLimit =
-    acceptanceCriteria.length > 0 ? expectedTotal : Math.min(50, analysis.estimatedTestCases || 20)
-
-  return testCases.slice(0, maxLimit)
 }
 
 function findMatchingFunctionality(text, functionalities) {
@@ -714,14 +750,41 @@ async function createTestCaseFromAC(
 
   // Generate variations if multiple test cases per AC
   let acText = ac.text
-  let title = useAIForTitle
-    ? await generateTitleFromACWithAI(ac.text)
-    : generateTitleFromAC(ac.text)
+
+  // Always use AI for title generation if enabled, even for base case
+  let title
+  if (useAIForTitle) {
+    try {
+      title = await generateTitleFromACWithAI(ac.text)
+      if (!title || title.trim().length === 0) {
+        title = generateTitleFromAC(ac.text)
+      }
+    } catch (error) {
+      console.warn('AI title generation failed, using fallback:', error)
+      title = generateTitleFromAC(ac.text)
+    }
+  } else {
+    title = generateTitleFromAC(ac.text)
+  }
 
   if (totalVariations > 1 && variationIndex > 0) {
     // Create variation of the AC for additional test cases
     acText = createACVariation(ac.text, variationIndex, totalVariations)
-    title = useAIForTitle ? await generateTitleFromACWithAI(acText) : generateTitleFromAC(acText)
+    if (useAIForTitle) {
+      try {
+        const variationTitle = await generateTitleFromACWithAI(acText)
+        if (variationTitle && variationTitle.trim().length > 0) {
+          title = variationTitle
+        } else {
+          title = generateTitleFromAC(acText)
+        }
+      } catch (error) {
+        console.warn('AI title generation for variation failed, using fallback:', error)
+        title = generateTitleFromAC(acText)
+      }
+    } else {
+      title = generateTitleFromAC(acText)
+    }
 
     // Add variation suffix to title
     const variationSuffixes = [
@@ -738,14 +801,16 @@ async function createTestCaseFromAC(
     }
   }
 
+  const acType = ac.type || 'requirement'
+
   const gherkinSteps =
     format === 'gherkin'
-      ? generateGherkinFromAC(acText, ac.type, variationIndex, totalVariations, functionality)
+      ? generateGherkinFromAC(acText, acType, variationIndex, totalVariations, functionality)
       : null
   const stepByStep =
     format === 'gherkin'
       ? null
-      : generateStepsFromAC(acText, ac.type, variationIndex, totalVariations, functionality)
+      : generateStepsFromAC(acText, acType, variationIndex, totalVariations, functionality)
 
   // Extract Given/When/Then from Gherkin or text
   const givenMatch = acText.match(/(?:Given|Dado)\s+(.+?)(?:\s+When|\s+Cuando|$)/i)
@@ -763,7 +828,7 @@ async function createTestCaseFromAC(
     steps,
     expectedResult: generateExpectedResult(
       acText,
-      ac.type,
+      acType,
       functionality,
       thenMatch,
       title,
