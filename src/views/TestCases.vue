@@ -122,71 +122,111 @@
         </div>
       </div>
 
-      <div class="test-cases-grid">
-        <article
-          v-for="testCase in testCases"
-          :key="testCase.id"
-          class="test-case-card"
-          :aria-label="`Test case: ${testCase.title}`"
-        >
-          <header class="card-header">
-            <h3 class="card-title">{{ testCase.title }}</h3>
-            <div class="card-actions">
-              <button
-                @click="copyTestCase(testCase)"
-                class="copy-btn"
-                :aria-label="$t('testCase.copyTestCase')"
-                :title="$t('testCase.copyTestCase')"
+      <div v-if="groupedTestCases.length > 0" class="test-cases-container">
+        <div v-for="group in groupedTestCases" :key="group.acId || 'ungrouped'" class="ac-group">
+          <div
+            v-if="group.acId"
+            class="ac-group-header"
+            @click="toggleGroup(group.acId)"
+            :class="{ expanded: expandedGroups[String(group.acId)] }"
+          >
+            <div class="ac-group-title">
+              <svg
+                class="expand-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
-              <div class="badges">
-                <span
-                  class="badge badge-priority"
-                  :class="`priority-${testCase.priority.toLowerCase()}`"
-                  :aria-label="`Priority: ${testCase.priority}`"
-                >
-                  {{ testCase.priority }}
-                </span>
-                <span class="badge badge-type" :aria-label="`Type: ${testCase.type}`">
-                  {{ testCase.type }}
-                </span>
-              </div>
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+              <span class="ac-label">AC {{ group.acId }}:</span>
+              <span class="ac-text">{{ group.acText }}</span>
             </div>
-          </header>
-
-          <div class="card-content">
-            <section v-if="testCase.preconditions" class="field">
-              <strong>{{ $t('testCase.preconditions') }}:</strong>
-              <p>{{ testCase.preconditions }}</p>
-            </section>
-
-            <section class="field">
-              <strong>{{ $t('testCase.steps') }}:</strong>
-              <pre class="steps-content" role="textbox" aria-label="Test steps">{{
-                testCase.steps
-              }}</pre>
-            </section>
-
-            <section class="field">
-              <strong>{{ $t('testCase.expectedResult') }}:</strong>
-              <p>{{ testCase.expectedResult }}</p>
-            </section>
+            <span class="ac-count">
+              {{ group.testCases.length }} test case{{ group.testCases.length !== 1 ? 's' : '' }}
+            </span>
           </div>
-        </article>
+          <div
+            v-if="!group.acId || expandedGroups[String(group.acId)]"
+            class="test-cases-grid"
+            :class="{ 'has-ac-header': group.acId }"
+          >
+            <article
+              v-for="testCase in group.testCases"
+              :key="testCase.id"
+              class="test-case-card"
+              :aria-label="`Test case: ${testCase.title}`"
+            >
+              <header class="card-header">
+                <div class="card-title-wrapper">
+                  <h3 class="card-title">{{ testCase.title }}</h3>
+                </div>
+                <div class="card-meta">
+                  <div class="badges">
+                    <span
+                      class="badge badge-priority"
+                      :class="`priority-${testCase.priority.toLowerCase()}`"
+                      :aria-label="`Priority: ${testCase.priority}`"
+                    >
+                      {{ testCase.priority }}
+                    </span>
+                    <span class="badge badge-type" :aria-label="`Type: ${testCase.type}`">
+                      {{ testCase.type }}
+                    </span>
+                  </div>
+                  <button
+                    @click="copyTestCase(testCase)"
+                    class="copy-btn"
+                    :aria-label="$t('testCase.copyTestCase')"
+                    :title="$t('testCase.copyTestCase')"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path
+                        d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
+                      ></path>
+                      <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                    </svg>
+                  </button>
+                </div>
+              </header>
+
+              <div class="card-content">
+                <section v-if="testCase.preconditions" class="field">
+                  <strong>{{ $t('testCase.preconditions') }}:</strong>
+                  <p>{{ testCase.preconditions }}</p>
+                </section>
+
+                <section class="field">
+                  <strong>{{ $t('testCase.steps') }}:</strong>
+                  <pre class="steps-content" role="textbox" aria-label="Test steps">{{
+                    testCase.steps
+                  }}</pre>
+                </section>
+
+                <section class="field">
+                  <strong>{{ $t('testCase.expectedResult') }}:</strong>
+                  <p>{{ testCase.expectedResult }}</p>
+                </section>
+              </div>
+            </article>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -245,6 +285,7 @@ export default {
     const ollamaAvailable = ref(false)
 
     const testManagementTools = TEST_MANAGEMENT_TOOLS
+    const expandedGroups = ref({})
 
     const selectedToolName = computed(() => {
       const tool = testManagementTools.find(t => t.id === selectedTool.value)
@@ -257,6 +298,57 @@ export default {
       }
       return getPreviewData(testCases.value, selectedTool.value)
     })
+
+    const groupedTestCases = computed(() => {
+      if (!testCases.value || testCases.value.length === 0) {
+        return []
+      }
+
+      // Group test cases by AC
+      const groups = {}
+      const ungrouped = []
+
+      testCases.value.forEach(testCase => {
+        if (testCase && testCase.acId != null && testCase.acText) {
+          const key = String(testCase.acId)
+          if (!groups[key]) {
+            groups[key] = {
+              acId: testCase.acId,
+              acText: testCase.acText,
+              testCases: []
+            }
+            // Expand by default
+            if (!expandedGroups.value[key]) {
+              expandedGroups.value[key] = true
+            }
+          }
+          groups[key].testCases.push(testCase)
+        } else {
+          ungrouped.push(testCase)
+        }
+      })
+
+      // Convert to array and sort by AC ID
+      const groupedArray = Object.values(groups).sort((a, b) => a.acId - b.acId)
+
+      // Add ungrouped test cases if any
+      if (ungrouped.length > 0) {
+        groupedArray.push({
+          acId: null,
+          acText: null,
+          testCases: ungrouped
+        })
+      }
+
+      return groupedArray
+    })
+
+    const toggleGroup = acId => {
+      if (acId != null) {
+        const key = String(acId)
+        expandedGroups.value[key] = !expandedGroups.value[key]
+      }
+    }
 
     const checkOllama = async () => {
       try {
@@ -476,6 +568,9 @@ export default {
       handleDownload,
       exportCSV,
       copyTestCase,
+      groupedTestCases,
+      expandedGroups,
+      toggleGroup,
       AI_PROVIDERS
     }
   }
@@ -914,6 +1009,112 @@ export default {
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
 }
 
+.test-cases-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  width: 100%;
+}
+
+.ac-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ac-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  user-select: none;
+}
+
+.ac-group-header:hover {
+  background: var(--bg-secondary);
+  border-color: var(--primary-color);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+}
+
+.ac-group-header.expanded {
+  border-color: var(--primary-color);
+  background: var(--bg-secondary);
+}
+
+.ac-group-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.expand-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--primary-color);
+  transition: transform 0.3s ease;
+  flex-shrink: 0;
+}
+
+.ac-group-header.expanded .expand-icon {
+  transform: rotate(180deg);
+}
+
+.ac-label {
+  font-weight: 700;
+  color: var(--primary-color);
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.ac-text {
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ac-count {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.375rem 0.875rem;
+  background: var(--bg-primary);
+  border-radius: 8px;
+  flex-shrink: 0;
+  margin-left: 1rem;
+}
+
+[data-theme='light'] .ac-group-header {
+  background: #f5f5f5 !important;
+  border-color: #e0e0e0 !important;
+}
+
+[data-theme='light'] .ac-group-header:hover {
+  background: #fafafa !important;
+  border-color: #667eea !important;
+}
+
+[data-theme='dark'] .ac-group-header {
+  background: #2a2a2a !important;
+  border-color: #3a3a3a !important;
+}
+
+[data-theme='dark'] .ac-group-header:hover {
+  background: #1a1a1a !important;
+  border-color: #667eea !important;
+}
+
 .test-cases-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr));
@@ -922,12 +1123,16 @@ export default {
   box-sizing: border-box;
 }
 
+.test-cases-grid.has-ac-header {
+  margin-top: 0.5rem;
+}
+
 .test-case-card {
   border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 1.5rem;
+  border-radius: 16px;
+  padding: 1.75rem;
   background: var(--bg-secondary);
-  border-left: 3px solid var(--primary-color);
+  border-left: 4px solid var(--primary-color);
   transition: var(--transition);
   position: relative;
   color: var(--text-primary);
@@ -939,6 +1144,7 @@ export default {
   overflow: hidden;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 [data-theme='light'] .test-case-card {
@@ -955,43 +1161,47 @@ export default {
 
 .test-case-card:hover {
   background: var(--bg-tertiary);
-  border-color: var(--primary-color);
-  transform: translateX(5px);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+  border-left-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.15);
 }
 
 .card-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.25rem;
-  padding-bottom: 1rem;
-  border-bottom: 2px solid var(--border-color);
+  flex-direction: column;
   gap: 1rem;
-  min-width: 0;
-  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 2px solid var(--border-color);
 }
 
-.card-actions {
+.card-title-wrapper {
+  width: 100%;
+  min-width: 0;
+}
+
+.card-meta {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 0.75rem;
-  flex-shrink: 0;
+  flex-wrap: wrap;
 }
 
 .copy-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem;
+  padding: 0.625rem;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--bg-tertiary);
   color: var(--text-secondary);
   cursor: pointer;
-  transition: var(--transition);
-  min-width: 36px;
-  min-height: 36px;
+  transition: all 0.2s ease;
+  min-width: 40px;
+  min-height: 40px;
+  flex-shrink: 0;
 }
 
 .copy-btn:hover {
@@ -1006,8 +1216,8 @@ export default {
 }
 
 .copy-btn svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
 }
 
 [data-theme='light'] .copy-btn {
@@ -1036,17 +1246,17 @@ export default {
 
 .card-title {
   color: var(--text-primary);
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   margin: 0;
-  flex: 1;
-  min-width: 0;
-  font-weight: 600;
-  line-height: 1.4;
+  font-weight: 700;
+  line-height: 1.5;
   word-wrap: break-word;
   overflow-wrap: break-word;
-  hyphens: auto;
-  display: block;
-  overflow: visible;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 [data-theme='light'] .card-title {
@@ -1062,16 +1272,16 @@ export default {
   gap: 0.5rem;
   flex-shrink: 0;
   flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: flex-end;
+  align-items: center;
 }
 
 .badge {
-  padding: 0.375rem 0.875rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
   font-weight: 600;
   white-space: nowrap;
+  letter-spacing: 0.01em;
 }
 
 .badge-priority {
@@ -1098,7 +1308,7 @@ export default {
 .card-content {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
   min-width: 0;
   flex: 1;
 }
@@ -1112,9 +1322,10 @@ export default {
 .field strong {
   color: var(--text-primary);
   display: block;
-  margin-bottom: 0.5rem;
-  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
   font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .field p {

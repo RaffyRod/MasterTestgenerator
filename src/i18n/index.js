@@ -95,7 +95,7 @@ export const messages = {
   },
   es: {
     app: {
-      title: 'Generador Maestro de Pruebas'
+      title: 'Master Test Generator'
     },
     nav: {
       testPlans: 'Planes de Prueba',

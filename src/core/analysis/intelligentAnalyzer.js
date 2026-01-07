@@ -569,7 +569,8 @@ export async function generateIntelligentTestCases(
 
   // Generate test cases from AC
   if (acceptanceCriteria.length > 0) {
-    for (const ac of acceptanceCriteria) {
+    for (let acIndex = 0; acIndex < acceptanceCriteria.length; acIndex++) {
+      const ac = acceptanceCriteria[acIndex]
       const functionality = findMatchingFunctionality(ac.text, analysis.detectedFunctionalities)
 
       // Generate multiple test cases per AC if requested
@@ -581,7 +582,8 @@ export async function generateIntelligentTestCases(
           testCases.length + 1,
           tcIndex,
           validTestsPerAC,
-          useAIForTitle
+          useAIForTitle,
+          acIndex + 1
         )
         if (testCase) {
           testCases.push(testCase)
@@ -700,7 +702,8 @@ async function createTestCaseFromAC(
   id,
   variationIndex = 0,
   totalVariations = 1,
-  useAIForTitle = false
+  useAIForTitle = false,
+  acId = null
 ) {
   if (!ac || !ac.text) {
     return null
@@ -773,7 +776,9 @@ async function createTestCaseFromAC(
     when: whenMatch ? whenMatch[1].trim() : null,
     then: thenMatch ? thenMatch[1].trim() : null,
     folder: functionality?.folder || 'Test Cases',
-    source: 'acceptance_criteria'
+    source: 'acceptance_criteria',
+    acId: acId,
+    acText: ac.text
   }
 }
 
