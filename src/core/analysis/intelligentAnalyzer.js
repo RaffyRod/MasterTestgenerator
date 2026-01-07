@@ -1252,6 +1252,11 @@ function generateGherkinFromAC(
       .join('\n')
   }
 
+  // Generate different Gherkin steps based on variation index
+  if (totalVariations > 1 && variationIndex > 0) {
+    return generateGherkinVariation(text, variationIndex, functionality)
+  }
+
   if (acType === 'precondition' || lowerText.startsWith('given')) {
     const cleaned = text.replace(/^(Given|Dado)[:\s]+/i, '').trim()
     const givenText = cleaned || 'The System Is In A Valid State'
@@ -1416,6 +1421,122 @@ function extractIntelligentThenStep(text) {
 
   // Generate based on context
   return generateContextBasedExpectedResult(text)
+}
+
+/**
+ * Generate Gherkin steps for different variations (positive, negative, edge, alternative)
+ */
+function generateGherkinVariation(text, variationIndex, functionality = null) {
+  const lowerText = text.toLowerCase()
+  const givenStep = extractIntelligentGivenStep(text) || 'The System Is In A Valid State'
+
+  switch (variationIndex) {
+    case 1: // Positive Path - comprehensive detailed steps
+      if (
+        lowerText.includes('view') ||
+        lowerText.includes('display') ||
+        lowerText.includes('list') ||
+        lowerText.includes('see')
+      ) {
+        return `Given ${givenStep}\nWhen I Navigate To The List Page And Select A Record To View\nThen I Should See All Record Details Displayed Accurately With Complete Information`
+      } else if (
+        lowerText.includes('create') ||
+        lowerText.includes('add') ||
+        lowerText.includes('new')
+      ) {
+        return `Given ${givenStep}\nWhen I Fill In All Required Fields With Valid Data And Submit The Form\nThen I Should See The New Record Created Successfully With All Entered Data Saved Correctly`
+      } else if (
+        lowerText.includes('update') ||
+        lowerText.includes('edit') ||
+        lowerText.includes('modify')
+      ) {
+        return `Given ${givenStep}\nWhen I Select An Existing Record And Modify The Desired Fields With New Valid Values\nThen I Should See The Record Updated Successfully With All Changes Saved And Reflected Immediately`
+      } else if (lowerText.includes('delete') || lowerText.includes('remove')) {
+        return `Given ${givenStep}\nWhen I Select The Record To Delete And Confirm The Deletion Action\nThen I Should See The Record Deleted Successfully And Removed From The System`
+      }
+      break
+
+    case 2: // Negative Path - error scenarios
+      if (
+        lowerText.includes('view') ||
+        lowerText.includes('display') ||
+        lowerText.includes('list') ||
+        lowerText.includes('see')
+      ) {
+        return `Given ${givenStep}\nWhen I Attempt To View A Non-Existent Record Or Access Without Proper Permissions\nThen I Should See An Appropriate Error Message Displayed Clearly`
+      } else if (
+        lowerText.includes('create') ||
+        lowerText.includes('add') ||
+        lowerText.includes('new')
+      ) {
+        return `Given ${givenStep}\nWhen I Fill In Required Fields With Invalid Data And Attempt To Submit The Form\nThen I Should See Appropriate Validation Error Messages Displayed And The Operation Should Not Complete`
+      } else if (
+        lowerText.includes('update') ||
+        lowerText.includes('edit') ||
+        lowerText.includes('modify')
+      ) {
+        return `Given ${givenStep}\nWhen I Attempt To Update A Record With Invalid Or Incomplete Data\nThen I Should See Appropriate Error Messages Displayed And The System State Should Remain Unchanged`
+      } else if (lowerText.includes('delete') || lowerText.includes('remove')) {
+        return `Given ${givenStep}\nWhen I Attempt To Delete A Record That Has Dependencies Or Is Protected\nThen I Should See An Appropriate Error Message Displayed And The Record Should Not Be Deleted`
+      } else {
+        return `Given ${givenStep}\nWhen I Perform The Action With Invalid Input Or Without Required Permissions\nThen I Should See An Appropriate Error Message Displayed Clearly And The Operation Should Not Complete`
+      }
+
+    case 3: // Edge Case - boundary conditions
+      if (
+        lowerText.includes('view') ||
+        lowerText.includes('display') ||
+        lowerText.includes('list') ||
+        lowerText.includes('see')
+      ) {
+        return `Given ${givenStep}\nWhen I Attempt To View Records At The Boundary Limits (First, Last, Empty List)\nThen I Should See The System Handles Boundary Conditions Correctly And Maintains Stability`
+      } else if (
+        lowerText.includes('create') ||
+        lowerText.includes('add') ||
+        lowerText.includes('new')
+      ) {
+        return `Given ${givenStep}\nWhen I Enter Boundary Values (Minimum, Maximum, Edge Cases) In The Required Fields\nThen I Should See The System Processes Boundary Values Correctly And Maintains Data Integrity`
+      } else if (
+        lowerText.includes('update') ||
+        lowerText.includes('edit') ||
+        lowerText.includes('modify')
+      ) {
+        return `Given ${givenStep}\nWhen I Update Fields With Boundary Values (Minimum, Maximum, Special Characters)\nThen I Should See The System Handles Boundary Conditions Correctly And Updates Are Saved Properly`
+      } else if (lowerText.includes('delete') || lowerText.includes('remove')) {
+        return `Given ${givenStep}\nWhen I Attempt To Delete Records At Boundary Conditions (Last Record, Protected Record)\nThen I Should See The System Handles Boundary Conditions Correctly And Maintains System Stability`
+      } else {
+        return `Given ${givenStep}\nWhen I Perform The Action With Boundary Values Or Edge Case Scenarios\nThen I Should See The System Handles Boundary Conditions Correctly And Maintains Stability And Data Integrity`
+      }
+
+    case 4: // Alternative Flow
+      if (
+        lowerText.includes('view') ||
+        lowerText.includes('display') ||
+        lowerText.includes('list') ||
+        lowerText.includes('see')
+      ) {
+        return `Given ${givenStep}\nWhen I Use Alternative Navigation Methods Or Shortcuts To Access The Record View\nThen I Should See The Same Record Details Displayed Correctly Through The Alternative Approach`
+      } else if (
+        lowerText.includes('create') ||
+        lowerText.includes('add') ||
+        lowerText.includes('new')
+      ) {
+        return `Given ${givenStep}\nWhen I Use Alternative Methods Such As Import Or Bulk Create To Add New Records\nThen I Should See The Records Created Successfully Using The Alternative Approach`
+      } else if (
+        lowerText.includes('update') ||
+        lowerText.includes('edit') ||
+        lowerText.includes('modify')
+      ) {
+        return `Given ${givenStep}\nWhen I Use Alternative Methods Such As Inline Editing Or Bulk Update To Modify Records\nThen I Should See The Records Updated Successfully Using The Alternative Approach`
+      } else if (lowerText.includes('delete') || lowerText.includes('remove')) {
+        return `Given ${givenStep}\nWhen I Use Alternative Methods Such As Bulk Delete Or Context Menu To Remove Records\nThen I Should See The Records Deleted Successfully Using The Alternative Approach`
+      } else {
+        return `Given ${givenStep}\nWhen I Use Alternative Methods Or Approaches To Perform The Required Action\nThen I Should See The Alternative Approach Achieves The Same Result Successfully`
+      }
+  }
+
+  // Fallback to standard generation
+  return generateGherkinFromText(text)
 }
 
 function generateGherkinFromText(text) {
@@ -1860,56 +1981,256 @@ function createStepsVariation(baseSteps, variationIndex, acText = '', functional
 
       return positiveSteps.join('\n')
 
-    case 2: // Negative path - modify for error scenarios
-      const negativeSteps = steps.map((step, idx) => {
-        const stepLower = step.toLowerCase()
-        // Modify steps to introduce errors
-        if (
-          stepLower.includes('enter') ||
-          stepLower.includes('fill') ||
-          stepLower.includes('input')
-        ) {
-          return `${idx + 1}. ${step.replace(/valid|correct|proper/i, 'invalid').replace(/enter|fill|input/i, 'enter invalid')}`
-        } else if (stepLower.includes('click') && idx < steps.length - 2) {
-          return step // Keep navigation steps
-        } else if (stepLower.includes('verify') || stepLower.includes('check')) {
-          return `${idx + 1}. Verify appropriate error message is displayed`
-        }
-        return step
-      })
+    case 2: // Negative path - error scenarios with completely different steps
+      const negativeSteps = []
 
-      // Add negative path specific steps
-      negativeSteps.push(`${steps.length + 1}. Verify the system displays a clear error message`)
-      negativeSteps.push(`${steps.length + 2}. Verify the operation was not completed`)
-      negativeSteps.push(`${steps.length + 3}. Verify system state remains unchanged`)
+      if (
+        lowerText.includes('view') ||
+        lowerText.includes('display') ||
+        lowerText.includes('list') ||
+        lowerText.includes('see')
+      ) {
+        negativeSteps.push('1. Launch the application and authenticate if required')
+        negativeSteps.push('2. Navigate to the list or view page')
+        negativeSteps.push('3. Attempt to access a non-existent record ID or invalid URL')
+        negativeSteps.push(
+          '4. Verify the system displays an appropriate error message (e.g., "Record not found")'
+        )
+        negativeSteps.push('5. Verify the error message is clear and user-friendly')
+        negativeSteps.push(
+          '6. Verify the system does not crash or display technical errors to the user'
+        )
+        negativeSteps.push(
+          '7. Verify navigation options are still available to return to a valid page'
+        )
+        negativeSteps.push('8. Attempt to access a record without proper permissions')
+        negativeSteps.push('9. Verify the system displays an appropriate access denied message')
+        negativeSteps.push(
+          '10. Verify the operation was not completed and system state remains unchanged'
+        )
+      } else if (
+        lowerText.includes('create') ||
+        lowerText.includes('add') ||
+        lowerText.includes('new')
+      ) {
+        negativeSteps.push('1. Navigate to the create or add new page')
+        negativeSteps.push('2. Leave required fields empty or fill with invalid data')
+        negativeSteps.push(
+          '3. Enter invalid format data (e.g., text in numeric fields, invalid email format)'
+        )
+        negativeSteps.push('4. Attempt to submit the form without completing required fields')
+        negativeSteps.push(
+          '5. Verify validation error messages are displayed for each invalid field'
+        )
+        negativeSteps.push(
+          '6. Verify the error messages are clear and indicate what needs to be corrected'
+        )
+        negativeSteps.push('7. Verify the form is not submitted and remains on the same page')
+        negativeSteps.push('8. Verify no data was saved to the system')
+        negativeSteps.push(
+          '9. Enter data that violates business rules (e.g., duplicate unique values)'
+        )
+        negativeSteps.push('10. Verify appropriate business rule violation error is displayed')
+        negativeSteps.push(
+          '11. Verify the operation was not completed and system state remains unchanged'
+        )
+      } else if (
+        lowerText.includes('update') ||
+        lowerText.includes('edit') ||
+        lowerText.includes('modify')
+      ) {
+        negativeSteps.push('1. Navigate to the list or view page')
+        negativeSteps.push('2. Select a record that is locked or has dependencies')
+        negativeSteps.push('3. Attempt to edit the record')
+        negativeSteps.push('4. Verify the system displays an appropriate error message')
+        negativeSteps.push('5. Attempt to update with invalid or incomplete data')
+        negativeSteps.push('6. Leave required fields empty or enter invalid format data')
+        negativeSteps.push('7. Attempt to save the changes')
+        negativeSteps.push('8. Verify validation error messages are displayed')
+        negativeSteps.push('9. Verify the changes are not saved')
+        negativeSteps.push('10. Verify the original data remains unchanged')
+        negativeSteps.push('11. Verify system state remains consistent')
+      } else if (lowerText.includes('delete') || lowerText.includes('remove')) {
+        negativeSteps.push('1. Navigate to the list or view page')
+        negativeSteps.push('2. Select a record that has dependencies or is protected')
+        negativeSteps.push('3. Attempt to delete the record')
+        negativeSteps.push(
+          '4. Verify the system displays an appropriate error message indicating the record cannot be deleted'
+        )
+        negativeSteps.push('5. Verify the error message explains why the deletion is not allowed')
+        negativeSteps.push('6. Verify the record is not deleted and remains in the system')
+        negativeSteps.push('7. Attempt to delete a non-existent record')
+        negativeSteps.push('8. Verify the system handles the request gracefully')
+        negativeSteps.push('9. Verify appropriate error message is displayed')
+        negativeSteps.push('10. Verify system state remains unchanged')
+      } else {
+        negativeSteps.push('1. Navigate to the application')
+        negativeSteps.push(
+          '2. Perform the action with invalid input or without required permissions'
+        )
+        negativeSteps.push('3. Verify the system displays an appropriate error message')
+        negativeSteps.push('4. Verify the error message is clear and actionable')
+        negativeSteps.push('5. Verify the operation was not completed')
+        negativeSteps.push('6. Verify system state remains unchanged')
+      }
 
       return negativeSteps.join('\n')
 
-    case 3: // Edge case - add boundary testing
-      const edgeSteps = steps.map((step, idx) => {
-        const stepLower = step.toLowerCase()
-        if (stepLower.includes('enter') || stepLower.includes('fill')) {
-          return `${idx + 1}. ${step.replace(/valid|correct/i, 'boundary value').replace(/enter|fill/i, 'enter boundary')}`
-        }
-        return step
-      })
+    case 3: // Edge case - boundary conditions with completely different steps
+      const edgeSteps = []
 
-      edgeSteps.push(`${steps.length + 1}. Test with minimum boundary value`)
-      edgeSteps.push(`${steps.length + 2}. Test with maximum boundary value`)
-      edgeSteps.push(`${steps.length + 3}. Verify system handles boundary conditions correctly`)
+      if (
+        lowerText.includes('view') ||
+        lowerText.includes('display') ||
+        lowerText.includes('list') ||
+        lowerText.includes('see')
+      ) {
+        edgeSteps.push('1. Launch the application and authenticate if required')
+        edgeSteps.push('2. Navigate to the list or view page')
+        edgeSteps.push('3. Test viewing the first record in the list (boundary: first item)')
+        edgeSteps.push('4. Verify the first record displays correctly')
+        edgeSteps.push('5. Test viewing the last record in the list (boundary: last item)')
+        edgeSteps.push('6. Verify the last record displays correctly')
+        edgeSteps.push('7. Test viewing when the list is empty (boundary: no items)')
+        edgeSteps.push('8. Verify appropriate empty state message is displayed')
+        edgeSteps.push(
+          '9. Test viewing with maximum number of records displayed (boundary: max items)'
+        )
+        edgeSteps.push('10. Verify pagination or scrolling works correctly')
+        edgeSteps.push(
+          '11. Test viewing records with very long text fields (boundary: max text length)'
+        )
+        edgeSteps.push('12. Verify text truncation or wrapping is handled correctly')
+        edgeSteps.push(
+          '13. Verify system maintains stability and performance at boundary conditions'
+        )
+      } else if (
+        lowerText.includes('create') ||
+        lowerText.includes('add') ||
+        lowerText.includes('new')
+      ) {
+        edgeSteps.push('1. Navigate to the create or add new page')
+        edgeSteps.push('2. Test with minimum allowed values (boundary: minimum)')
+        edgeSteps.push('3. Enter the minimum valid value in each numeric field')
+        edgeSteps.push('4. Enter the minimum valid length in text fields')
+        edgeSteps.push('5. Submit the form and verify it processes correctly')
+        edgeSteps.push('6. Test with maximum allowed values (boundary: maximum)')
+        edgeSteps.push('7. Enter the maximum valid value in each numeric field')
+        edgeSteps.push('8. Enter the maximum valid length in text fields')
+        edgeSteps.push('9. Submit the form and verify it processes correctly')
+        edgeSteps.push('10. Test with special characters and edge case formats')
+        edgeSteps.push('11. Verify the system handles boundary values correctly')
+        edgeSteps.push('12. Verify data integrity is maintained at boundary conditions')
+      } else if (
+        lowerText.includes('update') ||
+        lowerText.includes('edit') ||
+        lowerText.includes('modify')
+      ) {
+        edgeSteps.push('1. Navigate to the list or view page')
+        edgeSteps.push('2. Select a record to edit')
+        edgeSteps.push('3. Test updating with minimum boundary values')
+        edgeSteps.push('4. Change fields to minimum allowed values')
+        edgeSteps.push('5. Save and verify the update is successful')
+        edgeSteps.push('6. Test updating with maximum boundary values')
+        edgeSteps.push('7. Change fields to maximum allowed values')
+        edgeSteps.push('8. Save and verify the update is successful')
+        edgeSteps.push('9. Test updating with special characters and edge case formats')
+        edgeSteps.push('10. Verify the system handles boundary values correctly')
+        edgeSteps.push('11. Verify data integrity is maintained at boundary conditions')
+      } else if (lowerText.includes('delete') || lowerText.includes('remove')) {
+        edgeSteps.push('1. Navigate to the list or view page')
+        edgeSteps.push('2. Test deleting the first record in the list (boundary: first item)')
+        edgeSteps.push('3. Verify the deletion is successful')
+        edgeSteps.push('4. Test deleting the last record in the list (boundary: last item)')
+        edgeSteps.push('5. Verify the deletion is successful')
+        edgeSteps.push('6. Test deleting when only one record exists (boundary: single item)')
+        edgeSteps.push('7. Verify appropriate empty state is displayed after deletion')
+        edgeSteps.push('8. Test deleting records at pagination boundaries')
+        edgeSteps.push('9. Verify pagination updates correctly after deletion')
+        edgeSteps.push('10. Verify system maintains stability at boundary conditions')
+      } else {
+        edgeSteps.push('1. Navigate to the application')
+        edgeSteps.push('2. Test the action with minimum boundary values')
+        edgeSteps.push('3. Test the action with maximum boundary values')
+        edgeSteps.push('4. Test the action with edge case scenarios')
+        edgeSteps.push('5. Verify the system handles boundary conditions correctly')
+        edgeSteps.push('6. Verify system maintains stability and data integrity')
+      }
 
       return edgeSteps.join('\n')
 
-    case 4: // Alternative flow
-      const altSteps = steps.map((step, idx) => {
-        const stepLower = step.toLowerCase()
-        if (idx === 1 || stepLower.includes('click') || stepLower.includes('select')) {
-          return `${idx + 1}. ${step.replace(/click|select|choose/i, 'use alternative method to').replace(/button|link|option/i, 'alternative option')}`
-        }
-        return step
-      })
+    case 4: // Alternative flow - completely different approach
+      const altSteps = []
 
-      altSteps.push(`${steps.length + 1}. Verify the alternative approach achieves the same result`)
+      if (
+        lowerText.includes('view') ||
+        lowerText.includes('display') ||
+        lowerText.includes('list') ||
+        lowerText.includes('see')
+      ) {
+        altSteps.push('1. Launch the application and authenticate if required')
+        altSteps.push(
+          '2. Use keyboard shortcuts or alternative navigation to access the record view'
+        )
+        altSteps.push('3. Alternatively, use the search functionality to find and view the record')
+        altSteps.push('4. Alternatively, access the record through a direct URL or bookmark')
+        altSteps.push(
+          '5. Verify the record details are displayed correctly through the alternative method'
+        )
+        altSteps.push('6. Verify all expected information is present regardless of access method')
+        altSteps.push('7. Test accessing through mobile responsive view if applicable')
+        altSteps.push(
+          '8. Verify the alternative approach achieves the same result as the standard method'
+        )
+      } else if (
+        lowerText.includes('create') ||
+        lowerText.includes('add') ||
+        lowerText.includes('new')
+      ) {
+        altSteps.push('1. Navigate to the application')
+        altSteps.push('2. Use alternative methods such as import functionality or bulk create')
+        altSteps.push('3. Alternatively, use API or data import tools if available')
+        altSteps.push(
+          '4. Alternatively, use copy/duplicate functionality to create similar records'
+        )
+        altSteps.push('5. Verify the records are created successfully using the alternative method')
+        altSteps.push('6. Verify all data is saved correctly regardless of creation method')
+        altSteps.push(
+          '7. Verify the alternative approach achieves the same result as standard creation'
+        )
+      } else if (
+        lowerText.includes('update') ||
+        lowerText.includes('edit') ||
+        lowerText.includes('modify')
+      ) {
+        altSteps.push('1. Navigate to the list or view page')
+        altSteps.push('2. Use inline editing functionality if available')
+        altSteps.push('3. Alternatively, use bulk update or mass edit features')
+        altSteps.push('4. Alternatively, use keyboard shortcuts for quick edits')
+        altSteps.push('5. Verify the updates are saved successfully using the alternative method')
+        altSteps.push('6. Verify all changes are reflected correctly')
+        altSteps.push(
+          '7. Verify the alternative approach achieves the same result as standard editing'
+        )
+      } else if (lowerText.includes('delete') || lowerText.includes('remove')) {
+        altSteps.push('1. Navigate to the list or view page')
+        altSteps.push('2. Use bulk delete or multi-select functionality if available')
+        altSteps.push('3. Alternatively, use context menu or right-click options to delete')
+        altSteps.push('4. Alternatively, use keyboard shortcuts for deletion')
+        altSteps.push('5. Verify the records are deleted successfully using the alternative method')
+        altSteps.push('6. Verify deletion confirmation works correctly')
+        altSteps.push(
+          '7. Verify the alternative approach achieves the same result as standard deletion'
+        )
+      } else {
+        altSteps.push('1. Navigate to the application')
+        altSteps.push('2. Use alternative methods or approaches to perform the required action')
+        altSteps.push('3. Verify the alternative approach is available and functional')
+        altSteps.push('4. Verify the action completes successfully using the alternative method')
+        altSteps.push(
+          '5. Verify the alternative approach achieves the same result as the standard method'
+        )
+      }
 
       return altSteps.join('\n')
 
