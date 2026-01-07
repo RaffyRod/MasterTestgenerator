@@ -194,6 +194,7 @@ import { initAIService } from '../services/aiService'
 import { TEST_MANAGEMENT_TOOLS, exportToCSV, getPreviewData, downloadCSV } from '../utils/csvExport'
 import ExportPreview from '../components/ExportPreview.vue'
 import OllamaStatus from '../components/OllamaStatus.vue'
+import { useNotification } from '../composables/useNotification'
 
 export default {
   name: 'TestCases',
@@ -508,7 +509,7 @@ export default {
   margin-bottom: 0;
 }
 
-.form-group label,
+.form-group > label:not(.radio-option),
 .form-label {
   display: block;
   margin-bottom: 0.625rem;
@@ -521,11 +522,11 @@ export default {
   align-self: flex-start;
 }
 
-[data-theme='light'] .form-group label {
+[data-theme='light'] .form-group > label:not(.radio-option) {
   color: #000000 !important;
 }
 
-[data-theme='dark'] .form-group label {
+[data-theme='dark'] .form-group > label:not(.radio-option) {
   color: #ffffff !important;
 }
 
@@ -579,6 +580,8 @@ export default {
   position: relative;
   min-height: 56px;
   touch-action: manipulation;
+  margin: 0;
+  margin-bottom: 0;
 }
 
 .radio-option:focus-within {
