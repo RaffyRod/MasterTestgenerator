@@ -593,6 +593,9 @@ export async function generateIntelligentTestCases(
         // Generate multiple test cases per AC if requested
         for (let tcIndex = 0; tcIndex < validTestsPerAC; tcIndex++) {
           try {
+            console.log(
+              `Attempting to generate test case ${tcIndex + 1}/${validTestsPerAC} for AC ${acIndex + 1}`
+            )
             const testCase = await createTestCaseFromAC(
               ac,
               functionality,
@@ -606,21 +609,25 @@ export async function generateIntelligentTestCases(
             if (testCase) {
               testCases.push(testCase)
               console.log(
-                `Generated test case ${testCases.length} for AC ${acIndex + 1}, variation ${tcIndex + 1}`
+                `✓ Successfully generated test case ${testCases.length} for AC ${acIndex + 1}, variation ${tcIndex + 1}: "${testCase.title}"`
               )
             } else {
               console.warn(
-                `Failed to generate test case for AC ${acIndex + 1}, variation ${tcIndex + 1}`
+                `✗ Failed to generate test case for AC ${acIndex + 1}, variation ${tcIndex + 1} - createTestCaseFromAC returned null`
               )
             }
           } catch (error) {
             console.error(
-              `Error generating test case for AC ${acIndex + 1}, variation ${tcIndex + 1}:`,
+              `✗ Error generating test case for AC ${acIndex + 1}, variation ${tcIndex + 1}:`,
               error
             )
-            // Continue with next variation
+            console.error('Error stack:', error.stack)
+            // Continue with next variation - don't fail completely
           }
         }
+        console.log(
+          `Completed AC ${acIndex + 1}: Generated ${testCases.filter(tc => tc.acId === acIndex + 1).length} test cases`
+        )
       }
       console.log(`Total test cases generated: ${testCases.length}`)
     } else {
@@ -754,6 +761,13 @@ async function createTestCaseFromAC(
   acId = null
 ) {
   if (!ac || !ac.text) {
+    console.warn(`createTestCaseFromAC: Invalid AC or missing text. AC:`, ac)
+    return null
+  }
+
+  // Ensure ac.text is a string and not empty
+  if (typeof ac.text !== 'string' || ac.text.trim().length === 0) {
+    console.warn(`createTestCaseFromAC: AC text is empty or not a string. AC:`, ac)
     return null
   }
 
