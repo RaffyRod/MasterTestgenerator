@@ -54,7 +54,8 @@ export const messages = {
       testsPerAC: 'Test Cases per Acceptance Criteria',
       testsPerACHint: 'Generate multiple test case variations for each acceptance criteria',
       testCase: 'Test Case',
-      testCases: 'Test Cases'
+      testCases: 'Test Cases',
+      copyTestCase: 'Copy Test Case'
     },
     export: {
       preview: 'Export Preview',
@@ -87,7 +88,9 @@ export const messages = {
       aiError: 'AI generation failed. Using intelligent analyzer instead.',
       invalidInput: 'Please enter project information or acceptance criteria',
       noTestCases: 'No test cases were generated. Please check your input.',
-      noTestPlan: 'No test plan was generated. Please check your input.'
+      noTestPlan: 'No test plan was generated. Please check your input.',
+      testCaseCopied: 'Test case copied to clipboard',
+      copyError: 'Error copying test case. Please try again.'
     }
   },
   es: {
@@ -150,7 +153,8 @@ export const messages = {
       testsPerACHint:
         'Generar múltiples variaciones de casos de prueba para cada criterio de aceptación',
       testCase: 'Caso de Prueba',
-      testCases: 'Casos de Prueba'
+      testCases: 'Casos de Prueba',
+      copyTestCase: 'Copiar Caso de Prueba'
     },
     export: {
       preview: 'Vista Previa de Exportación',
@@ -184,7 +188,9 @@ export const messages = {
       aiError: 'La generación con IA falló. Usando analizador inteligente en su lugar.',
       invalidInput: 'Por favor, ingresa información del proyecto o criterios de aceptación',
       noTestCases: 'No se generaron casos de prueba. Por favor, verifica tu entrada.',
-      noTestPlan: 'No se generó plan de prueba. Por favor, verifica tu entrada.'
+      noTestPlan: 'No se generó plan de prueba. Por favor, verifica tu entrada.',
+      testCaseCopied: 'Caso de prueba copiado al portapapeles',
+      copyError: 'Error al copiar caso de prueba. Por favor, inténtalo de nuevo.'
     }
   }
 }

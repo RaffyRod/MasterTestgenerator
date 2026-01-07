@@ -1011,75 +1011,184 @@ function generateTitleFromAC(text) {
   // Remove Gherkin keywords completely
   title = title.replace(/(?:Given|When|Then|And|But|Dado|Cuando|Entonces|Y|Pero)\s+/gi, ' ')
 
-  // Extract key action and object for better titles
   const lowerTitle = title.toLowerCase()
 
-  // Improved pattern matching for better titles
+  // Extract entity/object from common patterns
+  const entityPatterns = [
+    /(?:list\s+of|view|display|show|see|browse)\s+(?:the\s+)?([a-z]+(?:\s+[a-z]+)*?)(?:\s+list|\s+page|\s+section|$|\.|,)/i,
+    /(?:create|add|new)\s+(?:a\s+)?(?:new\s+)?([a-z]+(?:\s+[a-z]+)*?)(?:\s+record|\s+item|\s+entry|$|\.|,)/i,
+    /(?:update|edit|modify|change)\s+(?:the\s+)?([a-z]+(?:\s+[a-z]+)*?)(?:\s+record|\s+item|\s+entry|$|\.|,)/i,
+    /(?:delete|remove)\s+(?:the\s+)?([a-z]+(?:\s+[a-z]+)*?)(?:\s+record|\s+item|\s+entry|$|\.|,)/i,
+    /(?:on|in|at)\s+(?:the\s+)?([a-z]+(?:\s+[a-z]+)*?)(?:\s+page|\s+screen|\s+view|\s+section)/i,
+    /([a-z]+(?:\s+[a-z]+)*?)(?:\s+management|\s+module|\s+feature|\s+functionality)/i
+  ]
+
+  let extractedEntity = null
+  for (const pattern of entityPatterns) {
+    const match = title.match(pattern)
+    if (match && match[1]) {
+      const entity = match[1].trim()
+      // Filter out common words that aren't entities
+      if (
+        !entity.match(
+          /^(page|screen|view|section|list|record|item|entry|details|information|data)$/i
+        ) &&
+        entity.length > 2
+      ) {
+        extractedEntity = entity
+        break
+      }
+    }
+  }
+
+  // Improved pattern matching for better titles with entity context
   const actionPatterns = [
-    // View/Display/Browse patterns - most common
+    // View/Display/Browse patterns with entity
     {
       pattern:
-        /(?:view|display|show|see|browse|list)\s+(?:the\s+)?(?:list\s+of\s+)?([a-z\s]+?)(?:$|\.|,|successfully)/i,
+        /(?:view|display|show|see|browse|list)\s+(?:the\s+)?(?:list\s+of\s+)?([a-z\s]+?)(?:$|\.|,|successfully|list|page|section)/i,
       format: match => {
-        const obj = match[1].trim().replace(/\s+/g, ' ')
-        return `View ${capitalizeTitleCase(obj)}`
+        let obj = match[1].trim().replace(/\s+/g, ' ')
+        // If entity was extracted and is different, use it
+        if (extractedEntity && !obj.toLowerCase().includes(extractedEntity.toLowerCase())) {
+          obj = extractedEntity
+        }
+        // Remove generic words
+        obj = obj.replace(/\b(list|page|section|view|details|information|data)\b/gi, '').trim()
+        if (obj && obj.length > 2) {
+          return `View ${capitalizeTitleCase(obj)} Details`
+        }
+        return extractedEntity
+          ? `View ${capitalizeTitleCase(extractedEntity)} Details`
+          : 'View Record Details'
       }
     },
-    // Create patterns
+    // Create patterns with entity
     {
-      pattern: /(?:create|add|new)\s+(?:a\s+)?(?:new\s+)?([a-z\s]+?)(?:$|\.|,)/i,
-      format: match => `Create ${capitalizeTitleCase(match[1].trim())}`
+      pattern: /(?:create|add|new)\s+(?:a\s+)?(?:new\s+)?([a-z\s]+?)(?:$|\.|,|record|item|entry)/i,
+      format: match => {
+        let obj = match[1].trim().replace(/\s+/g, ' ')
+        if (extractedEntity && !obj.toLowerCase().includes(extractedEntity.toLowerCase())) {
+          obj = extractedEntity
+        }
+        obj = obj.replace(/\b(record|item|entry|new)\b/gi, '').trim()
+        if (obj && obj.length > 2) {
+          return `Create New ${capitalizeTitleCase(obj)}`
+        }
+        return extractedEntity
+          ? `Create New ${capitalizeTitleCase(extractedEntity)}`
+          : 'Create New Record'
+      }
     },
-    // Update patterns
+    // Update patterns with entity
     {
-      pattern: /(?:update|edit|modify|change)\s+(?:the\s+)?([a-z\s]+?)(?:$|\.|,)/i,
-      format: match => `Update ${capitalizeTitleCase(match[1].trim())}`
+      pattern:
+        /(?:update|edit|modify|change)\s+(?:the\s+)?([a-z\s]+?)(?:$|\.|,|record|item|entry)/i,
+      format: match => {
+        let obj = match[1].trim().replace(/\s+/g, ' ')
+        if (extractedEntity && !obj.toLowerCase().includes(extractedEntity.toLowerCase())) {
+          obj = extractedEntity
+        }
+        obj = obj.replace(/\b(record|item|entry|the)\b/gi, '').trim()
+        if (obj && obj.length > 2) {
+          return `Update ${capitalizeTitleCase(obj)} Information`
+        }
+        return extractedEntity
+          ? `Update ${capitalizeTitleCase(extractedEntity)} Information`
+          : 'Update Record Information'
+      }
     },
-    // Delete patterns
+    // Delete patterns with entity
     {
-      pattern: /(?:delete|remove)\s+(?:the\s+)?([a-z\s]+?)(?:$|\.|,)/i,
-      format: match => `Delete ${capitalizeTitleCase(match[1].trim())}`
+      pattern: /(?:delete|remove)\s+(?:the\s+)?([a-z\s]+?)(?:$|\.|,|record|item|entry)/i,
+      format: match => {
+        let obj = match[1].trim().replace(/\s+/g, ' ')
+        if (extractedEntity && !obj.toLowerCase().includes(extractedEntity.toLowerCase())) {
+          obj = extractedEntity
+        }
+        obj = obj.replace(/\b(record|item|entry|the)\b/gi, '').trim()
+        if (obj && obj.length > 2) {
+          return `Delete ${capitalizeTitleCase(obj)}`
+        }
+        return extractedEntity ? `Delete ${capitalizeTitleCase(extractedEntity)}` : 'Delete Record'
+      }
     },
-    // Verify/Test patterns
+    // Verify/Test patterns with context
     {
-      pattern: /(?:verify|test)\s+(?:that\s+)?(.+?)(?:$|\.|,)/i,
-      format: match => `Verify ${capitalizeTitleCase(match[1].trim())}`
+      pattern: /(?:verify|test|check|validate)\s+(?:that\s+)?(.+?)(?:$|\.|,|is|are|should|can)/i,
+      format: match => {
+        const context = match[1].trim()
+        if (extractedEntity) {
+          return `Verify ${capitalizeTitleCase(extractedEntity)} ${capitalizeTitleCase(context)}`
+        }
+        return `Verify ${capitalizeTitleCase(context)}`
+      }
     },
     // Login patterns
     {
       pattern: /(?:login|sign in|authenticate)/i,
-      format: () => 'User Login'
+      format: () => 'User Login Authentication'
     },
-    // Search patterns
+    // Search patterns with entity
     {
       pattern: /(?:search|find|filter)\s+(?:for\s+)?([a-z\s]+?)(?:$|\.|,)/i,
-      format: match => `Search ${capitalizeTitleCase(match[1].trim())}`
+      format: match => {
+        const query = match[1].trim()
+        if (extractedEntity) {
+          return `Search ${capitalizeTitleCase(extractedEntity)} By ${capitalizeTitleCase(query)}`
+        }
+        return `Search ${capitalizeTitleCase(query)}`
+      }
     }
   ]
 
+  let matched = false
   for (const { pattern, format } of actionPatterns) {
     const match = title.match(pattern)
     if (match) {
       title = format(match)
+      matched = true
       break
     }
   }
 
-  // If no pattern matched, extract first meaningful phrase
-  if (title === text || title.length > 80) {
+  // If no pattern matched, build descriptive title from context
+  if (!matched) {
     // Remove common filler words at start
     title = title.replace(/^(the|a|an|i|i should|i can|i want|user can|user should)\s+/i, '')
 
-    // Take first sentence or first 60 chars
-    const firstSentence = title.split(/[.!?,]/)[0].trim()
-    if (firstSentence.length > 10 && firstSentence.length < 60) {
-      title = firstSentence
+    // Extract meaningful parts
+    const sentences = title.split(/[.!?,]/).filter(s => s.trim().length > 5)
+    if (sentences.length > 0) {
+      let meaningfulPart = sentences[0].trim()
+
+      // Try to extract action and object
+      const actionMatch = meaningfulPart.match(/(?:should|must|will|can|may)\s+(.+?)(?:$|\.|,)/i)
+      if (actionMatch) {
+        meaningfulPart = actionMatch[1].trim()
+      }
+
+      // Use entity if extracted
+      if (extractedEntity) {
+        title = `${capitalizeTitleCase(meaningfulPart)} - ${capitalizeTitleCase(extractedEntity)}`
+      } else {
+        title = meaningfulPart
+      }
+
+      // Limit length
+      if (title.length > 60) {
+        title = title.substring(0, 57) + '...'
+      }
     } else {
-      title = title.substring(0, 60).trim()
-      // Remove incomplete word at end
-      const lastSpace = title.lastIndexOf(' ')
-      if (lastSpace > 20) {
-        title = title.substring(0, lastSpace)
+      // Fallback: use entity if available
+      if (extractedEntity) {
+        title = `Test ${capitalizeTitleCase(extractedEntity)} Functionality`
+      } else {
+        title = title.substring(0, 60).trim()
+        const lastSpace = title.lastIndexOf(' ')
+        if (lastSpace > 20) {
+          title = title.substring(0, lastSpace)
+        }
       }
     }
   }
@@ -1095,9 +1204,12 @@ function generateTitleFromAC(text) {
 
   // Remove trailing filler words
   title = title.replace(
-    /\s+(is|are|should|must|will|can|may|the|a|an|successfully|successful|see|view)\s*$/i,
+    /\s+(is|are|should|must|will|can|may|the|a|an|successfully|successful|see|view|it)\s*$/i,
     ''
   )
+
+  // Final cleanup: remove "It" at the end if present
+  title = title.replace(/\s+It\s*$/i, '')
 
   return title || 'Test Case'
 }

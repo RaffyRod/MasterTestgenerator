@@ -131,17 +131,40 @@
         >
           <header class="card-header">
             <h3 class="card-title">{{ testCase.title }}</h3>
-            <div class="badges">
-              <span
-                class="badge badge-priority"
-                :class="`priority-${testCase.priority.toLowerCase()}`"
-                :aria-label="`Priority: ${testCase.priority}`"
+            <div class="card-actions">
+              <button
+                @click="copyTestCase(testCase)"
+                class="copy-btn"
+                :aria-label="$t('testCase.copyTestCase')"
+                :title="$t('testCase.copyTestCase')"
               >
-                {{ testCase.priority }}
-              </span>
-              <span class="badge badge-type" :aria-label="`Type: ${testCase.type}`">
-                {{ testCase.type }}
-              </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+              </button>
+              <div class="badges">
+                <span
+                  class="badge badge-priority"
+                  :class="`priority-${testCase.priority.toLowerCase()}`"
+                  :aria-label="`Priority: ${testCase.priority}`"
+                >
+                  {{ testCase.priority }}
+                </span>
+                <span class="badge badge-type" :aria-label="`Type: ${testCase.type}`">
+                  {{ testCase.type }}
+                </span>
+              </div>
             </div>
           </header>
 
@@ -395,6 +418,43 @@ export default {
       }
     }
 
+    const copyTestCase = async testCase => {
+      // Format test case content
+      let content = `Title: ${testCase.title}\n`
+      content += `Priority: ${testCase.priority}\n`
+      content += `Type: ${testCase.type}\n\n`
+
+      if (testCase.preconditions) {
+        content += `Preconditions:\n${testCase.preconditions}\n\n`
+      }
+
+      content += `Steps:\n${testCase.steps}\n\n`
+      content += `Expected Result:\n${testCase.expectedResult}`
+
+      try {
+        // Copy to clipboard
+        await navigator.clipboard.writeText(content)
+        showNotification(t('notifications.testCaseCopied'), 'success', 2000)
+      } catch (error) {
+        console.error('Error copying test case:', error)
+        // Fallback for older browsers
+        try {
+          const textArea = document.createElement('textarea')
+          textArea.value = content
+          textArea.style.position = 'fixed'
+          textArea.style.left = '-999999px'
+          document.body.appendChild(textArea)
+          textArea.select()
+          document.execCommand('copy')
+          document.body.removeChild(textArea)
+          showNotification(t('notifications.testCaseCopied'), 'success', 2000)
+        } catch (fallbackError) {
+          console.error('Fallback copy failed:', fallbackError)
+          showNotification(t('notifications.copyError'), 'error', 3000)
+        }
+      }
+    }
+
     return {
       projectInfo,
       format,
@@ -415,6 +475,7 @@ export default {
       closePreview,
       handleDownload,
       exportCSV,
+      copyTestCase,
       AI_PROVIDERS
     }
   }
@@ -909,6 +970,68 @@ export default {
   gap: 1rem;
   min-width: 0;
   flex-wrap: wrap;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  min-width: 36px;
+  min-height: 36px;
+}
+
+.copy-btn:hover {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+  transform: scale(1.05);
+}
+
+.copy-btn:active {
+  transform: scale(0.95);
+}
+
+.copy-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+[data-theme='light'] .copy-btn {
+  background: #f5f5f5 !important;
+  border-color: #e0e0e0 !important;
+  color: #666666 !important;
+}
+
+[data-theme='light'] .copy-btn:hover {
+  background: #667eea !important;
+  color: #ffffff !important;
+  border-color: #667eea !important;
+}
+
+[data-theme='dark'] .copy-btn {
+  background: #2a2a2a !important;
+  border-color: #3a3a3a !important;
+  color: #cccccc !important;
+}
+
+[data-theme='dark'] .copy-btn:hover {
+  background: #667eea !important;
+  color: #ffffff !important;
+  border-color: #667eea !important;
 }
 
 .card-title {
