@@ -19,6 +19,10 @@ src/
 │       └── aiProviders.js   # AI provider constants
 │
 ├── features/                # Feature modules (domain-driven)
+│   ├── bug-reports/         # Bug Reports feature
+│   │   └── utils/          # Bug report utilities
+│   │       └── bugReportFormatter.js
+│   │
 │   ├── test-cases/          # Test Cases feature
 │   │   ├── components/      # Feature-specific components (if any)
 │   │   ├── generators/    # Test case generation logic
@@ -40,6 +44,7 @@ src/
 │   │   ├── NotificationToast.vue
 │   │   └── OllamaStatus.vue
 │   ├── composables/       # Reusable Vue composables
+│   │   ├── useAIConfig.js
 │   │   ├── useNotification.js
 │   │   └── useTheme.js
 │   └── data/              # Shared static data
@@ -53,6 +58,8 @@ src/
 │   └── index.js
 │
 ├── views/                  # Page-level components
+│   ├── AIConfig.vue
+│   ├── BugReport.vue
 │   ├── TestCases.vue
 │   └── TestPlans.vue
 │
@@ -114,6 +121,9 @@ import { AI_PROVIDERS } from '@core/constants/aiProviders.js'
 import { generateTestCases } from '@features/test-cases/generators/testCaseGenerator.js'
 import { exportToCSV } from '@features/test-cases/utils/csvExport.js'
 
+// Bug Reports
+import { formatBugReport } from '@features/bug-reports/utils/bugReportFormatter.js'
+
 // Test Plans
 import { generateTestPlan } from '@features/test-plans/generators/testPlanGenerator.js'
 import { exportTestPlanToPDF } from '@features/test-plans/utils/testPlanExport.js'
@@ -128,6 +138,7 @@ import NotificationToast from '@shared/components/NotificationToast.vue'
 import ExportPreview from '@shared/components/ExportPreview.vue'
 
 // Composables
+import { useAIConfig } from '@shared/composables/useAIConfig.js'
 import { useNotification } from '@shared/composables/useNotification.js'
 import { useTheme } from '@shared/composables/useTheme.js'
 
@@ -139,6 +150,8 @@ import testCasePatterns from '@shared/data/patterns/test-case-patterns.json'
 
 ```javascript
 // Views
+import AIConfig from '@views/AIConfig.vue'
+import BugReport from '@views/BugReport.vue'
 import TestCases from '@views/TestCases.vue'
 import TestPlans from '@views/TestPlans.vue'
 

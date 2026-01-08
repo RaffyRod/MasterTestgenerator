@@ -86,7 +86,7 @@
         <!-- Menu Section -->
         <div class="nav-menu">
           <button 
-            @click="toggleMobileMenu" 
+            @click.stop="toggleMobileMenu" 
             class="mobile-menu-toggle" 
             :aria-label="mobileMenuOpen ? 'Close menu' : 'Open menu'"
             :aria-expanded="mobileMenuOpen"
@@ -165,13 +165,18 @@ export default {
         configMenuOpen.value = false
       }
       
-      // Close mobile menu when clicking outside
-      const navMenu = document.querySelector('.nav-menu')
-      const mobileToggle = document.querySelector('.mobile-menu-toggle')
-      if (navMenu && mobileToggle && 
-          !navMenu.contains(event.target) && 
-          !mobileToggle.contains(event.target)) {
-        mobileMenuOpen.value = false
+      // Close mobile menu when clicking outside (but not on the toggle button or menu itself)
+      if (mobileMenuOpen.value) {
+        const navMenu = document.querySelector('.nav-menu')
+        const mobileToggle = document.querySelector('.mobile-menu-toggle')
+        const navLinks = document.querySelector('.nav-links')
+        
+        if (navMenu && mobileToggle && navLinks &&
+            !navMenu.contains(event.target) && 
+            !mobileToggle.contains(event.target) &&
+            !navLinks.contains(event.target)) {
+          mobileMenuOpen.value = false
+        }
       }
     }
 
