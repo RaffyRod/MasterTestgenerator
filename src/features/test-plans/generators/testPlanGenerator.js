@@ -5,6 +5,23 @@ import {
   generateIntelligentItemName
 } from '@core/analysis/intelligentAnalyzer.js'
 
+/**
+ * Formats functionality type name for display
+ * @param {string} type - The functionality type (e.g., 'crud', 'authentication')
+ * @returns {string} - Formatted name (e.g., 'CRUD', 'Authentication')
+ */
+function formatFunctionalityName(type) {
+  if (!type) return type
+  
+  // Special case: CRUD should be all uppercase
+  if (type.toLowerCase() === 'crud') {
+    return 'CRUD'
+  }
+  
+  // Capitalize first letter of other functionality types
+  return type.charAt(0).toUpperCase() + type.slice(1).toLowerCase()
+}
+
 export async function generateTestPlan(
   projectInfo,
   planType = 'comprehensive',
@@ -34,7 +51,7 @@ export async function generateTestPlan(
     recommendations: analysis.recommendations || [],
     analysis: {
       complexity: analysis.complexity,
-      detectedFunctionalities: analysis.detectedFunctionalities.map(f => f.type),
+      detectedFunctionalities: analysis.detectedFunctionalities.map(f => formatFunctionalityName(f.type)),
       estimatedTestCases: analysis.estimatedTestCases
     }
   }

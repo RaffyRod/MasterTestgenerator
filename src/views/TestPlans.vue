@@ -391,6 +391,10 @@ export default {
 .test-plans-view {
   padding: 0;
   animation: fadeIn 0.4s ease-in;
+  width: 100%;
+  min-height: 100%;
+  background: transparent;
+  color: var(--text-primary);
 }
 
 .header {

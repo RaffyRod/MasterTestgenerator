@@ -38,6 +38,45 @@ export function formatBugReport(bugData, evidenceFiles = [], format = 'jira') {
 }
 
 /**
+ * Clean HTML tags and convert to plain text for Jira
+ * Removes HTML tags and converts heading tags to Jira format if needed
+ */
+function cleanTextForJira(text) {
+  if (!text) return ''
+  
+  // Convert HTML heading tags to Jira format first
+  let cleaned = text
+    .replace(/<h1[^>]*>(.*?)<\/h1>/gi, 'h1. $1')
+    .replace(/<h2[^>]*>(.*?)<\/h2>/gi, 'h2. $1')
+    .replace(/<h3[^>]*>(.*?)<\/h3>/gi, 'h3. $1')
+    .replace(/<h4[^>]*>(.*?)<\/h4>/gi, 'h4. $1')
+    .replace(/<h5[^>]*>(.*?)<\/h5>/gi, 'h5. $1')
+    .replace(/<h6[^>]*>(.*?)<\/h6>/gi, 'h6. $1')
+  
+  // Remove all remaining HTML tags
+  cleaned = cleaned.replace(/<[^>]+>/g, '')
+  
+  // Decode common HTML entities
+  const entityMap = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#39;': "'",
+    '&nbsp;': ' ',
+    '&apos;': "'"
+  }
+  cleaned = cleaned.replace(/&[#\w]+;/g, (entity) => {
+    return entityMap[entity] || entity
+  })
+  
+  // Clean up extra whitespace
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n').trim()
+  
+  return cleaned
+}
+
+/**
  * Format bug report for Jira
  */
 function formatJira(bugData, evidenceList) {
@@ -56,7 +95,15 @@ function formatJira(bugData, evidenceList) {
     additionalInfo
   } = bugData
 
-  let report = `h2. ${title}\n\n`
+  // Clean title and all text fields
+  const cleanTitle = cleanTextForJira(title)
+  const cleanDescription = cleanTextForJira(description)
+  const cleanSteps = cleanTextForJira(stepsToReproduce)
+  const cleanExpected = cleanTextForJira(expectedResult)
+  const cleanActual = cleanTextForJira(actualResult)
+  const cleanAdditional = cleanTextForJira(additionalInfo)
+
+  let report = `h2. ${cleanTitle}\n\n`
   
   report += `*Priority:* ${priority}\n`
   report += `*Severity:* ${severity}\n\n`
@@ -67,26 +114,26 @@ function formatJira(bugData, evidenceList) {
   if (version) report += `*Version:* ${version}\n`
   report += '\n'
   
-  report += `h3. Description\n${description}\n\n`
+  report += `h3. Description\n${cleanDescription}\n\n`
   
-  if (stepsToReproduce) {
-    report += `h3. Steps to Reproduce\n${stepsToReproduce}\n\n`
+  if (cleanSteps) {
+    report += `h3. Steps to Reproduce\n${cleanSteps}\n\n`
   }
   
-  if (expectedResult) {
-    report += `h3. Expected Result\n${expectedResult}\n\n`
+  if (cleanExpected) {
+    report += `h3. Expected Result\n${cleanExpected}\n\n`
   }
   
-  if (actualResult) {
-    report += `h3. Actual Result\n${actualResult}\n\n`
+  if (cleanActual) {
+    report += `h3. Actual Result\n${cleanActual}\n\n`
   }
   
   if (evidenceList && evidenceList !== 'No evidence files attached') {
     report += `h3. Evidence\n${evidenceList}\n\n`
   }
   
-  if (additionalInfo) {
-    report += `h3. Additional Information\n${additionalInfo}\n`
+  if (cleanAdditional) {
+    report += `h3. Additional Information\n${cleanAdditional}\n`
   }
   
   return report.trim()
@@ -201,3 +248,4 @@ function formatPlain(bugData, evidenceList) {
   
   return report.trim()
 }
+

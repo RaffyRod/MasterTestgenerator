@@ -44,16 +44,22 @@ Generate test documentation in **English** or **Spanish**
 - **Intuitive interface** - easy to use, even for beginners
 - **Modern card-based layout** - clean, organized test case presentation
 - **Grouped by Acceptance Criteria** - test cases organized by AC with collapsible sections
+- **Accessibility-first design** - ARIA labels, keyboard navigation, screen reader support
+- **Smooth animations** - polished transitions and micro-interactions
+- **Mobile-optimized modals** - full-screen modals on mobile with slide-up animations
+- **Smart notifications** - bottom-positioned toasts on mobile for better UX
 
 ### 🐛 Bug Report Generator
 
 - **Comprehensive bug reporting** with detailed information fields
-- **AI-powered generation** - Automatically generates steps to reproduce, expected/actual results
+- **AI-powered title generation** - Automatically generates bug title from description
+- **AI-powered content generation** - Automatically generates steps to reproduce, expected/actual results
 - **Evidence attachment** - Upload images, logs, and text files with drag & drop support
-- **Multiple export formats** - Jira, Markdown, and Plain Text
+- **Multiple export formats** - Jira, Markdown, and Plain Text with HTML tag cleaning
 - **Auto-detection** of browser and operating system
 - **Copy to clipboard** for easy pasting into issue trackers
 - **Beautiful UI/UX** - Progress indicators, real-time validation, visual badges, and collapsible sections
+- **Smart form validation** - Real-time feedback with visual indicators
 
 ---
 
@@ -391,10 +397,12 @@ The app generates **intelligent, specific test cases** that:
 
 The UI is fully optimized for all devices:
 
-- **Desktop**: Multi-column grid layout, hover effects, spacious cards
-- **Tablet**: Adaptive grid, touch-optimized controls
-- **Mobile**: Single column, large touch targets (44px+), collapsible sections
-- **Accessibility**: Proper ARIA labels, keyboard navigation, screen reader support
+- **Desktop**: Multi-column grid layout, hover effects, spacious cards, smooth animations
+- **Tablet**: Adaptive grid, touch-optimized controls, responsive modals
+- **Mobile**: Single column, large touch targets (44px+), collapsible sections, bottom-positioned notifications
+- **Accessibility**: Proper ARIA labels, keyboard navigation, screen reader support, focus management
+- **Mobile Menu**: Smooth slide-down animation, auto-close on outside click
+- **Modals**: Full-screen on mobile with slide-up animation, focus trapping, keyboard support
 
 ### Multiple Test Cases per AC
 

@@ -15,37 +15,58 @@
                 class="config-toggle"
                 :title="$t('nav.config')"
                 :class="{ active: configMenuOpen }"
+                :aria-expanded="configMenuOpen"
+                :aria-haspopup="true"
+                :aria-label="t('nav.config')"
+                @keydown.enter.prevent="toggleConfigMenu"
+                @keydown.escape="closeConfigMenu"
               >
                 <span>⚙️</span>
               </button>
-              <div v-if="configMenuOpen" class="config-menu" @click.stop>
-                <router-link
-                  to="/ai-config"
-                  class="config-menu-item"
-                  @click="closeConfigMenu"
+              <Transition name="menu-fade">
+                <div 
+                  v-if="configMenuOpen" 
+                  class="config-menu" 
+                  @click.stop
+                  role="menu"
+                  aria-label="Configuration menu"
                 >
-                  <span class="config-menu-icon">🤖</span>
-                  <span class="config-menu-text">{{ $t('nav.aiConfig') }}</span>
-                </router-link>
-                <button
-                  @click="toggleThemeAndClose"
-                  class="config-menu-item"
-                >
-                  <span class="config-menu-icon">
-                    <span v-if="currentTheme === 'light'">🌙</span>
-                    <span v-else>☀️</span>
-                  </span>
-                  <span class="config-menu-text">
-                    {{ currentTheme === 'light' ? $t('nav.darkMode') : $t('nav.lightMode') }}
-                  </span>
-                </button>
-              </div>
+                  <router-link
+                    to="/ai-config"
+                    class="config-menu-item"
+                    @click="closeConfigMenu"
+                    role="menuitem"
+                    tabindex="0"
+                    @keydown.enter="closeConfigMenu"
+                  >
+                    <span class="config-menu-icon">🤖</span>
+                    <span class="config-menu-text">{{ $t('nav.aiConfig') }}</span>
+                  </router-link>
+                  <button
+                    @click="toggleThemeAndClose"
+                    class="config-menu-item"
+                    role="menuitem"
+                    tabindex="0"
+                    @keydown.enter="toggleThemeAndClose"
+                  >
+                    <span class="config-menu-icon">
+                      <span v-if="currentTheme === 'light'">🌙</span>
+                      <span v-else>☀️</span>
+                    </span>
+                    <span class="config-menu-text">
+                      {{ currentTheme === 'light' ? $t('nav.darkMode') : $t('nav.lightMode') }}
+                    </span>
+                  </button>
+                </div>
+              </Transition>
             </div>
-            <div class="language-selector">
+            <div class="language-selector" role="group" aria-label="Language selector">
               <button
                 @click="setLocale('en')"
                 :class="['lang-btn', { active: currentLocale === 'en' }]"
                 title="English"
+                aria-label="Switch to English"
+                :aria-pressed="currentLocale === 'en'"
               >
                 EN
               </button>
@@ -53,6 +74,8 @@
                 @click="setLocale('es')"
                 :class="['lang-btn', { active: currentLocale === 'es' }]"
                 title="Español"
+                aria-label="Cambiar a Español"
+                :aria-pressed="currentLocale === 'es'"
               >
                 ES
               </button>
@@ -62,24 +85,51 @@
         
         <!-- Menu Section -->
         <div class="nav-menu">
-          <button @click="toggleMobileMenu" class="mobile-menu-toggle" aria-label="Toggle menu">
-            <span v-if="!mobileMenuOpen">☰</span>
-            <span v-else>✕</span>
+          <button 
+            @click="toggleMobileMenu" 
+            class="mobile-menu-toggle" 
+            :aria-label="mobileMenuOpen ? 'Close menu' : 'Open menu'"
+            :aria-expanded="mobileMenuOpen"
+            aria-controls="nav-links"
+          >
+            <span v-if="!mobileMenuOpen" aria-hidden="true">☰</span>
+            <span v-else aria-hidden="true">✕</span>
           </button>
-          <div class="nav-links" :class="{ 'mobile-open': mobileMenuOpen }">
-            <router-link to="/test-plans" class="nav-link" @click="closeMobileMenu">
-              <span class="nav-icon">📋</span>
+          <nav 
+            id="nav-links"
+            class="nav-links" 
+            :class="{ 'mobile-open': mobileMenuOpen }"
+            role="navigation"
+            aria-label="Main navigation"
+          >
+            <router-link 
+              to="/test-plans" 
+              class="nav-link" 
+              @click="closeMobileMenu"
+              :aria-current="$route.path === '/test-plans' ? 'page' : undefined"
+            >
+              <span class="nav-icon" aria-hidden="true">📋</span>
               <span>{{ $t('nav.testPlans') }}</span>
             </router-link>
-            <router-link to="/test-cases" class="nav-link" @click="closeMobileMenu">
-              <span class="nav-icon">✅</span>
+            <router-link 
+              to="/test-cases" 
+              class="nav-link" 
+              @click="closeMobileMenu"
+              :aria-current="$route.path === '/test-cases' ? 'page' : undefined"
+            >
+              <span class="nav-icon" aria-hidden="true">✅</span>
               <span>{{ $t('nav.testCases') }}</span>
             </router-link>
-            <router-link to="/bug-report" class="nav-link" @click="closeMobileMenu">
-              <span class="nav-icon">🐛</span>
+            <router-link 
+              to="/bug-report" 
+              class="nav-link" 
+              @click="closeMobileMenu"
+              :aria-current="$route.path === '/bug-report' ? 'page' : undefined"
+            >
+              <span class="nav-icon" aria-hidden="true">🐛</span>
               <span>{{ $t('nav.bugReport') }}</span>
             </router-link>
-          </div>
+          </nav>
         </div>
       </div>
     </nav>
@@ -92,6 +142,7 @@
 
 <script>
 import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { useTheme } from '@shared/composables/useTheme.js'
 import { onMounted, onUnmounted, ref } from 'vue'
 import NotificationToast from '@shared/components/NotificationToast.vue'
@@ -102,7 +153,8 @@ export default {
     NotificationToast
   },
   setup() {
-    const { locale } = useI18n()
+    const { locale, t } = useI18n()
+    const route = useRoute()
     const { currentTheme, toggleTheme, initTheme } = useTheme()
     const mobileMenuOpen = ref(false)
     const configMenuOpen = ref(false)
@@ -111,6 +163,15 @@ export default {
       const configMenu = document.querySelector('.config-menu-wrapper')
       if (configMenu && !configMenu.contains(event.target)) {
         configMenuOpen.value = false
+      }
+      
+      // Close mobile menu when clicking outside
+      const navMenu = document.querySelector('.nav-menu')
+      const mobileToggle = document.querySelector('.mobile-menu-toggle')
+      if (navMenu && mobileToggle && 
+          !navMenu.contains(event.target) && 
+          !mobileToggle.contains(event.target)) {
+        mobileMenuOpen.value = false
       }
     }
 
@@ -154,6 +215,8 @@ export default {
     }
 
     return {
+      route,
+      t,
       currentLocale: locale,
       currentTheme,
       mobileMenuOpen,
@@ -254,7 +317,7 @@ body {
 }
 
 [data-theme='light'] body {
-  background: #ffffff !important;
+  background: var(--bg-secondary) !important;
   color: #000000 !important;
 }
 
@@ -263,14 +326,12 @@ body {
   color: #ffffff !important;
 }
 
-[data-theme='light'] body {
-  background: var(--bg-secondary);
-}
-
 #app {
   min-height: 100vh;
   width: 100%;
   display: block;
+  background: var(--bg-primary);
+  position: relative;
 }
 
 .navbar {
@@ -406,7 +467,7 @@ body {
   font-weight: 500;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
-  transition: var(--transition);
+  transition: all 0.2s ease;
   display: flex !important;
   align-items: center;
   gap: 0.5rem;
@@ -416,6 +477,19 @@ body {
   opacity: 1 !important;
   min-height: 44px;
   min-width: 44px;
+}
+
+.nav-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 0;
+  background: var(--primary-color);
+  border-radius: 0 2px 2px 0;
+  transition: height 0.2s ease;
 }
 
 .nav-link:focus-visible {
@@ -429,11 +503,20 @@ body {
   transform: translateY(-2px);
 }
 
+.nav-link:hover::before {
+  height: 60%;
+}
+
 .nav-link.router-link-active {
   background: var(--primary-gradient);
   color: white;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
   transform: translateY(-2px);
+}
+
+.nav-link.router-link-active::before {
+  height: 100%;
+  background: white;
 }
 
 [data-theme='light'] .nav-link {
@@ -515,19 +598,27 @@ body {
   padding: 0.5rem;
   box-shadow: var(--shadow-lg);
   z-index: 1000;
-  min-width: 200px;
-  animation: slideDown 0.2s ease-out;
+  min-width: 220px;
+  backdrop-filter: blur(10px);
 }
 
 @keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-10px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
+}
+
+.menu-fade-enter-active {
+  animation: slideDown 0.2s ease-out;
+}
+
+.menu-fade-leave-active {
+  animation: slideDown 0.15s ease-in reverse;
 }
 
 [data-theme='light'] .config-menu {
@@ -547,7 +638,7 @@ body {
   padding: 0.75rem 1rem;
   border-radius: 8px;
   cursor: pointer;
-  transition: var(--transition);
+  transition: all 0.2s ease;
   text-decoration: none;
   color: var(--text-primary);
   background: transparent;
@@ -556,10 +647,33 @@ body {
   text-align: left;
   font-size: 0.95rem;
   font-weight: 500;
+  position: relative;
+  outline: none;
+}
+
+.config-menu-item:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 .config-menu-item:hover {
   background: var(--bg-secondary);
+  transform: translateX(4px);
+}
+
+@media (max-width: 768px) {
+  .config-menu-item:hover {
+    transform: translateX(2px);
+  }
+  
+  .config-menu-item:active {
+    transform: scale(0.98);
+    background: var(--bg-tertiary);
+  }
+}
+
+.config-menu-item:active {
+  transform: translateX(2px) scale(0.98);
 }
 
 [data-theme='light'] .config-menu-item {
@@ -688,12 +802,21 @@ body {
   animation: fadeIn 0.4s ease-in;
   min-height: calc(100vh - 200px);
   display: block;
-  visibility: visible;
+  visibility: visible !important;
+  opacity: 1 !important;
   width: 100%;
   box-sizing: border-box;
   overflow-x: hidden;
-  background: var(--bg-primary);
+  background: transparent;
   color: var(--text-primary);
+  position: relative;
+  z-index: 1;
+}
+
+.main-content > * {
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
 }
 
 @media (max-width: 768px) {
@@ -717,6 +840,16 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
 @media (max-width: 1024px) {
@@ -747,40 +880,104 @@ body {
 
   .nav-header {
     padding-bottom: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .nav-header-right {
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 
   .mobile-menu-toggle {
     display: flex;
+    min-width: 44px;
+    min-height: 44px;
   }
 
   .logo-wrapper {
     gap: 0.5rem;
+    flex: 1;
+    min-width: 0;
   }
 
   .logo {
     font-size: 1.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
+  .logo-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .config-toggle {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.5rem !important;
+  }
+
+  .language-selector {
+    height: 44px;
+    padding: 0.125rem;
+  }
+
+  .lang-btn {
+    min-width: 2.5rem;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .config-menu {
+    right: 0;
+    left: auto;
+    min-width: 200px;
+    max-width: calc(100vw - 2rem);
+  }
 
   .nav-links {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
     flex-direction: column;
     background: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 1rem;
+    padding: 0.5rem;
     box-shadow: var(--shadow-lg);
+    z-index: 100;
     max-height: 0;
     overflow: hidden;
     opacity: 0;
     transform: translateY(-10px);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    gap: 0.5rem;
+    transition: all 0.3s ease;
   }
 
   .nav-links.mobile-open {
-    max-height: 400px;
+    max-height: 500px;
     opacity: 1;
     transform: translateY(0);
+  }
+
+  .nav-link {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 1rem 1.25rem;
+    min-height: 48px;
+  }
+
+  .nav-link::before {
+    left: 0;
+    width: 4px;
+    height: 0;
+  }
+
+  .nav-link:hover::before,
+  .nav-link.router-link-active::before {
+    height: 100%;
   }
 
   [data-theme='light'] .nav-links {
@@ -791,13 +988,6 @@ body {
   [data-theme='dark'] .nav-links {
     background: #1a1a1a;
     border-color: #3a3a3a;
-  }
-
-  .nav-link {
-    width: 100%;
-    justify-content: flex-start;
-    padding: 1rem 1.25rem;
-    min-height: 48px;
   }
 
   .nav-header-right {
@@ -813,12 +1003,6 @@ body {
     min-height: 44px;
   }
 
-  .config-menu {
-    right: 0;
-    left: auto;
-    min-width: 180px;
-  }
-
   .main-content {
     padding: 0 1rem 1rem;
   }
@@ -826,24 +1010,81 @@ body {
 
 @media (max-width: 480px) {
   body {
-    padding: 0.5rem;
+    padding: 0;
   }
 
   .nav-container {
-    padding: 1rem;
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .nav-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .logo-wrapper {
+    width: 100%;
   }
 
   .logo {
-    font-size: 1.5rem;
+    font-size: 1.125rem;
+  }
+
+  .logo-icon {
+    font-size: 1.25rem;
+  }
+
+  .nav-header-right {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: nowrap;
+  }
+
+  .config-menu-wrapper {
+    flex: 1;
+  }
+
+  .config-menu {
+    right: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .language-selector {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .nav-links {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    width: 100%;
   }
 
   .nav-link {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
+    padding: 1rem;
+    font-size: 0.95rem;
+    min-height: 48px;
   }
 
   .nav-icon {
-    display: none;
+    font-size: 1rem;
+  }
+
+  .mobile-menu-toggle {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.25rem;
+  }
+
+  .main-content {
+    padding: 0 0.75rem 0.75rem;
   }
 }
 </style>

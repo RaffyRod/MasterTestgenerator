@@ -1304,6 +1304,7 @@ function generateTitleFromAC(text) {
   // Remove AC prefix
   let title = text.replace(/^AC[:\s]+\d*[:\s]*/i, '')
   title = title.replace(/^Acceptance\s+Criteria[:\s]+\d*[:\s]*/i, '')
+  title = title.replace(/^Requirements?[:\s]+/i, '')
 
   // Clean up common prefixes
   title = title.replace(
@@ -1499,7 +1500,51 @@ function generateTitleFromAC(text) {
   // Capitalize and limit length
   title = title.trim()
   if (title.length > 60) {
-    title = title.substring(0, 57) + '...'
+    const maxLength = 60
+    const importantWords = ['boundary', 'conditions', 'requirements', 'scenario', 'validation', 'edge case']
+    let truncated = title
+    
+    // First, check if any important words are near the truncation point
+    const lowerTitle = title.toLowerCase()
+    let truncateAt = maxLength
+    
+    // Find important words that would be cut
+    for (const word of importantWords) {
+      const wordIndex = lowerTitle.indexOf(word.toLowerCase())
+      if (wordIndex !== -1) {
+        const wordEnd = wordIndex + word.length
+        // If the word would be cut (starts before maxLength but ends after)
+        if (wordIndex < maxLength && wordEnd > maxLength - 3) {
+          // Extend truncation to include the full word
+          const nextSpace = title.indexOf(' ', wordEnd)
+          if (nextSpace !== -1 && nextSpace <= maxLength + 20) {
+            truncateAt = nextSpace
+          } else if (wordEnd <= maxLength + 20) {
+            truncateAt = wordEnd
+          }
+          break
+        }
+      }
+    }
+    
+    // If no important word found, find last space before limit
+    if (truncateAt === maxLength) {
+      const lastSpace = title.lastIndexOf(' ', maxLength - 1)
+      if (lastSpace > 30) {
+        truncateAt = lastSpace
+      } else {
+        truncateAt = maxLength - 3
+      }
+    }
+    
+    truncated = title.substring(0, truncateAt).trim()
+    
+    // Only add ellipsis if we actually truncated
+    if (truncated.length < title.length) {
+      title = truncated + '...'
+    } else {
+      title = truncated
+    }
   }
 
   // Ensure proper capitalization

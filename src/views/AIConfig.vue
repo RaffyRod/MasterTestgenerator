@@ -362,6 +362,10 @@ export default {
   max-width: 900px;
   margin: 0 auto;
   padding: 2rem;
+  width: 100%;
+  min-height: 100%;
+  background: transparent;
+  color: var(--text-primary);
 }
 
 .header {

@@ -1,10 +1,27 @@
 <template>
-  <div v-if="show" class="export-preview-overlay" @click.self="close">
-    <div class="export-preview-modal">
-      <div class="modal-header">
-        <h2>{{ $t('export.preview') }}</h2>
-        <button @click="close" class="close-btn">&times;</button>
-      </div>
+  <Teleport to="body">
+    <Transition name="modal">
+      <div 
+        v-if="show" 
+        class="export-preview-overlay" 
+        @click.self="close"
+        @keydown.escape="close"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
+        <div class="export-preview-modal" @click.stop>
+          <div class="modal-header">
+            <h2 id="modal-title">{{ $t('export.preview') }}</h2>
+            <button 
+              @click="close" 
+              class="close-btn"
+              aria-label="Close modal"
+              @keydown.enter="close"
+            >
+              &times;
+            </button>
+          </div>
 
       <div class="modal-content">
         <div class="preview-info">
@@ -48,19 +65,33 @@
       </div>
 
       <div class="modal-footer">
-        <button @click="download" class="btn btn-download">
+        <button 
+          @click="download" 
+          class="btn btn-download"
+          @keydown.enter="download"
+          aria-label="Download CSV file"
+        >
           <span>📥</span>
           <span>{{ $t('export.download') }}</span>
         </button>
-        <button @click="close" class="btn btn-cancel">
+        <button 
+          @click="close" 
+          class="btn btn-cancel"
+          @keydown.enter="close"
+          aria-label="Close preview"
+        >
           {{ $t('export.close') }}
         </button>
       </div>
-    </div>
-  </div>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script>
+import { watch, onMounted, onUnmounted } from 'vue'
+
 export default {
   name: 'ExportPreview',
   props: {
@@ -78,19 +109,84 @@ export default {
     }
   },
   emits: ['close', 'download'],
-  methods: {
-    close() {
-      this.$emit('close')
-    },
-    download() {
-      this.$emit('download')
-    },
-    formatCellValue(value) {
+  setup(props, { emit }) {
+    const close = () => {
+      emit('close')
+    }
+    
+    const download = () => {
+      emit('download')
+    }
+    
+    const formatCellValue = (value) => {
       if (!value) return '-'
       if (typeof value === 'string' && value.length > 50) {
         return value.substring(0, 50) + '...'
       }
       return value
+    }
+
+    // Trap focus within modal when open
+    const handleTabKey = (e) => {
+      if (!props.show) return
+      
+      const modal = document.querySelector('.export-preview-modal')
+      if (!modal) return
+      
+      const focusableElements = modal.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )
+      const firstElement = focusableElements[0]
+      const lastElement = focusableElements[focusableElements.length - 1]
+      
+      if (e.key === 'Tab') {
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            e.preventDefault()
+            lastElement.focus()
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            e.preventDefault()
+            firstElement.focus()
+          }
+        }
+      }
+    }
+
+    watch(() => props.show, (isOpen) => {
+      if (isOpen) {
+        document.body.style.overflow = 'hidden'
+        setTimeout(() => {
+          const modal = document.querySelector('.export-preview-modal')
+          if (modal) {
+            const firstButton = modal.querySelector('button')
+            if (firstButton) firstButton.focus()
+          }
+        }, 100)
+      } else {
+        document.body.style.overflow = ''
+      }
+    })
+
+    onMounted(() => {
+      document.addEventListener('keydown', handleTabKey)
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && props.show) {
+          close()
+        }
+      })
+    })
+
+    onUnmounted(() => {
+      document.removeEventListener('keydown', handleTabKey)
+      document.body.style.overflow = ''
+    })
+
+    return {
+      close,
+      download,
+      formatCellValue
     }
   }
 }
@@ -141,13 +237,34 @@ export default {
 
 @keyframes slideUp {
   from {
-    transform: translateY(20px);
+    transform: translateY(20px) scale(0.95);
     opacity: 0;
   }
   to {
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
     opacity: 1;
   }
+}
+
+.modal-enter-active {
+  transition: opacity 0.2s ease;
+}
+
+.modal-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.modal-enter-active .export-preview-modal {
+  animation: slideUp 0.3s ease-out;
+}
+
+.modal-leave-active .export-preview-modal {
+  animation: slideUp 0.2s ease-in reverse;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
 }
 
 .modal-header {
@@ -376,12 +493,25 @@ export default {
 @media (max-width: 768px) {
   .export-preview-overlay {
     padding: 0.5rem;
+    align-items: flex-end;
   }
 
   .export-preview-modal {
     width: 100%;
     max-height: 95vh;
-    border-radius: 12px;
+    border-radius: 16px 16px 0 0;
+    animation: slideUpMobile 0.3s ease-out;
+  }
+
+  @keyframes slideUpMobile {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
   }
 
   .modal-header,
@@ -390,49 +520,131 @@ export default {
     padding: 1.25rem;
   }
 
+  .modal-header {
+    border-radius: 16px 16px 0 0;
+  }
+
   .preview-info {
     flex-direction: column;
     gap: 1rem;
+    padding: 1rem;
+  }
+
+  .info-item {
+    font-size: 0.9rem;
   }
 
   .modal-footer {
     flex-direction: column-reverse;
     gap: 0.75rem;
+    border-radius: 0 0 16px 16px;
   }
 
   .btn {
     width: 100%;
     justify-content: center;
+    min-height: 48px;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+  }
+
+  .preview-table-container {
+    border-radius: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .preview-table {
     font-size: 0.8rem;
+    min-width: 600px;
   }
 
   .preview-table th,
   .preview-table td {
-    padding: 0.5rem;
+    padding: 0.75rem 0.5rem;
+    white-space: nowrap;
+  }
+
+  .preview-table td {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .close-btn {
+    min-width: 44px;
+    min-height: 44px;
   }
 }
 
 @media (max-width: 480px) {
+  .export-preview-overlay {
+    padding: 0;
+  }
+
   .export-preview-modal {
-    max-height: 98vh;
-    border-radius: 8px;
+    max-height: 100vh;
+    border-radius: 16px 16px 0 0;
+    width: 100%;
+  }
+
+  .modal-header {
+    padding: 1rem;
   }
 
   .modal-header h2 {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
+  }
+
+  .modal-header h2::before {
+    font-size: 1rem;
+  }
+
+  .modal-content {
+    padding: 1rem;
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+  }
+
+  .preview-info {
+    padding: 0.875rem;
+    gap: 0.75rem;
+  }
+
+  .info-item {
+    font-size: 0.85rem;
+  }
+
+  .preview-note {
+    padding: 0.75rem;
+    font-size: 0.85rem;
   }
 
   .preview-table {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+    min-width: 500px;
   }
 
   .preview-table th,
   .preview-table td {
-    padding: 0.375rem;
-    max-width: 150px;
+    padding: 0.5rem 0.375rem;
+    max-width: 120px;
+  }
+
+  .modal-footer {
+    padding: 1rem;
+    flex-direction: column-reverse;
+  }
+
+  .btn {
+    min-height: 48px;
+    padding: 0.875rem 1.25rem;
+    font-size: 0.95rem;
+  }
+
+  .close-btn {
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.25rem;
   }
 }
 </style>

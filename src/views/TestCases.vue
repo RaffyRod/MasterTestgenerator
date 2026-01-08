@@ -706,7 +706,9 @@ export default {
   max-width: 100%;
   box-sizing: border-box;
   overflow-x: hidden;
-  min-height: 100vh;
+  min-height: 100%;
+  background: transparent;
+  color: var(--text-primary);
 }
 
 @keyframes fadeIn {

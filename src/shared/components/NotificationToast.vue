@@ -187,40 +187,66 @@ export default {
 
 @media (max-width: 768px) {
   .toast-container {
-    top: 70px;
+    top: auto;
+    bottom: 1rem;
     right: 0.5rem;
     left: 0.5rem;
     max-width: 100%;
     width: calc(100% - 1rem);
+    flex-direction: column-reverse;
   }
 
   .toast {
     min-width: auto;
-    padding: 0.875rem 1rem;
+    padding: 1rem;
+    min-height: 60px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   }
 
   .toast-message {
     font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .toast-container {
-    top: 60px;
-    right: 0.5rem;
-    left: 0.5rem;
-  }
-
-  .toast {
-    padding: 0.75rem;
+    line-height: 1.4;
   }
 
   .toast-icon {
     font-size: 1.25rem;
   }
 
+  .toast-close {
+    min-width: 32px;
+    min-height: 32px;
+  }
+}
+
+@media (max-width: 480px) {
+  .toast-container {
+    bottom: 0.75rem;
+    right: 0.5rem;
+    left: 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .toast {
+    padding: 0.875rem;
+    min-height: 56px;
+    border-radius: 10px;
+  }
+
+  .toast-icon {
+    font-size: 1.125rem;
+    min-width: 20px;
+  }
+
   .toast-message {
-    font-size: 0.85rem;
+    font-size: 0.875rem;
+    line-height: 1.3;
+  }
+
+  .toast-close {
+    min-width: 28px;
+    min-height: 28px;
+    font-size: 1.25rem;
   }
 }
 </style>
