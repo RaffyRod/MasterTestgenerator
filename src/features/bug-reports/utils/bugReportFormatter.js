@@ -180,8 +180,9 @@ function formatJira(bugData, evidenceList) {
     return text
   }
 
-  // Build metadata panel - use bold format that works in Jira panels
+  // Build metadata panel - Jira may not render bold inside panels, so we use a clear format
   let metadata = []
+  // Use bold format, but if it doesn't render, the labels are still clear
   metadata.push(`*Priority:* ${priority}`)
   metadata.push(`*Severity:* ${severity}`)
   if (environment) metadata.push(`*Environment:* ${environment}`)
@@ -203,26 +204,27 @@ function formatJira(bugData, evidenceList) {
   
   // Steps to Reproduce in a panel
   if (cleanSteps && cleanSteps.trim()) {
-    const formattedSteps = formatSteps(cleanSteps)
-    if (formattedSteps && formattedSteps.trim()) {
-      report += `*Steps to Reproduce:*\n\n`
-      report += `{panel:title=Reproduction Steps|borderStyle=solid|borderColor=#0052CC|titleBGColor=#E3FCEF|bgColor=#FAFBFC}\n`
+    report += `*Steps to Reproduce:*\n\n`
+    report += `{panel:title=Reproduction Steps|borderStyle=solid|borderColor=#0052CC|titleBGColor=#E3FCEF|bgColor=#FAFBFC}\n`
+    
+    // Always format steps as numbered list
+    const lines = cleanSteps.split('\n').filter(line => line.trim())
+    if (lines.length > 0) {
+      const formattedSteps = lines.map(line => {
+        // Remove existing numbering (1., 2., etc.) and clean the line
+        let cleaned = line.replace(/^\d+\.\s*/, '').trim()
+        // Remove any leading dashes or bullets
+        cleaned = cleaned.replace(/^[-*•]\s*/, '').trim()
+        // Jira numbered list format: # at the start of line
+        return `# ${cleaned}`
+      }).join('\n')
       report += `${formattedSteps}\n`
-      report += `{panel}\n\n`
     } else {
-      // Fallback: if formatting fails, use the raw steps
-      report += `*Steps to Reproduce:*\n\n`
-      report += `{panel:title=Reproduction Steps|borderStyle=solid|borderColor=#0052CC|titleBGColor=#E3FCEF|bgColor=#FAFBFC}\n`
-      // Convert to numbered list manually
-      const lines = cleanSteps.split('\n').filter(line => line.trim())
-      if (lines.length > 0) {
-        report += lines.map((line, index) => {
-          const cleaned = line.replace(/^\d+\.\s*/, '').trim()
-          return `# ${cleaned}`
-        }).join('\n')
-      }
-      report += `\n{panel}\n\n`
+      // Fallback if no steps found
+      report += `# Navigate to the application\n# Perform the action described\n# Observe the issue\n`
     }
+    
+    report += `{panel}\n\n`
   }
   
   // Expected vs Actual in a comparison panel

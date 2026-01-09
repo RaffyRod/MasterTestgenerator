@@ -770,12 +770,17 @@ export default {
       } else if (lowerTitle.includes('error') || lowerDesc.includes('error')) {
         actualResult = 'An error occurs. The user sees an error message, the application crashes, or unexpected behavior is observed.'
       } else {
-        // Use description but make it more specific
+        // Use description but make it more specific and concise
         const desc = description.trim()
-        if (desc.length > 0 && desc.length <= 200) {
+        // Check if description is generic text (like Lorem Ipsum) or actual bug description
+        const isGenericText = /lorem|ipsum|dummy|text|printing|typesetting|industry|standard|ever since|1500s|unknown printer|galley|scrambled|specimen|book/i.test(desc)
+        
+        if (isGenericText || desc.length > 150) {
+          // For generic or very long descriptions, generate a specific result
+          actualResult = 'The issue occurs as described. The expected behavior does not happen and the user experiences the problem.'
+        } else if (desc.length > 0 && desc.length <= 150) {
+          // Use short descriptions as-is
           actualResult = desc
-        } else if (desc.length > 200) {
-          actualResult = desc.substring(0, 197) + '...'
         } else {
           actualResult = 'The issue occurs as described. The expected behavior does not happen and the user experiences the problem.'
         }
