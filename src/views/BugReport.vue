@@ -42,6 +42,7 @@
           <input
             id="bug-title"
             v-model="bugData.title"
+            @input="enforceTitleLength"
             type="text"
             :placeholder="generatingTitle ? ($t('bugReport.generatingTitle') || 'Generating title with AI...') : ($t('bugReport.titleAutoPlaceholder') || 'Title will be generated automatically from description')"
             class="text-input"
@@ -500,14 +501,20 @@ export default {
         if (generatedTitle && generatedTitle.trim() !== '') {
           // Always update if title was auto-generated, or if it's empty
           if (bugData.value.title.trim() === '' || titleGenerated.value) {
-            // Limit to 20 characters for bug reports
+            // Limit to 20 characters for bug reports - FORCE limit
             let finalTitle = generatedTitle.trim()
+            // Remove any extra whitespace first
+            finalTitle = finalTitle.replace(/\s+/g, ' ').trim()
+            // Force limit to 20 characters
             if (finalTitle.length > 20) {
-              finalTitle = finalTitle.substring(0, 17) + '...'
+              finalTitle = finalTitle.substring(0, 17).trim() + '...'
             }
+            // Ensure it's exactly 20 or less
+            finalTitle = finalTitle.substring(0, 20)
             bugData.value.title = finalTitle
             titleGenerated.value = true
             titleEditable.value = false
+            console.log('Title generated and limited:', finalTitle, 'Length:', finalTitle.length)
           }
         }
       } catch (error) {
@@ -651,9 +658,12 @@ export default {
           titleGenerated.value = true
         }
         
-        // Ensure title is max 20 characters
-        if (bugData.value.title.length > 20) {
-          bugData.value.title = bugData.value.title.substring(0, 17) + '...'
+        // FORCE title to max 20 characters - this is critical
+        if (bugData.value.title && bugData.value.title.length > 20) {
+          bugData.value.title = bugData.value.title.substring(0, 17).trim() + '...'
+          // Ensure it's exactly 20 or less
+          bugData.value.title = bugData.value.title.substring(0, 20)
+          console.log('Title forced to 20 chars:', bugData.value.title)
         }
       }
 
@@ -715,19 +725,36 @@ export default {
           finalBugData = createFallbackBugData()
         }
 
-        console.log('Formatting report with:', { finalBugData, evidenceFiles: evidenceFiles.value.length, format: reportFormat.value })
-        const report = formatBugReport(finalBugData, evidenceFiles.value, reportFormat.value)
-        console.log('Report formatted, length:', report?.length)
+        console.log('Formatting report with:', { 
+          finalBugData: {
+            title: finalBugData.title,
+            description: finalBugData.description?.substring(0, 50),
+            hasSteps: !!finalBugData.stepsToReproduce,
+            hasExpected: !!finalBugData.expectedResult,
+            hasActual: !!finalBugData.actualResult
+          }, 
+          evidenceFiles: evidenceFiles.value.length, 
+          format: reportFormat.value 
+        })
         
-        if (!report || report.trim() === '') {
-          throw new Error('Report generation returned empty result')
-        }
-        
-        generatedReport.value = report
-        console.log('Report assigned to generatedReport')
-        
-        if (!silent) {
-          showNotification('success', t('bugReport.reportGenerated'))
+        try {
+          const report = formatBugReport(finalBugData, evidenceFiles.value, reportFormat.value)
+          console.log('Report formatted, length:', report?.length)
+          
+          if (!report || report.trim() === '') {
+            console.error('Report is empty!')
+            throw new Error('Report generation returned empty result')
+          }
+          
+          generatedReport.value = report
+          console.log('Report assigned to generatedReport, value length:', generatedReport.value.length)
+          
+          if (!silent) {
+            showNotification('success', t('bugReport.reportGenerated'))
+          }
+        } catch (formatError) {
+          console.error('Error in formatBugReport:', formatError)
+          throw formatError
         }
       } catch (error) {
         console.error('Error generating report:', error)
@@ -1199,6 +1226,15 @@ export default {
       }
     }
 
+    function enforceTitleLength() {
+      // Force title to max 20 characters whenever it changes
+      if (bugData.value.title && bugData.value.title.length > 20) {
+        const limited = bugData.value.title.substring(0, 17).trim() + '...'
+        bugData.value.title = limited.substring(0, 20)
+        console.log('Title enforced to 20 chars:', bugData.value.title)
+      }
+    }
+    
     function regenerateReport() {
       if (generatedReport.value) {
         generateReport(true) // Silent mode - don't show notification when regenerating
