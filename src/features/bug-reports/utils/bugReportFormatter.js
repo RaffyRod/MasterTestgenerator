@@ -117,7 +117,18 @@ function formatJira(bugData, evidenceList) {
   } = bugData
 
   // Clean title (remove headings completely) and all text fields
-  const cleanTitle = cleanTextForJira(title, true) // Remove headings from title
+  // Also fix common typos and spacing issues in title
+  let cleanTitle = cleanTextForJira(title, true) // Remove headings from title
+  
+  // Fix common spacing issues (e.g., "pageis" -> "page is", "properl" -> "properly")
+  cleanTitle = cleanTitle.replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between lowercase and uppercase
+  cleanTitle = cleanTitle.replace(/(page)(is|was|are|were)/gi, '$1 $2') // Fix "pageis" -> "page is"
+  cleanTitle = cleanTitle.replace(/(properl)(y|ies)/gi, 'properly') // Fix "properl" -> "properly"
+  cleanTitle = cleanTitle.replace(/(loadin)(g)/gi, 'loading') // Fix "loadin" -> "loading"
+  cleanTitle = cleanTitle.replace(/(displaye)(d)/gi, 'displayed') // Fix "displaye" -> "displayed"
+  cleanTitle = cleanTitle.replace(/\s+/g, ' ') // Normalize multiple spaces
+  cleanTitle = cleanTitle.trim()
+  
   const cleanDescription = cleanTextForJira(description)
   const cleanSteps = cleanTextForJira(stepsToReproduce)
   const cleanExpected = cleanTextForJira(expectedResult)
@@ -161,7 +172,7 @@ function formatJira(bugData, evidenceList) {
     return text
   }
 
-  // Build metadata panel
+  // Build metadata panel - use bold format that works in Jira panels
   let metadata = []
   metadata.push(`*Priority:* ${priority}`)
   metadata.push(`*Severity:* ${severity}`)
@@ -183,11 +194,14 @@ function formatJira(bugData, evidenceList) {
   report += `${formatCodeBlock(cleanDescription)}\n\n`
   
   // Steps to Reproduce in a panel
-  if (cleanSteps) {
-    report += `*Steps to Reproduce:*\n\n`
-    report += `{panel:title=Reproduction Steps|borderStyle=solid|borderColor=#0052CC|titleBGColor=#E3FCEF|bgColor=#FAFBFC}\n`
-    report += `${formatSteps(cleanSteps)}\n`
-    report += `{panel}\n\n`
+  if (cleanSteps && cleanSteps.trim()) {
+    const formattedSteps = formatSteps(cleanSteps)
+    if (formattedSteps && formattedSteps.trim()) {
+      report += `*Steps to Reproduce:*\n\n`
+      report += `{panel:title=Reproduction Steps|borderStyle=solid|borderColor=#0052CC|titleBGColor=#E3FCEF|bgColor=#FAFBFC}\n`
+      report += `${formattedSteps}\n`
+      report += `{panel}\n\n`
+    }
   }
   
   // Expected vs Actual in a comparison panel

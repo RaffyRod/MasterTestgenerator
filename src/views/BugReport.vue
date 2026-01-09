@@ -643,9 +643,9 @@ export default {
         }
       } else if (lowerTitle.includes('reload') || lowerDesc.includes('reload') || lowerDesc.includes('after reloading')) {
         if (extractedUrl) {
-          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Reload the page (press F5 or Ctrl+R / Cmd+R)\n4. Observe that the page is not properly displayed after reloading`
+          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Reload/refresh the page (press F5, Ctrl+R, or Cmd+R)\n4. Observe that the page is not properly displayed after reloading/refreshing\n5. Check browser console for any errors`
         } else {
-          steps = `1. Navigate to the application\n2. Access the main page or feature\n3. Reload the page (press F5 or Ctrl+R / Cmd+R)\n4. Observe that the page is not properly displayed after reloading\n5. Check browser console for any errors`
+          steps = `1. Navigate to the application\n2. Access the main page or feature\n3. Reload/refresh the page (press F5, Ctrl+R, or Cmd+R)\n4. Observe that the page is not properly displayed after reloading/refreshing\n5. Check browser console for any errors`
         }
       } else if (lowerTitle.includes('display') || lowerDesc.includes('display') || lowerDesc.includes('not properly displayed') || lowerDesc.includes('not displayed')) {
         if (extractedUrl) {
@@ -739,16 +739,16 @@ export default {
         expectedResult = 'The page/feature should load correctly and display the expected content'
       } else if (lowerTitle.includes('display') || lowerDesc.includes('display') || lowerDesc.includes('not properly displayed')) {
         expectedResult = 'The content should be displayed correctly as designed after reloading or accessing the page'
-      } else if (lowerTitle.includes('reload') || lowerDesc.includes('reload') || lowerDesc.includes('after reloading')) {
-        expectedResult = 'The page should reload successfully and display all content correctly'
+      } else if (lowerTitle.includes('reload') || lowerDesc.includes('reload') || lowerDesc.includes('after reloading') || lowerTitle.includes('refresh') || lowerDesc.includes('refresh') || lowerDesc.includes('after refreshing')) {
+        expectedResult = 'The page should reload/refresh successfully and display all content correctly'
       } else if (lowerTitle.includes('click') || lowerDesc.includes('click')) {
         expectedResult = 'The action should execute successfully when clicked'
       }
 
       // Generate actual result - make it specific based on the issue
       let actualResult = ''
-      if (lowerTitle.includes('reload') || lowerDesc.includes('reload') || lowerDesc.includes('after reloading')) {
-        actualResult = 'After reloading the page, the content is not properly displayed. The page may show a blank screen, partial content, or layout issues.'
+      if (lowerTitle.includes('reload') || lowerDesc.includes('reload') || lowerDesc.includes('after reloading') || lowerTitle.includes('refresh') || lowerDesc.includes('refresh') || lowerDesc.includes('after refreshing')) {
+        actualResult = 'After reloading/refreshing the page, the content is not properly displayed. The page may show a blank screen, partial content, or layout issues.'
       } else if (lowerTitle.includes('display') || lowerDesc.includes('display') || lowerDesc.includes('not properly displayed')) {
         actualResult = 'The page content is not properly displayed. Elements may be missing, misaligned, or not rendering correctly.'
       } else if (lowerTitle.includes('not loading')) {
