@@ -72,6 +72,10 @@
             {{ $t('bugReport.selectTitle') || 'Change title' }}
           </button>
         </small>
+        <small v-else-if="bugData.description.trim().length < 10" class="form-hint">
+          <span class="hint-icon">💡</span>
+          {{ $t('bugReport.titleHint') || 'Start typing the bug description to generate the title automatically' }}
+        </small>
         
         <!-- Title Selection Modal -->
         <Teleport to="body">
@@ -106,10 +110,6 @@
             </div>
           </transition>
         </Teleport>
-        <small v-else-if="bugData.description.trim().length < 10" class="form-hint">
-          <span class="hint-icon">💡</span>
-          {{ $t('bugReport.titleHint') || 'Start typing the bug description to generate the title automatically' }}
-        </small>
         <div v-if="bugData.title.trim() === '' && touchedFields.description && bugData.description.trim().length >= 10" class="error-message">
           {{ $t('bugReport.titleGenerating') || 'Generating title...' }}
         </div>
