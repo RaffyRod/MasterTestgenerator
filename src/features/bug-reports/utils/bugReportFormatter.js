@@ -192,8 +192,8 @@ function formatJira(bugData, evidenceList) {
   // Start building the report
   let report = `${cleanTitle}\n\n`
   
-  // Metadata in a panel
-  report += `{panel:title=Issue Details|borderStyle=solid|borderColor=#ccc|titleBGColor=#f4f5f7|bgColor=#ffffff}\n`
+  // Metadata in a simple panel (simplified syntax for better Jira compatibility)
+  report += `{panel:title=Issue Details}\n`
   report += metadata.join('\n')
   report += `\n{panel}\n\n`
   
