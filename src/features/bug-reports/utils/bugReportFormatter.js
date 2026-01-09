@@ -180,15 +180,14 @@ function formatJira(bugData, evidenceList) {
     return text
   }
 
-  // Build metadata panel - Jira may not render bold inside panels, so we use a clear format
+  // Build metadata panel - no bold for metadata fields, only section headers
   let metadata = []
-  // Use bold format, but if it doesn't render, the labels are still clear
-  metadata.push(`*Priority:* ${priority}`)
-  metadata.push(`*Severity:* ${severity}`)
-  if (environment) metadata.push(`*Environment:* ${environment}`)
-  if (browser) metadata.push(`*Browser:* ${browser}`)
-  if (operatingSystem) metadata.push(`*Operating System:* ${operatingSystem}`)
-  if (version) metadata.push(`*Version:* ${version}`)
+  metadata.push(`Priority: ${priority}`)
+  metadata.push(`Severity: ${severity}`)
+  if (environment) metadata.push(`Environment: ${environment}`)
+  if (browser) metadata.push(`Browser: ${browser}`)
+  if (operatingSystem) metadata.push(`Operating System: ${operatingSystem}`)
+  if (version) metadata.push(`Version: ${version}`)
 
   // Start building the report
   let report = `${cleanTitle}\n\n`
