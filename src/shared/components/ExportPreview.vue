@@ -16,7 +16,7 @@
             <button 
               @click="close" 
               class="close-btn"
-              aria-label="Close modal"
+              :aria-label="$t('export.closeModal')"
               @keydown.enter="close"
             >
               &times;
@@ -59,7 +59,7 @@
             </tbody>
           </table>
           <p v-if="previewData.rows.length > 5" class="more-rows">
-            ... and {{ previewData.rows.length - 5 }} more rows
+            {{ $t('export.moreRows', { count: previewData.rows.length - 5 }) }}
           </p>
         </div>
       </div>
@@ -69,7 +69,7 @@
           @click="download" 
           class="btn btn-download"
           @keydown.enter="download"
-          aria-label="Download CSV file"
+          :aria-label="$t('export.download')"
         >
           <span>📥</span>
           <span>{{ $t('export.download') }}</span>
@@ -78,7 +78,7 @@
           @click="close" 
           class="btn btn-cancel"
           @keydown.enter="close"
-          aria-label="Close preview"
+          :aria-label="$t('export.close')"
         >
           {{ $t('export.close') }}
         </button>

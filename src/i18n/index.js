@@ -10,7 +10,14 @@ export const messages = {
       aiConfig: 'AI Configuration',
       config: 'Configuration',
       darkMode: 'Dark Mode',
-      lightMode: 'Light Mode'
+      lightMode: 'Light Mode',
+      openMenu: 'Open menu',
+      closeMenu: 'Close menu',
+      switchToEnglish: 'Switch to English',
+      switchToSpanish: 'Switch to Spanish',
+      configurationMenu: 'Configuration menu',
+      languageSelector: 'Language selector',
+      mainNavigation: 'Main navigation'
     },
     testPlan: {
       title: 'Test Plan Generator',
@@ -31,7 +38,73 @@ export const messages = {
       export: 'Export Test Plan',
       exportFormat: 'Select Export Format',
       clear: 'Clear',
-      loading: 'Generating test plan...'
+      loading: 'Generating test plan...',
+      selectType: 'Select Test Plan Type',
+      selectTypeDescription: 'Choose the type of test plan you want to generate:',
+      generatePlan: 'Generate Plan',
+      closeModal: 'Close modal',
+      planTypes: {
+        functional: {
+          name: 'Functional Test Plan',
+          description: 'Tests functional requirements and user stories'
+        },
+        performance: {
+          name: 'Performance Test Plan',
+          description: 'Tests system performance, load, and stress'
+        },
+        security: {
+          name: 'Security Test Plan',
+          description: 'Tests security vulnerabilities and threats'
+        },
+        integration: {
+          name: 'Integration Test Plan',
+          description: 'Tests integration between components and systems'
+        },
+        system: {
+          name: 'System Test Plan',
+          description: 'End-to-end system testing'
+        },
+        acceptance: {
+          name: 'Acceptance Test Plan',
+          description: 'User acceptance testing (UAT)'
+        },
+        regression: {
+          name: 'Regression Test Plan',
+          description: 'Tests to ensure existing functionality still works'
+        },
+        comprehensive: {
+          name: 'Comprehensive Test Plan',
+          description: 'Complete test plan covering all test types'
+        },
+        shiftLeft: {
+          name: 'Shift-Left Test Plan',
+          description: 'Early testing in SDLC, TDD, unit and integration tests'
+        },
+        shiftRight: {
+          name: 'Shift-Right Test Plan',
+          description: 'Production testing, monitoring, and user feedback'
+        },
+        continuous: {
+          name: 'Continuous Testing Plan',
+          description: 'CI/CD integrated testing with automated pipelines'
+        },
+        tdd: {
+          name: 'TDD Test Plan',
+          description: 'Test-Driven Development methodology'
+        },
+        bdd: {
+          name: 'BDD Test Plan',
+          description: 'Behavior-Driven Development with Gherkin scenarios'
+        },
+        apiFirst: {
+          name: 'API-First Test Plan',
+          description: 'API contract testing and integration validation'
+        },
+        devops: {
+          name: 'DevOps Test Plan',
+          description: 'Testing in DevOps pipeline with automation focus'
+        }
+      }
     },
     testCase: {
       title: 'Test Case Generator',
@@ -71,7 +144,9 @@ export const messages = {
       format: 'Format',
       columns: 'Columns',
       rows: 'Rows',
-      previewNote: 'This is how your test cases will appear in the selected tool'
+      previewNote: 'This is how your test cases will appear in the selected tool',
+      moreRows: '... and {count} more rows',
+      closeModal: 'Close modal'
     },
     common: {
       required: 'Required field',
@@ -79,7 +154,8 @@ export const messages = {
       cancel: 'Cancel',
       delete: 'Delete',
       edit: 'Edit',
-      add: 'Add'
+      add: 'Add',
+      close: 'Close'
     },
     notifications: {
       testCasesGenerated: 'Test cases generated successfully',
@@ -214,7 +290,14 @@ export const messages = {
       aiConfig: 'Configuración de IA',
       config: 'Configuración',
       darkMode: 'Modo Oscuro',
-      lightMode: 'Modo Claro'
+      lightMode: 'Modo Claro',
+      openMenu: 'Abrir menú',
+      closeMenu: 'Cerrar menú',
+      switchToEnglish: 'Cambiar a Inglés',
+      switchToSpanish: 'Cambiar a Español',
+      configurationMenu: 'Menú de configuración',
+      languageSelector: 'Selector de idioma',
+      mainNavigation: 'Navegación principal'
     },
     testPlan: {
       title: 'Generador de Planes de Prueba',
@@ -237,7 +320,73 @@ export const messages = {
       export: 'Exportar Plan de Prueba',
       exportFormat: 'Seleccionar Formato de Exportación',
       clear: 'Limpiar',
-      loading: 'Generando plan de prueba...'
+      loading: 'Generando plan de prueba...',
+      selectType: 'Seleccionar Tipo de Plan de Prueba',
+      selectTypeDescription: 'Elige el tipo de plan de prueba que deseas generar:',
+      generatePlan: 'Generar Plan',
+      closeModal: 'Cerrar modal',
+      planTypes: {
+        functional: {
+          name: 'Plan de Prueba Funcional',
+          description: 'Prueba requisitos funcionales e historias de usuario'
+        },
+        performance: {
+          name: 'Plan de Prueba de Rendimiento',
+          description: 'Prueba rendimiento del sistema, carga y estrés'
+        },
+        security: {
+          name: 'Plan de Prueba de Seguridad',
+          description: 'Prueba vulnerabilidades y amenazas de seguridad'
+        },
+        integration: {
+          name: 'Plan de Prueba de Integración',
+          description: 'Prueba integración entre componentes y sistemas'
+        },
+        system: {
+          name: 'Plan de Prueba de Sistema',
+          description: 'Pruebas end-to-end del sistema'
+        },
+        acceptance: {
+          name: 'Plan de Prueba de Aceptación',
+          description: 'Pruebas de aceptación de usuario (UAT)'
+        },
+        regression: {
+          name: 'Plan de Prueba de Regresión',
+          description: 'Pruebas para asegurar que la funcionalidad existente aún funciona'
+        },
+        comprehensive: {
+          name: 'Plan de Prueba Integral',
+          description: 'Plan de prueba completo que cubre todos los tipos de prueba'
+        },
+        shiftLeft: {
+          name: 'Plan de Prueba Shift-Left',
+          description: 'Pruebas tempranas en SDLC, TDD, pruebas unitarias e de integración'
+        },
+        shiftRight: {
+          name: 'Plan de Prueba Shift-Right',
+          description: 'Pruebas en producción, monitoreo y retroalimentación del usuario'
+        },
+        continuous: {
+          name: 'Plan de Prueba Continua',
+          description: 'Pruebas integradas en CI/CD con pipelines automatizados'
+        },
+        tdd: {
+          name: 'Plan de Prueba TDD',
+          description: 'Metodología Test-Driven Development'
+        },
+        bdd: {
+          name: 'Plan de Prueba BDD',
+          description: 'Behavior-Driven Development con escenarios Gherkin'
+        },
+        apiFirst: {
+          name: 'Plan de Prueba API-First',
+          description: 'Pruebas de contrato API y validación de integración'
+        },
+        devops: {
+          name: 'Plan de Prueba DevOps',
+          description: 'Pruebas en pipeline DevOps con enfoque en automatización'
+        }
+      }
     },
     testCase: {
       title: 'Generador de Casos de Prueba',
@@ -280,7 +429,9 @@ export const messages = {
       format: 'Formato',
       columns: 'Columnas',
       rows: 'Filas',
-      previewNote: 'Así es como aparecerán tus casos de prueba en la herramienta seleccionada'
+      previewNote: 'Así es como aparecerán tus casos de prueba en la herramienta seleccionada',
+      moreRows: '... y {count} filas más',
+      closeModal: 'Cerrar modal'
     },
     common: {
       required: 'Campo requerido',
@@ -288,7 +439,8 @@ export const messages = {
       cancel: 'Cancelar',
       delete: 'Eliminar',
       edit: 'Editar',
-      add: 'Agregar'
+      add: 'Agregar',
+      close: 'Cerrar'
     },
     notifications: {
       testCasesGenerated: 'Casos de prueba generados exitosamente',

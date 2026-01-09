@@ -29,7 +29,7 @@
                   class="config-menu" 
                   @click.stop
                   role="menu"
-                  aria-label="Configuration menu"
+                  :aria-label="t('nav.configurationMenu')"
                 >
                   <router-link
                     to="/ai-config"
@@ -60,12 +60,12 @@
                 </div>
               </Transition>
             </div>
-            <div class="language-selector" role="group" aria-label="Language selector">
+            <div class="language-selector" role="group" :aria-label="t('nav.languageSelector')">
               <button
                 @click="setLocale('en')"
                 :class="['lang-btn', { active: currentLocale === 'en' }]"
                 title="English"
-                aria-label="Switch to English"
+                :aria-label="t('nav.switchToEnglish')"
                 :aria-pressed="currentLocale === 'en'"
               >
                 EN
@@ -74,7 +74,7 @@
                 @click="setLocale('es')"
                 :class="['lang-btn', { active: currentLocale === 'es' }]"
                 title="Español"
-                aria-label="Cambiar a Español"
+                :aria-label="t('nav.switchToSpanish')"
                 :aria-pressed="currentLocale === 'es'"
               >
                 ES
@@ -88,7 +88,7 @@
           <button 
             @click.stop="toggleMobileMenu" 
             class="mobile-menu-toggle" 
-            :aria-label="mobileMenuOpen ? 'Close menu' : 'Open menu'"
+            :aria-label="mobileMenuOpen ? t('nav.closeMenu') : t('nav.openMenu')"
             :aria-expanded="mobileMenuOpen"
             aria-controls="nav-links"
           >
@@ -100,7 +100,7 @@
             class="nav-links" 
             :class="{ 'mobile-open': mobileMenuOpen }"
             role="navigation"
-            aria-label="Main navigation"
+            :aria-label="t('nav.mainNavigation')"
           >
             <router-link 
               to="/test-plans" 

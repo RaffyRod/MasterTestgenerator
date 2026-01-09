@@ -13,7 +13,7 @@
       <button
         class="toast-close"
         @click.stop="removeNotification(notification.id)"
-        aria-label="Close"
+        :aria-label="$t('common.close')"
       >
         ×
       </button>
@@ -23,16 +23,19 @@
 
 <script>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useNotification } from '@shared/composables/useNotification.js'
 
 export default {
   name: 'NotificationToast',
   setup() {
+    const { t } = useI18n()
     const { notifications, removeNotification } = useNotification()
 
     return {
       notifications,
-      removeNotification
+      removeNotification,
+      t
     }
   }
 }

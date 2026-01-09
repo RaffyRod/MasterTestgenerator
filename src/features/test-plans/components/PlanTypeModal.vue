@@ -3,11 +3,11 @@
     <div v-if="show" class="plan-type-modal-overlay" @click.self="handleClose">
       <div class="plan-type-modal-container">
         <div class="modal-header">
-          <h2>Select Test Plan Type</h2>
-          <button @click="handleClose" class="modal-close-btn" aria-label="Close modal">×</button>
+          <h2>{{ $t('testPlan.selectType') }}</h2>
+          <button @click="handleClose" class="modal-close-btn" :aria-label="$t('testPlan.closeModal')">×</button>
         </div>
         <div class="modal-body">
-          <p class="modal-description">Choose the type of test plan you want to generate:</p>
+          <p class="modal-description">{{ $t('testPlan.selectTypeDescription') }}</p>
           <div class="plan-type-grid">
             <button
               v-for="type in testPlanTypes"
@@ -23,9 +23,9 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="handleClose" class="btn btn-secondary">Cancel</button>
+          <button @click="handleClose" class="btn btn-secondary">{{ $t('common.cancel') }}</button>
           <button @click="handleConfirm" :disabled="!selectedType" class="btn btn-primary">
-            Generate Plan
+            {{ $t('testPlan.generatePlan') }}
           </button>
         </div>
       </div>
@@ -34,7 +34,8 @@
 </template>
 
 <script>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export default {
   name: 'PlanTypeModal',
@@ -50,98 +51,52 @@ export default {
   },
   emits: ['close', 'select', 'confirm'],
   setup(props, { emit }) {
-    const testPlanTypes = [
-      {
-        id: 'functional',
-        name: 'Functional Test Plan',
-        icon: '⚙️',
-        description: 'Tests functional requirements and user stories'
-      },
-      {
-        id: 'performance',
-        name: 'Performance Test Plan',
-        icon: '⚡',
-        description: 'Tests system performance, load, and stress'
-      },
-      {
-        id: 'security',
-        name: 'Security Test Plan',
-        icon: '🔒',
-        description: 'Tests security vulnerabilities and threats'
-      },
-      {
-        id: 'integration',
-        name: 'Integration Test Plan',
-        icon: '🔗',
-        description: 'Tests integration between components and systems'
-      },
-      {
-        id: 'system',
-        name: 'System Test Plan',
-        icon: '🖥️',
-        description: 'End-to-end system testing'
-      },
-      {
-        id: 'acceptance',
-        name: 'Acceptance Test Plan',
-        icon: '✅',
-        description: 'User acceptance testing (UAT)'
-      },
-      {
-        id: 'regression',
-        name: 'Regression Test Plan',
-        icon: '🔄',
-        description: 'Tests to ensure existing functionality still works'
-      },
-      {
-        id: 'comprehensive',
-        name: 'Comprehensive Test Plan',
-        icon: '📋',
-        description: 'Complete test plan covering all test types'
-      },
-      {
-        id: 'shiftLeft',
-        name: 'Shift-Left Test Plan',
-        icon: '⬅️',
-        description: 'Early testing in SDLC, TDD, unit and integration tests'
-      },
-      {
-        id: 'shiftRight',
-        name: 'Shift-Right Test Plan',
-        icon: '➡️',
-        description: 'Production testing, monitoring, and user feedback'
-      },
-      {
-        id: 'continuous',
-        name: 'Continuous Testing Plan',
-        icon: '🔄',
-        description: 'CI/CD integrated testing with automated pipelines'
-      },
-      {
-        id: 'tdd',
-        name: 'TDD Test Plan',
-        icon: '🧪',
-        description: 'Test-Driven Development methodology'
-      },
-      {
-        id: 'bdd',
-        name: 'BDD Test Plan',
-        icon: '📖',
-        description: 'Behavior-Driven Development with Gherkin scenarios'
-      },
-      {
-        id: 'apiFirst',
-        name: 'API-First Test Plan',
-        icon: '🔌',
-        description: 'API contract testing and integration validation'
-      },
-      {
-        id: 'devops',
-        name: 'DevOps Test Plan',
-        icon: '🚀',
-        description: 'Testing in DevOps pipeline with automation focus'
+    const { t } = useI18n()
+    
+    const testPlanTypes = computed(() => {
+      const typeIds = [
+        'functional',
+        'performance',
+        'security',
+        'integration',
+        'system',
+        'acceptance',
+        'regression',
+        'comprehensive',
+        'shiftLeft',
+        'shiftRight',
+        'continuous',
+        'tdd',
+        'bdd',
+        'apiFirst',
+        'devops'
+      ]
+      
+      const icons = {
+        functional: '⚙️',
+        performance: '⚡',
+        security: '🔒',
+        integration: '🔗',
+        system: '🖥️',
+        acceptance: '✅',
+        regression: '🔄',
+        comprehensive: '📋',
+        shiftLeft: '⬅️',
+        shiftRight: '➡️',
+        continuous: '🔄',
+        tdd: '🧪',
+        bdd: '📖',
+        apiFirst: '🔌',
+        devops: '🚀'
       }
-    ]
+      
+      return typeIds.map(id => ({
+        id,
+        name: t(`testPlan.planTypes.${id}.name`),
+        icon: icons[id],
+        description: t(`testPlan.planTypes.${id}.description`)
+      }))
+    })
 
     const handleClose = () => {
       emit('close')
@@ -179,7 +134,8 @@ export default {
       testPlanTypes,
       handleClose,
       handleSelect,
-      handleConfirm
+      handleConfirm,
+      t
     }
   }
 }
