@@ -40,18 +40,33 @@ export function formatBugReport(bugData, evidenceFiles = [], format = 'jira') {
 /**
  * Clean HTML tags and convert to plain text for Jira
  * Removes HTML tags and converts heading tags to Jira format if needed
+ * @param {string} text - Text to clean
+ * @param {boolean} removeHeadings - If true, removes heading tags instead of converting them (for titles)
  */
-function cleanTextForJira(text) {
+function cleanTextForJira(text, removeHeadings = false) {
   if (!text) return ''
   
-  // Convert HTML heading tags to Jira format first
   let cleaned = text
-    .replace(/<h1[^>]*>(.*?)<\/h1>/gi, 'h1. $1')
-    .replace(/<h2[^>]*>(.*?)<\/h2>/gi, 'h2. $1')
-    .replace(/<h3[^>]*>(.*?)<\/h3>/gi, 'h3. $1')
-    .replace(/<h4[^>]*>(.*?)<\/h4>/gi, 'h4. $1')
-    .replace(/<h5[^>]*>(.*?)<\/h5>/gi, 'h5. $1')
-    .replace(/<h6[^>]*>(.*?)<\/h6>/gi, 'h6. $1')
+  
+  if (removeHeadings) {
+    // For titles, remove heading tags completely (just extract the text)
+    cleaned = cleaned
+      .replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/gi, '$1')
+      // Remove Jira heading format if already present (at start or anywhere)
+      .replace(/^h[1-6]\.\s*/gi, '')
+      .replace(/\s*h[1-6]\.\s*/gi, ' ')
+      // Remove any remaining heading markers
+      .replace(/^(h[1-6]\.\s*)+/gi, '')
+  } else {
+    // For content, convert HTML heading tags to Jira format
+    cleaned = cleaned
+      .replace(/<h1[^>]*>(.*?)<\/h1>/gi, 'h1. $1')
+      .replace(/<h2[^>]*>(.*?)<\/h2>/gi, 'h2. $1')
+      .replace(/<h3[^>]*>(.*?)<\/h3>/gi, 'h3. $1')
+      .replace(/<h4[^>]*>(.*?)<\/h4>/gi, 'h4. $1')
+      .replace(/<h5[^>]*>(.*?)<\/h5>/gi, 'h5. $1')
+      .replace(/<h6[^>]*>(.*?)<\/h6>/gi, 'h6. $1')
+  }
   
   // Remove all remaining HTML tags
   cleaned = cleaned.replace(/<[^>]+>/g, '')
@@ -69,6 +84,12 @@ function cleanTextForJira(text) {
   cleaned = cleaned.replace(/&[#\w]+;/g, (entity) => {
     return entityMap[entity] || entity
   })
+  
+  // Remove Jira heading format if it appears in the middle of text (should only be at start of line)
+  if (!removeHeadings) {
+    // Only remove h2., h3. etc if they're not at the start of a line
+    cleaned = cleaned.replace(/([^\n])h([1-6])\.\s+/g, '$1')
+  }
   
   // Clean up extra whitespace
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n').trim()
@@ -95,15 +116,16 @@ function formatJira(bugData, evidenceList) {
     additionalInfo
   } = bugData
 
-  // Clean title and all text fields
-  const cleanTitle = cleanTextForJira(title)
+  // Clean title (remove headings completely) and all text fields
+  const cleanTitle = cleanTextForJira(title, true) // Remove headings from title
   const cleanDescription = cleanTextForJira(description)
   const cleanSteps = cleanTextForJira(stepsToReproduce)
   const cleanExpected = cleanTextForJira(expectedResult)
   const cleanActual = cleanTextForJira(actualResult)
   const cleanAdditional = cleanTextForJira(additionalInfo)
 
-  let report = `h2. ${cleanTitle}\n\n`
+  // Title should be plain text, not a heading in Jira format
+  let report = `${cleanTitle}\n\n`
   
   report += `*Priority:* ${priority}\n`
   report += `*Severity:* ${severity}\n\n`

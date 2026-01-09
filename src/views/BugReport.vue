@@ -626,21 +626,76 @@ export default {
       const lowerTitle = title.toLowerCase()
       const lowerDesc = description.toLowerCase()
       
+      // Extract URL or route from description
+      const urlMatch = description.match(/(?:url|route|visit|navigate|go to|access)\s+([a-z0-9\/\-_]+)/i)
+      const extractedUrl = urlMatch ? urlMatch[1] : null
+      
+      // Extract specific error message
+      const errorMatch = description.match(/(?:error|exception|typeerror|referenceerror):\s*(.+?)(?:\.|$|in|at)/i)
+      const extractedError = errorMatch ? errorMatch[1].trim() : null
+      
       // Try to extract action from title/description
-      if (lowerTitle.includes('not loading') || lowerDesc.includes('not loading')) {
-        steps = `1. Navigate to the application\n2. Attempt to access the page or feature\n3. Observe that the page/feature does not load\n4. Check browser console for any errors`
-      } else if (lowerTitle.includes('error') || lowerDesc.includes('error')) {
-        steps = `1. Navigate to the application\n2. Perform the action that triggers the error\n3. Observe the error message or behavior\n4. Check browser console for error details`
+      if (lowerTitle.includes('not loading') || lowerDesc.includes('not loading') || lowerDesc.includes('broken page')) {
+        if (extractedUrl) {
+          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Observe that the page does not load correctly\n4. Check browser console for any errors or warnings`
+        } else {
+          steps = `1. Navigate to the application\n2. Attempt to access the page or feature\n3. Observe that the page/feature does not load\n4. Check browser console for any errors`
+        }
+      } else if (lowerTitle.includes('error') || lowerDesc.includes('error') || lowerDesc.includes('typeerror') || lowerDesc.includes('cannot read')) {
+        if (extractedUrl && extractedError) {
+          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Observe the error in the browser console: ${extractedError}\n4. Verify the page displays incorrectly or becomes unresponsive`
+        } else if (extractedUrl) {
+          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Observe the error message or broken behavior\n4. Check browser console for error details`
+        } else if (extractedError) {
+          steps = `1. Navigate to the application\n2. Perform the action that triggers the error\n3. Observe the error in the browser console: ${extractedError}\n4. Verify the issue occurs as described`
+        } else {
+          steps = `1. Navigate to the application\n2. Perform the action that triggers the error\n3. Observe the error message or behavior\n4. Check browser console for error details`
+        }
+      } else if (lowerDesc.includes('visit') || lowerDesc.includes('navigate') || lowerDesc.includes('go to')) {
+        if (extractedUrl) {
+          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Observe the issue or unexpected behavior\n4. Verify the problem occurs consistently`
+        } else {
+          // Extract action from description
+          const actionMatch = description.match(/(?:when|after|upon)\s+(?:the\s+)?(?:user\s+)?(?:visits|navigates|goes to|accesses)\s+(.+?)(?:$|\.|,)/i)
+          if (actionMatch) {
+            const action = actionMatch[1].trim()
+            steps = `1. Navigate to the application\n2. ${action.charAt(0).toUpperCase() + action.slice(1)}\n3. Observe the issue or unexpected behavior\n4. Verify the problem occurs as described`
+          } else {
+            steps = `1. Navigate to the application\n2. Perform the action described in the bug\n3. Observe the issue or unexpected behavior\n4. Verify the problem occurs consistently`
+          }
+        }
       } else if (lowerTitle.includes('broken') || lowerDesc.includes('broken')) {
-        steps = `1. Navigate to the application\n2. Access the affected feature or page\n3. Perform the expected action\n4. Observe the broken behavior`
+        if (extractedUrl) {
+          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Observe the broken behavior or display issue\n4. Check browser console for any errors`
+        } else {
+          steps = `1. Navigate to the application\n2. Access the affected feature or page\n3. Perform the expected action\n4. Observe the broken behavior`
+        }
       } else {
-        // Generic steps based on description
+        // Try to extract specific information from description
         const sentences = description.split(/[.!?]/).filter(s => s.trim().length > 0 && s.trim().length > 10)
         if (sentences.length > 0) {
-          steps = sentences
-            .slice(0, 4)
-            .map((sentence, index) => `${index + 1}. ${sentence.trim()}`)
-            .join('\n')
+          // Use first sentence as step 1, extract URL if present
+          const firstSentence = sentences[0].trim()
+          if (extractedUrl) {
+            steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. ${firstSentence}\n4. Observe the issue or unexpected behavior`
+          } else {
+            steps = sentences
+              .slice(0, 4)
+              .map((sentence, index) => {
+                const cleaned = sentence.trim()
+                if (index === 0 && !cleaned.toLowerCase().includes('navigate') && !cleaned.toLowerCase().includes('access')) {
+                  return `${index + 1}. Navigate to the application\n${index + 2}. ${cleaned}`
+                }
+                return `${index + 1}. ${cleaned}`
+              })
+              .join('\n')
+              .split('\n')
+              .filter((line, idx, arr) => {
+                // Remove duplicates
+                return idx === 0 || !arr.slice(0, idx).some(prev => prev.trim() === line.trim())
+              })
+              .join('\n')
+          }
         } else {
           steps = `1. Navigate to the application\n2. Perform the action described in the bug\n3. Observe the issue or unexpected behavior`
         }

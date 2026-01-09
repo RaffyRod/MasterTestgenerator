@@ -1411,6 +1411,8 @@ async function generateTitleWithOllama(prompt) {
   return title
     .replace(/^Title:\s*/i, '')
     .replace(/^"|"$/g, '')
+    .replace(/^h[1-6]\.\s*/gi, '') // Remove Jira heading format if present
+    .replace(/\s*h[1-6]\.\s*/gi, ' ') // Remove heading format anywhere in text
     .trim()
     .substring(0, 60)
 }
@@ -1452,6 +1454,8 @@ async function generateTitleWithHuggingFace(prompt) {
   return title
     .replace(/^Title:\s*/i, '')
     .replace(/^"|"$/g, '')
+    .replace(/^h[1-6]\.\s*/gi, '') // Remove Jira heading format if present
+    .replace(/\s*h[1-6]\.\s*/gi, ' ') // Remove heading format anywhere in text
     .trim()
     .substring(0, 60)
 }
