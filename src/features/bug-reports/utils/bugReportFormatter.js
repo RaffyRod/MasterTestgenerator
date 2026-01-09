@@ -98,7 +98,7 @@ function cleanTextForJira(text, removeHeadings = false) {
 }
 
 /**
- * Format bug report for Jira
+ * Format bug report for Jira with improved formatting
  */
 function formatJira(bugData, evidenceList) {
   const {
@@ -124,38 +124,108 @@ function formatJira(bugData, evidenceList) {
   const cleanActual = cleanTextForJira(actualResult)
   const cleanAdditional = cleanTextForJira(additionalInfo)
 
-  // Title should be plain text, not a heading in Jira format
+  // Format steps as numbered list if they contain line breaks
+  const formatSteps = (steps) => {
+    if (!steps) return ''
+    // If steps already contain numbered lines (1., 2., etc.), keep them
+    if (steps.match(/^\d+\./m)) {
+      return steps.split('\n').map(line => {
+        // Ensure proper Jira list format
+        if (line.match(/^\d+\./)) {
+          return `# ${line.replace(/^\d+\.\s*/, '')}`
+        }
+        return line.trim() ? `# ${line.trim()}` : ''
+      }).filter(line => line).join('\n')
+    }
+    // Otherwise, split by newlines and number them
+    return steps.split('\n')
+      .filter(line => line.trim())
+      .map((line, index) => `# ${line.trim()}`)
+      .join('\n')
+  }
+
+  // Format code/error messages
+  const formatCodeBlock = (text) => {
+    if (!text) return ''
+    // Detect if text contains code-like patterns (errors, URLs, code snippets)
+    const codePatterns = [
+      /TypeError|ReferenceError|SyntaxError|Error:/i,
+      /https?:\/\/[^\s]+/,
+      /[a-z]+\/[a-z0-9\/\-_]+/i, // URLs like squad/1
+      /console\.(log|error|warn)/i
+    ]
+    
+    const hasCodePattern = codePatterns.some(pattern => pattern.test(text))
+    
+    if (hasCodePattern) {
+      // Wrap code-like content in code blocks
+      return `{code}${text}{code}`
+    }
+    return text
+  }
+
+  // Build metadata panel
+  let metadata = []
+  metadata.push(`*Priority:* ${priority}`)
+  metadata.push(`*Severity:* ${severity}`)
+  if (environment) metadata.push(`*Environment:* ${environment}`)
+  if (browser) metadata.push(`*Browser:* ${browser}`)
+  if (operatingSystem) metadata.push(`*Operating System:* ${operatingSystem}`)
+  if (version) metadata.push(`*Version:* ${version}`)
+
+  // Start building the report
   let report = `${cleanTitle}\n\n`
   
-  report += `*Priority:* ${priority}\n`
-  report += `*Severity:* ${severity}\n\n`
+  // Metadata in a panel
+  report += `{panel:title=Issue Details|borderStyle=solid|borderColor=#ccc|titleBGColor=#f4f5f7|bgColor=#ffffff}\n`
+  report += metadata.join('\n')
+  report += `\n{panel}\n\n`
   
-  if (environment) report += `*Environment:* ${environment}\n`
-  if (browser) report += `*Browser:* ${browser}\n`
-  if (operatingSystem) report += `*Operating System:* ${operatingSystem}\n`
-  if (version) report += `*Version:* ${version}\n`
-  report += '\n'
+  // Description section
+  report += `h2. Description\n\n`
+  report += `${formatCodeBlock(cleanDescription)}\n\n`
   
-  report += `h3. Description\n${cleanDescription}\n\n`
-  
+  // Steps to Reproduce in a panel
   if (cleanSteps) {
-    report += `h3. Steps to Reproduce\n${cleanSteps}\n\n`
+    report += `h2. Steps to Reproduce\n\n`
+    report += `{panel:title=Reproduction Steps|borderStyle=solid|borderColor=#0052CC|titleBGColor=#E3FCEF|bgColor=#FAFBFC}\n`
+    report += `${formatSteps(cleanSteps)}\n`
+    report += `{panel}\n\n`
   }
   
-  if (cleanExpected) {
-    report += `h3. Expected Result\n${cleanExpected}\n\n`
+  // Expected vs Actual in a comparison panel
+  if (cleanExpected || cleanActual) {
+    report += `h2. Expected vs Actual Result\n\n`
+    
+    if (cleanExpected) {
+      report += `*Expected Result:*\n`
+      report += `{panel:borderStyle=solid|borderColor=#36B37E|titleBGColor=#E3FCEF|bgColor=#FAFBFC}\n`
+      report += `${cleanExpected}\n`
+      report += `{panel}\n\n`
+    }
+    
+    if (cleanActual) {
+      report += `*Actual Result:*\n`
+      report += `{panel:borderStyle=solid|borderColor=#DE350B|titleBGColor=#FFEBE6|bgColor=#FAFBFC}\n`
+      report += `${formatCodeBlock(cleanActual)}\n`
+      report += `{panel}\n\n`
+    }
   }
   
-  if (cleanActual) {
-    report += `h3. Actual Result\n${cleanActual}\n\n`
-  }
-  
+  // Evidence section
   if (evidenceList && evidenceList !== 'No evidence files attached') {
-    report += `h3. Evidence\n${evidenceList}\n\n`
+    report += `h2. Evidence\n\n`
+    report += `{panel:title=Attachments|borderStyle=solid|borderColor=#ccc|titleBGColor=#f4f5f7|bgColor=#ffffff}\n`
+    report += `${evidenceList}\n`
+    report += `{panel}\n\n`
   }
   
+  // Additional Information
   if (cleanAdditional) {
-    report += `h3. Additional Information\n${cleanAdditional}\n`
+    report += `h2. Additional Information\n\n`
+    report += `{panel:borderStyle=solid|borderColor=#ccc|bgColor=#FAFBFC}\n`
+    report += `${cleanAdditional}\n`
+    report += `{panel}\n`
   }
   
   return report.trim()
