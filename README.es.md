@@ -541,9 +541,25 @@ Este proyecto está licenciado bajo la Licencia Pública General GNU Versión 3 
 
 ---
 
-## 🙏 Contribuciones
+## 🙏 Contribuir
 
 ¡Las contribuciones son bienvenidas! Por favor, siéntete libre de enviar un Pull Request.
+
+### Flujo de Desarrollo
+
+1. **Haz fork del repositorio** y crea una rama de funcionalidad
+2. **Haz tus cambios** siguiendo el estilo de código (Prettier formateará automáticamente)
+3. **Escribe o actualiza tests** para nueva funcionalidad
+4. **Ejecuta tests** para asegurar que todo pase: `pnpm test:run`
+5. **Haz commit de tus cambios** (Prettier formateará en el commit)
+6. **Haz push a tu fork** y crea un Pull Request
+7. **CI/CD se ejecutará automáticamente** para probar y validar tus cambios
+
+### Requisitos de Testing
+
+- Todas las nuevas funcionalidades deben incluir pruebas unitarias
+- Los tests deben pasar antes de fusionar
+- Los reportes de cobertura se generan automáticamente en CI/CD
 
 ---
 
