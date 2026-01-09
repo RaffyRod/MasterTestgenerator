@@ -227,8 +227,6 @@ function formatJira(bugData, evidenceList) {
   
   // Expected vs Actual
   if (cleanExpected || cleanActual) {
-    report += `**Expected vs Actual Result:**\n`
-    
     if (cleanExpected) {
       report += `**Expected Result:**\n`
       report += `${cleanExpected}\n\n`
