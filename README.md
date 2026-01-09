@@ -1,16 +1,47 @@
 # 🧪 Master Test Generator
 
-> **Generate test plans and test cases effortlessly** - A powerful Vue.js application that creates comprehensive test documentation in English and Spanish, with AI-powered assistance and seamless export to your favorite test management tools.
+<div align="center">
+
+**Generate test plans and test cases effortlessly** - A powerful Vue.js application that creates comprehensive test documentation in English and Spanish, with AI-powered assistance and seamless export to your favorite test management tools.
+
+[![Vue.js](https://img.shields.io/badge/Vue.js-3.4-4FC08D?logo=vue.js)](https://vuejs.org/)
+[![License](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](LICENSE)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-success)](.github/workflows/ci.yml)
 
 **🌍 Language / Idioma:** [English](README.md) | [Español](README.es.md)
+
+[🚀 Quick Start](#-quick-start-super-easy) • [📚 Usage Guide](#-usage-guide) • [🤖 AI Setup](#-ai-integration) • [🛠️ Development](#️-development)
+
+</div>
+
+---
+
+## 📑 Table of Contents
+
+- [✨ Features](#-features)
+- [🚀 Quick Start](#-quick-start-super-easy)
+- [📚 Usage Guide](#-usage-guide)
+- [🤖 AI Integration](#-ai-integration)
+- [🛠️ Development](#️-development)
+- [🐛 Troubleshooting](#-troubleshooting)
+- [🙏 Contributing](#-contributing)
 
 ---
 
 ## ✨ Features
 
+### 🎯 What You Can Do
+
+- ✅ **Generate Test Plans** - Create comprehensive test plans with 15+ different types
+- ✅ **Generate Test Cases** - Create detailed test cases from acceptance criteria
+- ✅ **Generate Bug Reports** - Create professional bug reports with AI-powered titles
+- ✅ **Export to Any Tool** - Export to TestRail, Jira, Zephyr, Xray, and more
+- ✅ **AI-Powered** - Use local or cloud AI for intelligent generation
+- ✅ **Multi-language** - Generate documentation in English or Spanish
+
 ### 📋 Test Plan Generation
 
-Create detailed test plans with different types (Functional, Performance, Security, Integration, and more)
+Create detailed test plans with **15+ different types**:
 
 ### 📝 Test Case Generation
 
@@ -18,6 +49,12 @@ Generate test cases in two formats:
 
 - **Step-by-Step**: Simple numbered steps for easy execution
 - **Gherkin**: BDD format with Given-When-Then structure
+
+**Available Test Plan Types:**
+
+- Functional, Performance, Security, Integration, System, Acceptance
+- Regression, Comprehensive, Shift-Left, Shift-Right
+- Continuous Testing, TDD, BDD, and more
 
 ### 🤖 AI-Powered Intelligence
 
@@ -51,17 +88,17 @@ Generate test documentation in **English** or **Spanish**
 
 ### 🐛 Bug Report Generator
 
-- **Comprehensive bug reporting** with detailed information fields
+**The most advanced bug reporting tool with AI assistance:**
+
 - **🤖 Dual AI Title Generation** - Automatically generates **2 title options** from different AI providers (Primary AI + Groq AI) for you to choose the best one
-- **🎯 Smart Title Selection** - Beautiful modal UI to select between AI-generated titles with source indicators
+- **🎯 Compact Title Selection** - Small, discrete popover appears below the title field when titles differ
 - **AI-powered content generation** - Automatically generates steps to reproduce, expected/actual results
 - **Evidence attachment** - Upload images, logs, and text files with drag & drop support
-- **Multiple export formats** - Jira, Markdown, and Plain Text with HTML tag cleaning
-- **Auto-detection** of browser and operating system
-- **Copy to clipboard** for easy pasting into issue trackers
-- **Beautiful UI/UX** - Progress indicators, real-time validation, visual badges, and collapsible sections
-- **Smart form validation** - Real-time feedback with visual indicators
-- **Title length limit** - Automatically enforces 30-character maximum for concise bug titles
+- **Multiple export formats** - Jira (with proper Markdown), Markdown, and Plain Text
+- **Auto-detection** - Automatically detects browser and operating system
+- **Copy to clipboard** - One-click copy for easy pasting into issue trackers
+- **Smart validation** - Real-time feedback with visual indicators
+- **Title optimization** - Automatically enforces 30-character maximum for concise bug titles
 
 ---
 
@@ -121,6 +158,8 @@ We would like to thank all the open-source contributors and maintainers of the t
 ---
 
 ## 🚀 Quick Start (Super Easy!)
+
+> ⚡ **New to the project?** Start here! The setup process is fully automated.
 
 ### ⚡ One-Command Setup - Installs Everything Automatically!
 
@@ -321,7 +360,9 @@ After running `pnpm setup`, Ollama is ready to use:
 
 ## 📚 Usage Guide
 
-### Generating Test Plans
+> 💡 **Tip**: All features work with or without AI. AI enhances the quality, but intelligent fallbacks ensure you always get results!
+
+### 📋 Generating Test Plans
 
 1. Navigate to the **Test Plans** section
 2. Enter your project information or acceptance criteria
@@ -330,7 +371,7 @@ After running `pnpm setup`, Ollama is ready to use:
 5. Review the generated plan with recommendations and analysis
 6. Export if needed
 
-### Generating Test Cases
+### 📝 Generating Test Cases
 
 1. Navigate to the **Test Cases** section
 2. Enter your acceptance criteria or project information
@@ -345,7 +386,9 @@ After running `pnpm setup`, Ollama is ready to use:
 8. **Copy individual test cases** with the copy button on each card
 9. Preview export format and download CSV
 
-### Configuring AI Providers
+### ⚙️ Configuring AI Providers
+
+> 🔑 **API Keys**: Only required for premium AI providers (OpenAI, Claude, Gemini). Local AI (Ollama) and Online AI (Hugging Face) work without keys!
 
 1. Click the **⚙️ Configuration** icon in the header
 2. Select **🤖 AI Configuration**
@@ -361,7 +404,9 @@ After running `pnpm setup`, Ollama is ready to use:
 6. Click **Save Configuration**
 7. Your AI provider will be used for test case and bug report generation
 
-### Generating Bug Reports
+### 🐛 Generating Bug Reports
+
+> 🎯 **Pro Tip**: Just type your bug description - the title is generated automatically! If two different titles are generated, a small popover will appear for you to choose.
 
 1. Navigate to the **🐛 Bug Report** section
 2. Enter the bug **Description** (required) - **Title is auto-generated!**
@@ -381,7 +426,9 @@ After running `pnpm setup`, Ollama is ready to use:
 9. Select export format (Jira, Markdown, or Plain Text)
 10. Click **📋 Copy** to copy the formatted report to clipboard
 
-### Exporting to Test Management Tools
+### 📤 Exporting to Test Management Tools
+
+> ✅ **Compatible with**: TestRail, Jira (Zephyr), Xray, qTest, PractiTest, TestMO, and any tool that accepts CSV imports
 
 1. Generate your test cases
 2. Select your test management tool (TestMO, TestRail, Jira, etc.)
@@ -503,6 +550,7 @@ This project includes **automated CI/CD** that runs on every push and pull reque
 - ✅ **Coverage Reports** - Generates test coverage reports
 
 The CI pipeline is configured in `.github/workflows/ci.yml` and runs automatically for:
+
 - Every push to `main` branch
 - Every pull request targeting `main` branch
 
@@ -512,7 +560,9 @@ The CI pipeline is configured in `.github/workflows/ci.yml` and runs automatical
 
 ## 🐛 Troubleshooting
 
-### Ollama Not Available?
+> 💡 **Having issues?** Most problems are solved by running `pnpm setup` again!
+
+### ❓ Ollama Not Available?
 
 1. **Check if Ollama is running:**
 
@@ -528,15 +578,23 @@ The CI pipeline is configured in `.github/workflows/ci.yml` and runs automatical
 
 3. **If installed but not detected**, restart your terminal and try again
 
-### Port Already in Use?
+### ❓ Port Already in Use?
 
-The dev server automatically finds an available port (3000-7000). No action needed!
+The dev server automatically finds an available port (3000-7000). **No action needed!**
 
-### Export Issues?
+### ❓ Export Issues?
 
-- Make sure you've generated test cases first
-- Check that you've selected a test management tool
-- Verify the preview looks correct before exporting
+- ✅ Make sure you've generated test cases first
+- ✅ Check that you've selected a test management tool
+- ✅ Verify the preview looks correct before exporting
+- ✅ Try a different export format if one doesn't work
+
+### ❓ AI Not Working?
+
+- **Local AI (Ollama)**: Run `ollama list` to check if models are installed
+- **Online AI (Hugging Face)**: Check your internet connection
+- **Custom AI**: Verify your API key is correct
+- **Fallback**: The app always uses intelligent fallbacks, so you'll still get results!
 
 ---
 

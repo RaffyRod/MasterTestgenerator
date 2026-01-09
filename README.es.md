@@ -1,16 +1,47 @@
 # 🧪 Master Test Generator
 
-> **Genera planes de prueba y casos de prueba sin esfuerzo** - Una potente aplicación Vue.js que crea documentación de pruebas completa en inglés y español, con asistencia de IA y exportación perfecta a tus herramientas de gestión de pruebas favoritas.
+<div align="center">
+
+**Genera planes de prueba y casos de prueba sin esfuerzo** - Una potente aplicación Vue.js que crea documentación de pruebas completa en inglés y español, con asistencia de IA y exportación perfecta a tus herramientas de gestión de pruebas favoritas.
+
+[![Vue.js](https://img.shields.io/badge/Vue.js-3.4-4FC08D?logo=vue.js)](https://vuejs.org/)
+[![License](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](LICENSE)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-success)](.github/workflows/ci.yml)
 
 **🌍 Idioma / Language:** [Español](README.es.md) | [English](README.md)
+
+[🚀 Inicio Rápido](#-inicio-rápido-súper-fácil) • [📚 Guía de Uso](#-guía-de-uso) • [🤖 Configuración IA](#-integración-de-ia) • [🛠️ Desarrollo](#️-desarrollo)
+
+</div>
+
+---
+
+## 📑 Tabla de Contenidos
+
+- [✨ Características](#-características)
+- [🚀 Inicio Rápido](#-inicio-rápido-súper-fácil)
+- [📚 Guía de Uso](#-guía-de-uso)
+- [🤖 Integración de IA](#-integración-de-ia)
+- [🛠️ Desarrollo](#️-desarrollo)
+- [🐛 Solución de Problemas](#-solución-de-problemas)
+- [🙏 Contribuir](#-contribuir)
 
 ---
 
 ## ✨ Características
 
+### 🎯 Lo Que Puedes Hacer
+
+- ✅ **Generar Planes de Prueba** - Crea planes de prueba completos con 15+ tipos diferentes
+- ✅ **Generar Casos de Prueba** - Crea casos de prueba detallados desde criterios de aceptación
+- ✅ **Generar Reportes de Bug** - Crea reportes de bug profesionales con títulos generados por IA
+- ✅ **Exportar a Cualquier Herramienta** - Exporta a TestRail, Jira, Zephyr, Xray y más
+- ✅ **Potenciado por IA** - Usa IA local o en la nube para generación inteligente
+- ✅ **Multi-idioma** - Genera documentación en Inglés o Español
+
 ### 📋 Generación de Planes de Prueba
 
-Crea planes de prueba detallados con diferentes tipos (Funcional, Rendimiento, Seguridad, Integración y más)
+Crea planes de prueba detallados con **15+ tipos diferentes**:
 
 ### 📝 Generación de Casos de Prueba
 
@@ -18,6 +49,12 @@ Genera casos de prueba en dos formatos:
 
 - **Paso a Paso**: Pasos numerados simples para fácil ejecución
 - **Gherkin**: Formato BDD con estructura Given-When-Then
+
+**Tipos de Planes de Prueba Disponibles:**
+
+- Funcional, Rendimiento, Seguridad, Integración, Sistema, Aceptación
+- Regresión, Integral, Shift-Left, Shift-Right
+- Pruebas Continuas, TDD, BDD y más
 
 ### 🤖 Inteligencia con IA
 
@@ -46,17 +83,17 @@ Genera documentación de pruebas en **Inglés** o **Español**
 
 ### 🐛 Generador de Reportes de Bug
 
-- **Reportes de bugs completos** con campos de información detallados
+**La herramienta más avanzada para reportes de bugs con asistencia de IA:**
+
 - **🤖 Generación Dual de Títulos con IA** - Genera automáticamente **2 opciones de título** de diferentes proveedores de IA (IA Principal + Groq IA) para que elijas el mejor
-- **🎯 Selección Inteligente de Títulos** - Hermosa interfaz modal para seleccionar entre títulos generados por IA con indicadores de fuente
+- **🎯 Selección Compacta de Títulos** - Pequeño popover discreto aparece debajo del campo de título cuando los títulos son diferentes
 - **Generación de contenido con IA** - Genera automáticamente pasos para reproducir, resultados esperados/actuales
-- **Adjuntar evidencias** - sube imágenes, logs y archivos de texto con soporte de arrastrar y soltar
-- **Múltiples formatos de exportación** - Jira, Markdown y Texto Plano con limpieza de etiquetas HTML
-- **Auto-detección** de navegador y sistema operativo
-- **Copiar al portapapeles** para pegar fácilmente en rastreadores de issues
-- **Interfaz hermosa** - Indicadores de progreso, validación en tiempo real, badges visuales y secciones colapsables
-- **Validación inteligente de formularios** - Retroalimentación en tiempo real con indicadores visuales
-- **Límite de longitud de título** - Aplica automáticamente un máximo de 30 caracteres para títulos concisos
+- **Adjuntar evidencias** - Sube imágenes, logs y archivos de texto con soporte de arrastrar y soltar
+- **Múltiples formatos de exportación** - Jira (con Markdown correcto), Markdown y Texto Plano
+- **Auto-detección** - Detecta automáticamente navegador y sistema operativo
+- **Copiar al portapapeles** - Copia con un clic para pegar fácilmente en rastreadores de issues
+- **Validación inteligente** - Retroalimentación en tiempo real con indicadores visuales
+- **Optimización de títulos** - Aplica automáticamente un máximo de 30 caracteres para títulos concisos
 
 ---
 
@@ -316,7 +353,9 @@ Después de ejecutar `pnpm setup`, Ollama está listo para usar:
 
 ## 📚 Guía de Uso
 
-### Generar Planes de Prueba
+> 💡 **Consejo**: Todas las funcionalidades funcionan con o sin IA. La IA mejora la calidad, ¡pero los fallbacks inteligentes aseguran que siempre obtengas resultados!
+
+### 📋 Generar Planes de Prueba
 
 1. Navega a la sección **Planes de Prueba**
 2. Ingresa la información de tu proyecto o criterios de aceptación
@@ -325,7 +364,7 @@ Después de ejecutar `pnpm setup`, Ollama está listo para usar:
 5. Revisa el plan generado con recomendaciones y análisis
 6. Exporta si es necesario
 
-### Generar Casos de Prueba
+### 📝 Generar Casos de Prueba
 
 1. Navega a la sección **Casos de Prueba**
 2. Ingresa tus criterios de aceptación o información del proyecto
@@ -340,7 +379,9 @@ Después de ejecutar `pnpm setup`, Ollama está listo para usar:
 8. **Copia casos de prueba individuales** con el botón de copiar en cada tarjeta
 9. Vista previa del formato de exportación y descarga CSV
 
-### Configurar Proveedores de IA
+### ⚙️ Configurar Proveedores de IA
+
+> 🔑 **Claves API**: Solo se requieren para proveedores de IA premium (OpenAI, Claude, Gemini). ¡La IA Local (Ollama) y la IA en Línea (Hugging Face) funcionan sin claves!
 
 1. Haz clic en el icono **⚙️ Configuración** en el encabezado
 2. Selecciona **🤖 Configuración de IA**
@@ -356,7 +397,9 @@ Después de ejecutar `pnpm setup`, Ollama está listo para usar:
 6. Haz clic en **Guardar Configuración**
 7. Tu proveedor de IA se usará para la generación de casos de prueba y reportes de bugs
 
-### Generar Reportes de Bug
+### 🐛 Generar Reportes de Bug
+
+> 🎯 **Consejo Pro**: ¡Solo escribe la descripción del bug - el título se genera automáticamente! Si se generan dos títulos diferentes, aparecerá un pequeño popover para que elijas.
 
 1. Navega a la sección **🐛 Reporte de Bug**
 2. Ingresa la **Descripción** del bug (requerido) - **¡El título se genera automáticamente!**
@@ -376,7 +419,9 @@ Después de ejecutar `pnpm setup`, Ollama está listo para usar:
 9. Selecciona formato de exportación (Jira, Markdown o Texto Plano)
 10. Haz clic en **📋 Copiar** para copiar el reporte formateado al portapapeles
 
-### Exportar a Herramientas de Gestión de Pruebas
+### 📤 Exportar a Herramientas de Gestión de Pruebas
+
+> ✅ **Compatible con**: TestRail, Jira (Zephyr), Xray, qTest, PractiTest, TestMO y cualquier herramienta que acepte importaciones CSV
 
 1. Genera tus casos de prueba
 2. Selecciona tu herramienta de gestión de pruebas (TestMO, TestRail, Jira, etc.)
@@ -493,6 +538,7 @@ Este proyecto incluye **CI/CD automatizado** que se ejecuta en cada push y pull 
 - ✅ **Reportes de Cobertura** - Genera reportes de cobertura de pruebas
 
 El pipeline de CI está configurado en `.github/workflows/ci.yml` y se ejecuta automáticamente para:
+
 - Cada push a la rama `main`
 - Cada pull request dirigido a la rama `main`
 
@@ -500,20 +546,24 @@ El pipeline de CI está configurado en `.github/workflows/ci.yml` y se ejecuta a
 pnpm test:run
 
 # Ejecutar tests con cobertura
+
 pnpm test:coverage
-```
+
+````
 
 ---
 
 ## 🐛 Solución de Problemas
 
-### ¿Ollama No Disponible?
+> 💡 **¿Tienes problemas?** ¡La mayoría se resuelven ejecutando `pnpm setup` nuevamente!
+
+### ❓ ¿Ollama No Disponible?
 
 1. **Verifica si Ollama está ejecutándose:**
 
    ```bash
    ollama list
-   ```
+````
 
 2. **Si no está instalado**, ejecuta la configuración nuevamente:
 
@@ -523,9 +573,23 @@ pnpm test:coverage
 
 3. **Si está instalado pero no se detecta**, reinicia tu terminal e intenta nuevamente
 
-### ¿Puerto Ya en Uso?
+### ❓ ¿Puerto Ya en Uso?
 
-El servidor de desarrollo encuentra automáticamente un puerto disponible (3000-7000). ¡No se necesita acción!
+El servidor de desarrollo encuentra automáticamente un puerto disponible (3000-7000). **¡No se necesita acción!**
+
+### ❓ ¿Problemas con la Exportación?
+
+- ✅ Asegúrate de haber generado casos de prueba primero
+- ✅ Verifica que hayas seleccionado una herramienta de gestión de pruebas
+- ✅ Verifica que la vista previa se vea correcta antes de exportar
+- ✅ Prueba un formato de exportación diferente si uno no funciona
+
+### ❓ ¿La IA No Funciona?
+
+- **IA Local (Ollama)**: Ejecuta `ollama list` para verificar si los modelos están instalados
+- **IA en Línea (Hugging Face)**: Verifica tu conexión a internet
+- **IA Personalizada**: Verifica que tu clave API sea correcta
+- **Fallback**: ¡La aplicación siempre usa fallbacks inteligentes, así que siempre obtendrás resultados!
 
 ### ¿Problemas de Exportación?
 
