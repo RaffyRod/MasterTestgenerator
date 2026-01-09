@@ -545,9 +545,40 @@ export default {
 
 
     async function generateReport(silent = false) {
-      if (!isFormValid.value) {
+      // Validate description first (required)
+      if (!bugData.value.description || bugData.value.description.trim() === '') {
         if (!silent) {
-          showNotification('error', t('bugReport.validationError'))
+          showNotification('error', t('bugReport.descriptionRequired') || 'Description is required')
+        }
+        return
+      }
+
+      // If title is empty but description exists, generate title first
+      if ((!bugData.value.title || bugData.value.title.trim() === '') && bugData.value.description.trim().length >= 10) {
+        if (!silent) {
+          showNotification('info', t('bugReport.generatingTitle') || 'Generating title...')
+        }
+        await generateTitleFromDescription()
+        
+        // If title is still empty after generation attempt, use fallback
+        if (!bugData.value.title || bugData.value.title.trim() === '') {
+          const desc = bugData.value.description.trim()
+          const firstSentence = desc.split(/[.!?]/)[0]?.trim()
+          if (firstSentence && firstSentence.length > 0) {
+            bugData.value.title = firstSentence.length > 60 
+              ? firstSentence.substring(0, 57) + '...' 
+              : firstSentence
+            titleGenerated.value = true
+          } else {
+            bugData.value.title = 'Bug Report'
+          }
+        }
+      }
+
+      // Final validation
+      if (!bugData.value.title || bugData.value.title.trim() === '') {
+        if (!silent) {
+          showNotification('error', t('bugReport.titleRequired') || 'Title is required')
         }
         return
       }
