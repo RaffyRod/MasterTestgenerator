@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { generateIntelligentTitle, initAIService, AI_PROVIDERS } from '../src/core/ai/aiService.js'
+import { generateIntelligentTitle, initAIService } from '../src/core/ai/aiService.js'
+import { AI_PROVIDERS } from '../src/core/constants/aiProviders.js'
 
 describe('Bug Title Generation', () => {
   beforeEach(() => {
