@@ -192,19 +192,18 @@ function formatJira(bugData, evidenceList) {
   // Start building the report
   let report = `${cleanTitle}\n\n`
   
-  // Metadata in a simple panel (simplified syntax for better Jira compatibility)
-  report += `{panel:title=Issue Details}\n`
+  // Metadata section - using heading format
+  report += `h3. Issue Details\n`
   report += metadata.join('\n')
-  report += `\n{panel}\n\n`
+  report += `\n\n`
   
   // Description section - using bold text instead of heading
   report += `*Description:*\n\n`
   report += `${formatCodeBlock(cleanDescription)}\n\n`
   
-  // Steps to Reproduce in a panel
+  // Steps to Reproduce
   if (cleanSteps && cleanSteps.trim()) {
     report += `*Steps to Reproduce:*\n\n`
-    report += `{panel:title=Reproduction Steps}\n`
     
     // Always format steps as numbered list
     const lines = cleanSteps.split('\n').filter(line => line.trim())
@@ -217,48 +216,38 @@ function formatJira(bugData, evidenceList) {
         // Jira numbered list format: # at the start of line
         return `# ${cleaned}`
       }).join('\n')
-      report += `${formattedSteps}\n`
+      report += `${formattedSteps}\n\n`
     } else {
       // Fallback if no steps found
-      report += `# Navigate to the application\n# Perform the action described\n# Observe the issue\n`
+      report += `# Navigate to the application\n# Perform the action described\n# Observe the issue\n\n`
     }
-    
-    report += `{panel}\n\n`
   }
   
-  // Expected vs Actual in a comparison panel
+  // Expected vs Actual
   if (cleanExpected || cleanActual) {
     report += `*Expected vs Actual Result:*\n\n`
     
     if (cleanExpected) {
       report += `*Expected Result:*\n`
-      report += `{panel:title=Expected Result}\n`
-      report += `${cleanExpected}\n`
-      report += `{panel}\n\n`
+      report += `${cleanExpected}\n\n`
     }
     
     if (cleanActual) {
       report += `*Actual Result:*\n`
-      report += `{panel:title=Actual Result}\n`
-      report += `${formatCodeBlock(cleanActual)}\n`
-      report += `{panel}\n\n`
+      report += `${formatCodeBlock(cleanActual)}\n\n`
     }
   }
   
   // Evidence section
   if (evidenceList && evidenceList !== 'No evidence files attached') {
     report += `*Evidence:*\n\n`
-    report += `{panel:title=Attachments}\n`
-    report += `${evidenceList}\n`
-    report += `{panel}\n\n`
+    report += `${evidenceList}\n\n`
   }
   
   // Additional Information
   if (cleanAdditional) {
     report += `*Additional Information:*\n\n`
-    report += `{panel:title=Additional Information}\n`
     report += `${cleanAdditional}\n`
-    report += `{panel}\n`
   }
   
   return report.trim()
