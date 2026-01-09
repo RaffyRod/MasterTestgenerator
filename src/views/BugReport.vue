@@ -1321,7 +1321,8 @@ export default {
       onDescriptionChange,
       regenerateReport,
       copyReport,
-      clearForm
+      clearForm,
+      enforceTitleLength
     }
   }
 }
