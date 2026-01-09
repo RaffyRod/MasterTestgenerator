@@ -501,16 +501,28 @@ export default {
         if (generatedTitle && generatedTitle.trim() !== '') {
           // Always update if title was auto-generated, or if it's empty
           if (bugData.value.title.trim() === '' || titleGenerated.value) {
-            // Limit to 20 characters for bug reports - FORCE limit
+            // Limit to 20 characters for bug reports - smart truncation
             let finalTitle = generatedTitle.trim()
             // Remove any extra whitespace first
             finalTitle = finalTitle.replace(/\s+/g, ' ').trim()
-            // Force limit to 20 characters
+            // Smart truncation: try to cut at word boundary
             if (finalTitle.length > 20) {
-              finalTitle = finalTitle.substring(0, 17).trim() + '...'
+              const words = finalTitle.split(' ')
+              let shortened = ''
+              for (const word of words) {
+                if ((shortened + ' ' + word).length <= 17) {
+                  shortened += (shortened ? ' ' : '') + word
+                } else {
+                  break
+                }
+              }
+              finalTitle = shortened || finalTitle.substring(0, 17)
+              if (finalTitle.length < finalTitle.split(' ').join('').length) {
+                finalTitle = finalTitle.trim() + '...'
+              }
             }
             // Ensure it's exactly 20 or less
-            finalTitle = finalTitle.substring(0, 20)
+            finalTitle = finalTitle.substring(0, 20).trim()
             bugData.value.title = finalTitle
             titleGenerated.value = true
             titleEditable.value = false

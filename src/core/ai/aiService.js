@@ -1540,7 +1540,123 @@ function generateIntelligentTitleFallback(text, type = 'testCase') {
   // Extract key action and object
   const lowerTitle = title.toLowerCase()
 
-  // Pattern-based title generation
+  // For bug reports, analyze the issue/problem intelligently
+  if (type === 'bugReport') {
+    let issueTitle = ''
+    
+    // Priority order: most specific patterns first
+    // 1. Failing + reload/refresh
+    if ((lowerTitle.includes('failing') || lowerTitle.includes('fails')) && 
+        (lowerTitle.includes('reload') || lowerTitle.includes('refresh'))) {
+      issueTitle = 'App fails on reload'
+    }
+    // 2. Not loading
+    else if (lowerTitle.includes('not loading') || lowerTitle.includes('doesn\'t load') || lowerTitle.includes('won\'t load')) {
+      if (lowerTitle.includes('page')) {
+        issueTitle = 'Page not loading'
+      } else if (lowerTitle.includes('app')) {
+        issueTitle = 'App not loading'
+      } else {
+        issueTitle = 'Not loading'
+      }
+    }
+    // 3. Not working
+    else if (lowerTitle.includes('not working') || lowerTitle.includes('doesn\'t work') || lowerTitle.includes('won\'t work')) {
+      if (lowerTitle.includes('button')) {
+        issueTitle = 'Button not working'
+      } else if (lowerTitle.includes('feature')) {
+        issueTitle = 'Feature not working'
+      } else {
+        issueTitle = 'Not working'
+      }
+    }
+    // 4. Error messages
+    else if (lowerTitle.includes('error') || lowerTitle.includes('exception')) {
+      const errorMatch = text.match(/(?:error|exception)[:\s]+([^.!?\n]{0,12})/i)
+      if (errorMatch && errorMatch[1].trim().length > 0) {
+        const errorText = errorMatch[1].trim()
+        issueTitle = errorText.length > 12 ? `Error: ${errorText.substring(0, 9)}...` : `Error: ${errorText}`
+      } else {
+        issueTitle = 'Error occurred'
+      }
+    }
+    // 5. Broken
+    else if (lowerTitle.includes('broken')) {
+      issueTitle = 'Feature broken'
+    }
+    // 6. Missing/not showing
+    else if (lowerTitle.includes('missing') || lowerTitle.includes('not showing')) {
+      issueTitle = 'Content missing'
+    }
+    // 7. Display issues
+    else if (lowerTitle.includes('display') || lowerTitle.includes('not displayed') || lowerTitle.includes('not displaying')) {
+      if (lowerTitle.includes('blank')) {
+        issueTitle = 'Blank screen'
+      } else {
+        issueTitle = 'Display issue'
+      }
+    }
+    // 8. Reload/refresh issues (without failing)
+    else if (lowerTitle.includes('reload') || lowerTitle.includes('refresh')) {
+      issueTitle = 'Issue on reload'
+    }
+    // 9. Failing (general)
+    else if (lowerTitle.includes('failing') || lowerTitle.includes('fails')) {
+      issueTitle = 'App failing'
+    }
+    // 10. Extract key words and create concise title
+    else {
+      // Try to extract the main issue from first sentence
+      const firstSentence = text.split(/[.!?]/)[0]?.trim() || text.trim()
+      const lowerFirst = firstSentence.toLowerCase()
+      
+      // Extract key action words
+      if (lowerFirst.includes('cannot') || lowerFirst.includes('can\'t')) {
+        const actionMatch = firstSentence.match(/cannot\s+(?:read|access|open|load|find|see|do|perform)\s+([^.!?\n]{0,10})/i)
+        if (actionMatch) {
+          issueTitle = `Cannot ${actionMatch[1].trim()}`
+        } else {
+          issueTitle = 'Cannot perform action'
+        }
+      } else if (lowerFirst.includes('unable')) {
+        issueTitle = 'Unable to perform'
+      } else {
+        // Take first 3-4 key words
+        const words = firstSentence.split(/\s+/).filter(w => 
+          w.length > 2 && 
+          !['the', 'a', 'an', 'is', 'are', 'was', 'were', 'when', 'after', 'before', 'during'].includes(w.toLowerCase())
+        )
+        if (words.length > 0) {
+          issueTitle = words.slice(0, 3).join(' ')
+        } else {
+          issueTitle = 'Bug report'
+        }
+      }
+    }
+    
+    // Ensure title is max 20 characters, cut at word boundary if possible
+    if (issueTitle.length > maxLength) {
+      const words = issueTitle.split(' ')
+      let shortened = ''
+      for (const word of words) {
+        if ((shortened + ' ' + word).length <= maxLength - 3) {
+          shortened += (shortened ? ' ' : '') + word
+        } else {
+          break
+        }
+      }
+      issueTitle = shortened || issueTitle.substring(0, maxLength - 3)
+      if (issueTitle.length < issueTitle.split(' ').join('').length) {
+        issueTitle += '...'
+      }
+    }
+    
+    title = issueTitle.substring(0, maxLength).trim()
+    title = title.charAt(0).toUpperCase() + title.slice(1)
+    return title || 'Bug Report'
+  }
+
+  // Pattern-based title generation (for test cases)
   const patterns = [
     // View/Display patterns
     {

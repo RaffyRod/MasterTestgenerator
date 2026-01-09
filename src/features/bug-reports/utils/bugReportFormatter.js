@@ -164,20 +164,34 @@ function formatJira(bugData, evidenceList) {
     }).join('\n')
   }
 
-  // Format code/error messages
+  // Format code/error messages - only for actual code/errors, not descriptions
   const formatCodeBlock = (text) => {
     if (!text) return ''
-    // Detect if text contains code-like patterns (errors, URLs, code snippets)
+    
+    // Only format as code if it contains actual code patterns or technical errors
+    // Be more strict - don't format descriptive text as code
     const codePatterns = [
-      /TypeError|ReferenceError|SyntaxError|Error:/i,
-      /https?:\/\/[^\s]+/,
-      /[a-z]+\/[a-z0-9\/\-_]+/i, // URLs like squad/1
-      /console\.(log|error|warn)/i
+      /^(TypeError|ReferenceError|SyntaxError|Error):\s+/i, // Error at start of line
+      /console\.(log|error|warn|debug)\(/i, // Console statements
+      /at\s+[^\s]+\s+\([^)]+\)/i, // Stack traces
+      /^\s*\{.*\}\s*$/s, // JSON objects
+      /^\s*\[.*\]\s*$/s, // JSON arrays
+      /<[a-z]+[^>]*>/i, // HTML tags
+      /function\s+\w+\s*\(/i, // Function definitions
+      /const\s+\w+\s*=|let\s+\w+\s*=|var\s+\w+\s*=/i, // Variable declarations
+      /^\s*\d+\.\d+\.\d+\.\d+/ // IP addresses
     ]
     
-    const hasCodePattern = codePatterns.some(pattern => pattern.test(text))
+    // Check if text looks like actual code/error (not just descriptive text)
+    const isCodeLike = codePatterns.some(pattern => pattern.test(text))
     
-    if (hasCodePattern) {
+    // Also check if it's a short technical error message (not a long description)
+    const isShortTechnicalError = text.length < 100 && (
+      /^(Error|Exception|TypeError|ReferenceError|SyntaxError)/i.test(text) ||
+      /at\s+\w+\.\w+/i.test(text) // Stack trace pattern
+    )
+    
+    if (isCodeLike || isShortTechnicalError) {
       // Wrap code-like content in code blocks
       return `{code}${text}{code}`
     }
