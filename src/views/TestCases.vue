@@ -493,7 +493,7 @@ export default {
               title: 'Test Case: ' + projectInfo.value.substring(0, 50),
               priority: 'Medium',
               type: 'Functional',
-              preconditions: 'System is ready',
+              preconditions: 'User has accessed the application; System is ready',
               steps:
                 format.value === 'gherkin'
                   ? 'Given The System Is In A Valid State\nWhen The User Performs The Required Action\nThen The Expected Result Should Be Achieved'

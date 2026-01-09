@@ -817,7 +817,7 @@ async function createTestCaseFromAC(
       title: `Test Case ${id}`,
       priority: 'Medium',
       type: 'Functional',
-      preconditions: 'System is ready and configured',
+      preconditions: 'User has accessed the application; System is ready and configured',
       steps:
         '1. Navigate to the application\n2. Perform the required action\n3. Verify the expected result',
       expectedResult: 'The operation completes successfully.',
@@ -841,7 +841,7 @@ async function createTestCaseFromAC(
       title: `Test Case ${id}`,
       priority: 'Medium',
       type: 'Functional',
-      preconditions: 'System is ready and configured',
+      preconditions: 'User has accessed the application; System is ready and configured',
       steps:
         '1. Navigate to the application\n2. Perform the required action\n3. Verify the expected result',
       expectedResult: 'The operation completes successfully.',
@@ -1271,7 +1271,7 @@ function createEdgeCaseTest(edgeCase, format, id) {
     title,
     priority: 'Medium',
     type: 'Functional', // Always Functional, not 'Edge Case'
-    preconditions: 'System is ready and configured for testing',
+    preconditions: 'User has accessed the application; System is ready and configured for testing',
     steps,
     expectedResult: expected,
     scenario: `Test ${normalizedEdgeCase} edge case scenarios`,
@@ -1566,6 +1566,9 @@ function generatePreconditions(text, functionality) {
   const preconditions = []
   const lowerText = text.toLowerCase()
 
+  // Always include user access to application as first precondition
+  preconditions.push('User has accessed the application')
+
   // System-level preconditions
   preconditions.push('Application is deployed and accessible')
   preconditions.push('Test environment is configured and stable')
@@ -1658,7 +1661,7 @@ function generatePreconditions(text, functionality) {
 
   return preconditions.length > 0
     ? preconditions.join('; ')
-    : 'System is ready and accessible; Test environment is configured'
+    : 'User has accessed the application; System is ready and accessible; Test environment is configured'
 }
 
 function generateGherkinFromAC(

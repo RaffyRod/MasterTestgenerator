@@ -797,11 +797,12 @@ Instructions:
 2. Generate detailed test cases with:
    - Clear and specific titles
    - Appropriate priority (High, Medium, Low)
-   - Preconditions
+   - Preconditions (ALWAYS include "User has accessed the application" as the first precondition)
    - Detailed steps (in ${formatType} format)
    - Specific expected results (not generic)
 3. Make the steps and expected results intelligent and context-aware
 4. Ensure each test case is unique and specific
+5. IMPORTANT: Every test case MUST have "User has accessed the application" as the first precondition before any other operation
 
 Generate the test cases in JSON format with the following structure:
 {
@@ -876,7 +877,7 @@ function parseAIResponse(response, format) {
           title: tc.title || 'Test Case',
           priority: tc.priority || 'Medium',
           type: tc.type || 'Functional',
-          preconditions: tc.preconditions || 'System is ready',
+          preconditions: tc.preconditions || 'User has accessed the application; System is ready',
           steps: tc.steps || '',
           expectedResult: tc.expectedResult || 'Operation completes successfully'
         }))

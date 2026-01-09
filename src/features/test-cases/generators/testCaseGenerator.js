@@ -111,7 +111,7 @@ function extractPreconditions(text) {
     preconditions.push('Test data is available')
   }
 
-  return preconditions.length > 0 ? preconditions.join('; ') : 'System is ready'
+  return preconditions.length > 0 ? preconditions.join('; ') : 'User has accessed the application; System is ready'
 }
 
 function extractExpectedResult(text) {
@@ -198,7 +198,7 @@ function createDefaultTestCase(projectInfo, format) {
     title: 'Test Case: ' + projectInfo.substring(0, 50),
     priority: 'Medium',
     type: 'Functional',
-    preconditions: 'System is ready',
+    preconditions: 'User has accessed the application; System is ready',
     steps:
       format === 'gherkin'
         ? 'Given The System Is In A Valid State\nWhen The User Performs The Required Action\nThen The Expected Result Should Be Achieved'
