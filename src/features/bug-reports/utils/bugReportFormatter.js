@@ -21,8 +21,16 @@ export function formatBugReport(bugData, evidenceFiles = [], format = 'jira') {
     additionalInfo
   } = bugData
 
+  // Format evidence files - include image previews for Jira format
   const evidenceList = evidenceFiles.length > 0
-    ? evidenceFiles.map((file, index) => `${index + 1}. ${file.name}`).join('\n')
+    ? evidenceFiles.map((file, index) => {
+        if (file.type && file.type.startsWith('image/') && file.preview) {
+          // For images, include Jira image format with base64 data URL
+          // Note: Jira may not support base64 directly, but we include it for reference
+          return `${index + 1}. ${file.name}\n   !${file.preview}|thumbnail!`
+        }
+        return `${index + 1}. ${file.name}`
+      }).join('\n')
     : 'No evidence files attached'
 
   switch (format) {
