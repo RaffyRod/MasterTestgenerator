@@ -930,7 +930,7 @@ function buildBugReportPrompt(bugInfo, language) {
   
   const envText = environmentInfo.length > 0 ? `\nEnvironment Information:\n${environmentInfo.join('\n')}` : ''
 
-  return `You are an expert QA engineer. Generate a comprehensive bug report based on the following information.
+  return `You are an expert QA engineer specialized in creating detailed, actionable bug reproduction steps. Your task is to analyze bug descriptions and generate specific, step-by-step instructions that developers can follow exactly.
 
 Language: ${lang}
 
@@ -941,24 +941,52 @@ Priority: ${bugInfo.priority}
 Severity: ${bugInfo.severity}${envText}
 ${bugInfo.additionalInfo ? `Additional Information: ${bugInfo.additionalInfo}` : ''}
 
-Instructions:
-1. Analyze the bug description carefully
-2. Generate detailed bug report with:
-   - Clear steps to reproduce (numbered, specific actions)
-   - Expected result (what should happen)
-   - Actual result (what actually happened, based on the description)
-   - Additional technical details if needed
-3. Make the steps specific and actionable
-4. Ensure expected and actual results are clear and detailed
-5. The steps should be easy to follow for developers
+CRITICAL INSTRUCTIONS FOR STEP GENERATION:
+1. Extract SPECIFIC details from the description:
+   - Exact URLs, routes, or page paths (e.g., "/dashboard", "/users/123", "https://app.example.com/login")
+   - Specific UI elements (button names, field labels, menu items, form fields)
+   - Exact actions (click "Save", type "test@example.com", select "Option A")
+   - Specific data or inputs mentioned
+   - Browser interactions (refresh, navigate, scroll)
+   - Error messages or console errors mentioned
+
+2. Generate steps that are:
+   - SPECIFIC: Include exact element names, URLs, and actions (NOT generic like "access the page")
+   - ACTIONABLE: Each step should be a single, clear action that can be executed
+   - SEQUENTIAL: Steps must follow a logical order
+   - COMPLETE: Include all necessary context (navigation, inputs, interactions)
+
+3. AVOID generic steps like:
+   - "Navigate to the application" (use specific URL/page)
+   - "Access the page or feature mentioned" (name the exact page/feature)
+   - "Perform the action described" (describe the exact action)
+   - "Observe the issue" (be specific about what to observe)
+
+4. GOOD step examples:
+   - "1. Open the application and navigate to https://app.example.com/dashboard"
+   - "2. Click on the 'Create User' button in the top navigation bar"
+   - "3. Fill in the 'Email' field with 'test@example.com'"
+   - "4. Click the 'Submit' button"
+   - "5. Observe that the page shows error message 'Email already exists' instead of creating the user"
+
+5. BAD step examples (too generic):
+   - "1. Navigate to the application"
+   - "2. Access the page or feature mentioned in the description"
+   - "3. Perform the action described in the bug"
+   - "4. Observe the issue or unexpected behavior"
+
+6. Expected Result: Describe what SHOULD happen when following the steps correctly
+7. Actual Result: Describe what ACTUALLY happens based on the bug description
 
 Generate the bug report in JSON format with the following structure:
 {
-  "stepsToReproduce": "1. Step one\n2. Step two\n3. Step three",
-  "expectedResult": "What should happen",
-  "actualResult": "What actually happened",
-  "additionalInfo": "Any additional technical details"
+  "stepsToReproduce": "1. Specific step with exact details\n2. Another specific step\n3. Final specific step",
+  "expectedResult": "What should happen (be specific)",
+  "actualResult": "What actually happened (be specific based on description)",
+  "additionalInfo": "Any additional technical details, error messages, or context"
 }
+
+IMPORTANT: Make every step SPECIFIC and ACTIONABLE. Extract all details from the description. Do not use generic placeholder text.
 
 Generate the bug report now:`
 }

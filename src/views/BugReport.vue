@@ -617,76 +617,209 @@ export default {
       }
     }
 
+    /**
+     * Extract specific information from bug description for intelligent step generation
+     */
+    function extractBugDetails(description, title) {
+      const lowerDesc = description.toLowerCase()
+      const lowerTitle = title.toLowerCase()
+      
+      // Extract URLs/routes (more comprehensive patterns)
+      const urlPatterns = [
+        /(?:url|route|path|page|visit|navigate|go to|access|open|load)\s+(?:to\s+)?(?:the\s+)?([\/a-z0-9\-_]+(?:\/[a-z0-9\-_]+)*)/i,
+        /(?:at|on)\s+([\/a-z0-9\-_]+(?:\/[a-z0-9\-_]+)*)/i,
+        /(https?:\/\/[^\s]+)/i,
+        /([\/][a-z0-9\-_]+(?:\/[a-z0-9\-_]+)*)/i
+      ]
+      let extractedUrl = null
+      for (const pattern of urlPatterns) {
+        const match = description.match(pattern)
+        if (match && match[1]) {
+          extractedUrl = match[1].trim()
+          break
+        }
+      }
+      
+      // Extract UI elements (buttons, fields, menus, etc.)
+      const uiElements = []
+      const uiPatterns = [
+        /(?:click|press|select|choose|use)\s+(?:the\s+)?(?:on\s+)?['"]([^'"]+)['"]/gi,
+        /(?:click|press|select|choose|use)\s+(?:the\s+)?(?:on\s+)?(button|link|menu|field|input|dropdown|select|checkbox|radio|tab|icon)[\s:]+['"]?([^'",.\n]+)['"]?/gi,
+        /(?:in|on|from)\s+(?:the\s+)?['"]([^'"]+)['"]\s+(?:button|field|menu|link|tab)/gi,
+        /(?:field|input|textbox|text\s+field)[\s:]+['"]?([^'",.\n]+)['"]?/gi
+      ]
+      for (const pattern of uiPatterns) {
+        const matches = [...description.matchAll(pattern)]
+        matches.forEach(match => {
+          if (match[1] || match[2]) {
+            const element = (match[1] || match[2]).trim()
+            if (element && element.length > 2 && element.length < 50) {
+              uiElements.push(element)
+            }
+          }
+        })
+      }
+      
+      // Extract specific actions
+      const actions = []
+      const actionPatterns = [
+        /(?:click|press|tap)\s+(?:on\s+)?(?:the\s+)?['"]?([^'",.\n]+)['"]?/gi,
+        /(?:type|enter|input|fill|write)\s+(?:in\s+)?(?:the\s+)?['"]?([^'",.\n]+)['"]?\s+(?:field|input|textbox)/gi,
+        /(?:select|choose|pick)\s+(?:from\s+)?(?:the\s+)?['"]?([^'",.\n]+)['"]?/gi,
+        /(?:scroll|navigate|go|move)\s+(?:to\s+)?(?:the\s+)?['"]?([^'",.\n]+)['"]?/gi
+      ]
+      for (const pattern of actionPatterns) {
+        const matches = [...description.matchAll(pattern)]
+        matches.forEach(match => {
+          if (match[1]) {
+            const action = match[1].trim()
+            if (action && action.length > 2 && action.length < 50) {
+              actions.push(action)
+            }
+          }
+        })
+      }
+      
+      // Extract data/inputs
+      const inputs = []
+      const inputPatterns = [
+        /(?:enter|type|input|fill|write)\s+['"]([^'"]+)['"]/gi,
+        /(?:with|using)\s+['"]([^'"]+)['"]/gi,
+        /(?:value|data|text)[\s:]+['"]?([^'",.\n]+)['"]?/gi
+      ]
+      for (const pattern of inputPatterns) {
+        const matches = [...description.matchAll(pattern)]
+        matches.forEach(match => {
+          if (match[1]) {
+            const input = match[1].trim()
+            if (input && input.length > 1 && input.length < 100) {
+              inputs.push(input)
+            }
+          }
+        })
+      }
+      
+      // Extract error messages
+      const errorPatterns = [
+        /(?:error|exception|typeerror|referenceerror|syntaxerror)[\s:]+['"]?([^'",.\n]+)['"]?/i,
+        /(?:shows?|displays?|shows?)\s+(?:an?\s+)?(?:error|message)[\s:]+['"]?([^'",.\n]+)['"]?/i,
+        /(?:message|error)[\s:]+['"]?([^'",.\n]+)['"]?/i
+      ]
+      let extractedError = null
+      for (const pattern of errorPatterns) {
+        const match = description.match(pattern)
+        if (match && match[1]) {
+          extractedError = match[1].trim()
+          break
+        }
+      }
+      
+      // Extract page/feature names
+      const pagePatterns = [
+        /(?:on|in|at)\s+(?:the\s+)?(?:page|screen|view|section)[\s:]+['"]?([^'",.\n]+)['"]?/gi,
+        /(?:page|screen|view|section)[\s:]+['"]?([^'",.\n]+)['"]?/gi
+      ]
+      let extractedPage = null
+      for (const pattern of pagePatterns) {
+        const match = description.match(pattern)
+        if (match && match[1]) {
+          extractedPage = match[1].trim()
+          break
+        }
+      }
+      
+      return {
+        url: extractedUrl,
+        uiElements: [...new Set(uiElements)], // Remove duplicates
+        actions: [...new Set(actions)],
+        inputs: [...new Set(inputs)],
+        error: extractedError,
+        page: extractedPage
+      }
+    }
+    
     function createFallbackBugData() {
       const description = bugData.value.description || ''
       const title = bugData.value.title || ''
+      
+      // Extract specific details from description
+      const details = extractBugDetails(description, title)
       
       // Generate intelligent steps from title and description
       let steps = ''
       const lowerTitle = title.toLowerCase()
       const lowerDesc = description.toLowerCase()
       
-      // Extract URL or route from description
-      const urlMatch = description.match(/(?:url|route|visit|navigate|go to|access)\s+([a-z0-9\/\-_]+)/i)
-      const extractedUrl = urlMatch ? urlMatch[1] : null
-      
-      // Extract specific error message
-      const errorMatch = description.match(/(?:error|exception|typeerror|referenceerror):\s*(.+?)(?:\.|$|in|at)/i)
-      const extractedError = errorMatch ? errorMatch[1].trim() : null
-      
-      // Try to extract action from title/description
+      // Generate specific steps based on bug type and extracted details
       if (lowerTitle.includes('not loading') || lowerDesc.includes('not loading') || lowerDesc.includes('broken page')) {
-        if (extractedUrl) {
-          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Observe that the page does not load correctly\n4. Check browser console for any errors or warnings`
+        if (details.url) {
+          const url = details.url.startsWith('/') ? details.url : '/' + details.url
+          steps = `1. Open the application and navigate to ${url}\n2. Observe that the page does not load correctly\n3. Check the browser console (F12) for any errors or warnings`
+          if (details.error) {
+            steps += `\n4. Verify the error message "${details.error}" appears`
+          }
+        } else if (details.page) {
+          steps = `1. Open the application and navigate to the ${details.page} page\n2. Observe that the page does not load correctly\n3. Check the browser console (F12) for any errors or warnings`
         } else {
-          steps = `1. Navigate to the application\n2. Attempt to access the page or feature\n3. Observe that the page/feature does not load\n4. Check browser console for any errors`
+          steps = `1. Open the application\n2. Attempt to access the page or feature mentioned in the description\n3. Observe that the page/feature does not load\n4. Check the browser console (F12) for any errors`
         }
-      } else if (lowerTitle.includes('reload') || lowerDesc.includes('reload') || lowerDesc.includes('after reloading')) {
-        if (extractedUrl) {
-          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Reload/refresh the page (press F5, Ctrl+R, or Cmd+R)\n4. Observe that the page is not properly displayed after reloading/refreshing\n5. Check browser console for any errors`
+      } else if (lowerTitle.includes('reload') || lowerDesc.includes('reload') || lowerDesc.includes('after reloading') || lowerTitle.includes('refresh') || lowerDesc.includes('refresh') || lowerDesc.includes('after refreshing')) {
+        if (details.url) {
+          const url = details.url.startsWith('/') ? details.url : '/' + details.url
+          steps = `1. Open the application and navigate to ${url}\n2. Reload/refresh the page (press F5, Ctrl+R, or Cmd+R)\n3. Observe that the page is not properly displayed after reloading/refreshing\n4. Check the browser console (F12) for any errors`
+        } else if (details.page) {
+          steps = `1. Open the application and navigate to the ${details.page} page\n2. Reload/refresh the page (press F5, Ctrl+R, or Cmd+R)\n3. Observe that the page is not properly displayed after reloading/refreshing\n4. Check the browser console (F12) for any errors`
         } else {
-          steps = `1. Navigate to the application\n2. Access the main page or feature\n3. Reload/refresh the page (press F5, Ctrl+R, or Cmd+R)\n4. Observe that the page is not properly displayed after reloading/refreshing\n5. Check browser console for any errors`
+          steps = `1. Open the application\n2. Navigate to the main page or feature\n3. Reload/refresh the page (press F5, Ctrl+R, or Cmd+R)\n4. Observe that the page is not properly displayed after reloading/refreshing\n5. Check the browser console (F12) for any errors`
         }
       } else if (lowerTitle.includes('display') || lowerDesc.includes('display') || lowerDesc.includes('not properly displayed') || lowerDesc.includes('not displayed')) {
-        if (extractedUrl) {
-          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Observe the page display\n4. Verify that the content is not properly displayed as expected`
+        if (details.url) {
+          const url = details.url.startsWith('/') ? details.url : '/' + details.url
+          steps = `1. Open the application and navigate to ${url}\n2. Observe the page display\n3. Verify that the content is not properly displayed as expected`
+          if (details.error) {
+            steps += `\n4. Check for error message: "${details.error}"`
+          }
+        } else if (details.page) {
+          steps = `1. Open the application and navigate to the ${details.page} page\n2. Observe the page display\n3. Verify that the content is not properly displayed as expected\n4. Check the browser console (F12) for any errors`
         } else {
-          steps = `1. Navigate to the application\n2. Access the page or feature\n3. Observe the page display\n4. Verify that the content is not properly displayed as expected\n5. Check browser console for any errors`
+          steps = `1. Open the application\n2. Navigate to the page or feature mentioned in the description\n3. Observe the page display\n4. Verify that the content is not properly displayed as expected\n5. Check the browser console (F12) for any errors`
         }
-      } else if (lowerTitle.includes('error') || lowerDesc.includes('error') || lowerDesc.includes('typeerror') || lowerDesc.includes('cannot read')) {
-        if (extractedUrl && extractedError) {
-          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Observe the error in the browser console: ${extractedError}\n4. Verify the page displays incorrectly or becomes unresponsive`
-        } else if (extractedUrl) {
-          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Observe the error message or broken behavior\n4. Check browser console for error details`
-        } else if (extractedError) {
-          steps = `1. Navigate to the application\n2. Perform the action that triggers the error\n3. Observe the error in the browser console: ${extractedError}\n4. Verify the issue occurs as described`
+      } else if (lowerTitle.includes('error') || lowerDesc.includes('error') || lowerDesc.includes('typeerror') || lowerDesc.includes('cannot read') || lowerDesc.includes('referenceerror')) {
+        if (details.url && details.error) {
+          const url = details.url.startsWith('/') ? details.url : '/' + details.url
+          steps = `1. Open the application and navigate to ${url}\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Perform the action that triggers the error'}\n3. Observe the error in the browser console (F12): "${details.error}"\n4. Verify the page displays incorrectly or becomes unresponsive`
+        } else if (details.url) {
+          const url = details.url.startsWith('/') ? details.url : '/' + details.url
+          steps = `1. Open the application and navigate to ${url}\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Perform the action described'}\n3. Observe the error message or broken behavior\n4. Check the browser console (F12) for error details`
+        } else if (details.error) {
+          steps = `1. Open the application\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Perform the action that triggers the error'}\n3. Observe the error in the browser console (F12): "${details.error}"\n4. Verify the issue occurs as described`
         } else {
-          steps = `1. Navigate to the application\n2. Perform the action that triggers the error\n3. Observe the error message or behavior\n4. Check browser console for error details`
+          steps = `1. Open the application\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Perform the action that triggers the error'}\n3. Observe the error message or behavior\n4. Check the browser console (F12) for error details`
         }
       } else if (lowerDesc.includes('visit') || lowerDesc.includes('navigate') || lowerDesc.includes('go to')) {
-        if (extractedUrl) {
-          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Observe the issue or unexpected behavior\n4. Verify the problem occurs consistently`
+        if (details.url) {
+          const url = details.url.startsWith('/') ? details.url : '/' + details.url
+          steps = `1. Open the application and navigate to ${url}\n2. ${details.uiElements.length > 0 ? `Interact with "${details.uiElements[0]}"` : 'Perform the action described'}\n3. Observe the issue or unexpected behavior\n4. Verify the problem occurs consistently`
         } else {
-          // Extract action from description
-          const actionMatch = description.match(/(?:when|after|upon)\s+(?:the\s+)?(?:user\s+)?(?:visits|navigates|goes to|accesses)\s+(.+?)(?:$|\.|,)/i)
-          if (actionMatch) {
-            const action = actionMatch[1].trim()
-            steps = `1. Navigate to the application\n2. ${action.charAt(0).toUpperCase() + action.slice(1)}\n3. Observe the issue or unexpected behavior\n4. Verify the problem occurs as described`
-          } else {
-            steps = `1. Navigate to the application\n2. Perform the action described in the bug\n3. Observe the issue or unexpected behavior\n4. Verify the problem occurs consistently`
-          }
+          steps = `1. Open the application\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Navigate to the page or feature mentioned in the description'}\n3. Observe the issue or unexpected behavior\n4. Verify the problem occurs as described`
         }
       } else if (lowerTitle.includes('broken') || lowerDesc.includes('broken')) {
-        if (extractedUrl) {
-          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Observe the broken behavior or display issue\n4. Check browser console for any errors`
+        if (details.url) {
+          const url = details.url.startsWith('/') ? details.url : '/' + details.url
+          steps = `1. Open the application and navigate to ${url}\n2. ${details.uiElements.length > 0 ? `Interact with "${details.uiElements[0]}"` : 'Perform the expected action'}\n3. Observe the broken behavior or display issue\n4. Check the browser console (F12) for any errors`
+        } else if (details.page) {
+          steps = `1. Open the application and navigate to the ${details.page} page\n2. ${details.uiElements.length > 0 ? `Interact with "${details.uiElements[0]}"` : 'Perform the expected action'}\n3. Observe the broken behavior or display issue\n4. Check the browser console (F12) for any errors`
         } else {
-          steps = `1. Navigate to the application\n2. Access the affected feature or page\n3. Perform the expected action\n4. Observe the broken behavior`
+          steps = `1. Open the application\n2. Navigate to the affected feature or page\n3. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Perform the expected action'}\n4. Observe the broken behavior`
         }
-      } else if (lowerTitle.includes('not working') || lowerDesc.includes('not working') || lowerTitle.includes('working') || lowerDesc.includes('working')) {
-        if (extractedUrl) {
-          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Perform the action that should work\n4. Observe that the feature is not working as expected\n5. Check browser console for any errors`
+      } else if (lowerTitle.includes('not working') || lowerDesc.includes('not working') || (lowerTitle.includes('working') && lowerDesc.includes('not'))) {
+        if (details.url) {
+          const url = details.url.startsWith('/') ? details.url : '/' + details.url
+          steps = `1. Open the application and navigate to ${url}\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Perform the action that should work'}\n3. ${details.inputs.length > 0 ? `Enter "${details.inputs[0]}" if required` : ''}\n4. Observe that the feature is not working as expected\n5. Check the browser console (F12) for any errors`
+        } else if (details.page) {
+          steps = `1. Open the application and navigate to the ${details.page} page\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Perform the action that should work'}\n3. Observe that the feature is not working as expected\n4. Check the browser console (F12) for any errors`
         } else {
-          steps = `1. Navigate to the application\n2. Access the main page or feature\n3. Perform the action that should work\n4. Observe that the feature is not working as expected\n5. Check browser console for any errors`
+          steps = `1. Open the application\n2. Navigate to the main page or feature\n3. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Perform the action that should work'}\n4. Observe that the feature is not working as expected\n5. Check the browser console (F12) for any errors`
         }
       } else {
         // Try to extract specific information from description
@@ -718,8 +851,9 @@ export default {
           .map(s => s.trim())
           .filter(s => s.length > 0)
         
-        if (sentences.length > 0 && extractedUrl) {
-          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. ${sentences[0]}\n4. Observe the issue or unexpected behavior`
+        if (sentences.length > 0 && details.url) {
+          const url = details.url.startsWith('/') ? details.url : '/' + details.url
+          steps = `1. Open the application and navigate to ${url}\n2. ${sentences[0]}\n3. Observe the issue or unexpected behavior`
         } else if (sentences.length > 0) {
           // Use action-oriented sentences as steps
           const actionSteps = sentences.slice(0, 3).map((sentence, index) => {
@@ -734,11 +868,93 @@ export default {
           // Add observation step
           steps = `${actionSteps}\n${sentences.length + 1}. Observe the issue or unexpected behavior`
         } else {
-          // Generic fallback - always generate complete steps
-          if (extractedUrl) {
-            steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Perform the action described in the bug\n4. Observe the issue or unexpected behavior\n5. Check browser console for any errors`
+          // Intelligent fallback using extracted details
+          const stepParts = []
+          
+          // Step 1: Navigation
+          if (details.url) {
+            if (details.url.startsWith('http')) {
+              stepParts.push(`1. Open the application and navigate to ${details.url}`)
+            } else if (details.url.startsWith('/')) {
+              stepParts.push(`1. Open the application and navigate to ${details.url}`)
+            } else {
+              stepParts.push(`1. Open the application and navigate to /${details.url}`)
+            }
+          } else if (details.page) {
+            stepParts.push(`1. Open the application and navigate to the ${details.page} page`)
           } else {
-            steps = `1. Navigate to the application\n2. Access the page or feature mentioned in the description\n3. Perform the action described in the bug\n4. Observe the issue or unexpected behavior\n5. Check browser console for any errors`
+            stepParts.push(`1. Open the application`)
+          }
+          
+          // Step 2: UI interactions
+          let stepNum = 2
+          if (details.uiElements.length > 0) {
+            details.uiElements.slice(0, 2).forEach((element, idx) => {
+              stepParts.push(`${stepNum}. Click on the "${element}" ${details.actions[idx] ? details.actions[idx] : 'element'}`)
+              stepNum++
+            })
+          } else if (details.actions.length > 0) {
+            details.actions.slice(0, 2).forEach((action) => {
+              stepParts.push(`${stepNum}. ${action.charAt(0).toUpperCase() + action.slice(1)}`)
+              stepNum++
+            })
+          }
+          
+          // Step 3: Input data
+          if (details.inputs.length > 0) {
+            details.inputs.slice(0, 1).forEach((input) => {
+              stepParts.push(`${stepNum}. Enter "${input}" in the appropriate field`)
+              stepNum++
+            })
+          }
+          
+          // Step 4: Specific action or observation
+          if (details.error) {
+            stepParts.push(`${stepNum}. Observe that the error "${details.error}" appears`)
+            stepNum++
+          } else {
+            // Try to extract a specific action from description
+            const actionSentences = description.split(/[.!?]/)
+              .filter(s => {
+                const trimmed = s.trim().toLowerCase()
+                return trimmed.length > 15 && trimmed.length < 100 &&
+                  (trimmed.includes('click') || trimmed.includes('type') || trimmed.includes('select') ||
+                   trimmed.includes('navigate') || trimmed.includes('open') || trimmed.includes('access'))
+              })
+              .slice(0, 1)
+            
+            if (actionSentences.length > 0) {
+              const action = actionSentences[0].trim()
+              stepParts.push(`${stepNum}. ${action.charAt(0).toUpperCase() + action.slice(1)}`)
+              stepNum++
+            } else {
+              stepParts.push(`${stepNum}. Perform the action described in the bug report`)
+              stepNum++
+            }
+          }
+          
+          // Final step: Observation
+          if (details.error) {
+            stepParts.push(`${stepNum}. Check the browser console for error details`)
+          } else {
+            stepParts.push(`${stepNum}. Observe the issue or unexpected behavior described in the bug report`)
+          }
+          
+          steps = stepParts.join('\n')
+          
+          // Fallback to generic if we couldn't extract enough details
+          if (stepParts.length < 3) {
+            if (details.url) {
+              steps = `1. Open the application and navigate to ${details.url.startsWith('/') ? details.url : '/' + details.url}\n2. Perform the specific action mentioned in the bug description\n3. Observe the issue: ${description.substring(0, 100)}${description.length > 100 ? '...' : ''}\n4. Check the browser console (F12) for any error messages`
+            } else {
+              // Try to use first sentence of description as a step
+              const firstSentence = description.split(/[.!?]/)[0].trim()
+              if (firstSentence && firstSentence.length > 20 && firstSentence.length < 150) {
+                steps = `1. Open the application\n2. ${firstSentence.charAt(0).toUpperCase() + firstSentence.slice(1)}\n3. Observe the issue or unexpected behavior\n4. Check the browser console (F12) for any error messages or warnings`
+              } else {
+                steps = `1. Open the application\n2. Follow the scenario described in the bug report\n3. Observe the issue: ${description.substring(0, 80)}${description.length > 80 ? '...' : ''}\n4. Check the browser console (F12) for any error messages`
+              }
+            }
           }
         }
       }
