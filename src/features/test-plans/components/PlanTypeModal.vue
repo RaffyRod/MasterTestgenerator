@@ -1,34 +1,36 @@
 <template>
-  <div v-if="show" class="plan-type-modal-overlay" @click.self="handleClose">
-    <div class="plan-type-modal-container">
-      <div class="modal-header">
-        <h2>Select Test Plan Type</h2>
-        <button @click="handleClose" class="modal-close-btn" aria-label="Close modal">×</button>
-      </div>
-      <div class="modal-body">
-        <p class="modal-description">Choose the type of test plan you want to generate:</p>
-        <div class="plan-type-grid">
-          <button
-            v-for="type in testPlanTypes"
-            :key="type.id"
-            @click="handleSelect(type.id)"
-            class="plan-type-card"
-            :class="{ active: selectedType === type.id }"
-          >
-            <span class="plan-type-icon">{{ type.icon }}</span>
-            <h3>{{ type.name }}</h3>
-            <p>{{ type.description }}</p>
+  <Teleport to="body">
+    <div v-if="show" class="plan-type-modal-overlay" @click.self="handleClose">
+      <div class="plan-type-modal-container">
+        <div class="modal-header">
+          <h2>Select Test Plan Type</h2>
+          <button @click="handleClose" class="modal-close-btn" aria-label="Close modal">×</button>
+        </div>
+        <div class="modal-body">
+          <p class="modal-description">Choose the type of test plan you want to generate:</p>
+          <div class="plan-type-grid">
+            <button
+              v-for="type in testPlanTypes"
+              :key="type.id"
+              @click="handleSelect(type.id)"
+              class="plan-type-card"
+              :class="{ active: selectedType === type.id }"
+            >
+              <span class="plan-type-icon">{{ type.icon }}</span>
+              <h3>{{ type.name }}</h3>
+              <p>{{ type.description }}</p>
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button @click="handleClose" class="btn btn-secondary">Cancel</button>
+          <button @click="handleConfirm" :disabled="!selectedType" class="btn btn-primary">
+            Generate Plan
           </button>
         </div>
       </div>
-      <div class="modal-footer">
-        <button @click="handleClose" class="btn btn-secondary">Cancel</button>
-        <button @click="handleConfirm" :disabled="!selectedType" class="btn btn-primary">
-          Generate Plan
-        </button>
-      </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script>
@@ -194,7 +196,7 @@ export default {
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
-  z-index: 1000;
+  z-index: 10000;
   backdrop-filter: blur(4px);
   animation: fadeIn 0.3s ease;
 }
@@ -210,11 +212,14 @@ export default {
   max-width: 800px;
   width: 90%;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow: hidden;
   border: 1px solid var(--border-color);
   animation: slideUp 0.3s ease;
   margin: 0;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  z-index: 10001;
 }
 
 [data-theme='light'] .plan-type-modal-container {
@@ -247,6 +252,11 @@ export default {
   align-items: center;
   padding: 1.5rem 2rem;
   border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  background: var(--bg-primary);
+  position: sticky;
+  top: 0;
+  z-index: 10001;
 }
 
 .modal-header h2 {
@@ -286,6 +296,27 @@ export default {
 
 .modal-body {
   padding: 2rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary-color);
 }
 
 .modal-description {
@@ -304,8 +335,8 @@ export default {
 
 .plan-type-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.75rem;
 }
 
 @media (max-width: 768px) {
@@ -326,15 +357,15 @@ export default {
   background: var(--bg-secondary);
   border: 2px solid var(--border-color);
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: 1rem;
   cursor: pointer;
   transition: var(--transition);
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
-  min-height: 140px;
+  gap: 0.5rem;
+  min-height: 100px;
   touch-action: manipulation;
 }
 
@@ -345,24 +376,28 @@ export default {
 
 @media (max-width: 768px) {
   .plan-type-card {
-    padding: 1.25rem;
-    min-height: 120px;
+    padding: 0.875rem;
+    min-height: 95px;
   }
 
   .plan-type-card h3 {
-    font-size: 1rem;
+    font-size: 0.85rem;
   }
 
   .plan-type-card p {
-    font-size: 0.85rem;
+    font-size: 0.7rem;
+  }
+
+  .plan-type-icon {
+    font-size: 1.75rem;
   }
 }
 
 @media (max-width: 480px) {
   .plan-type-card {
-    padding: 1rem;
-    min-height: 110px;
-    gap: 0.5rem;
+    padding: 0.75rem;
+    min-height: 90px;
+    gap: 0.4rem;
   }
 
   .plan-type-icon {
@@ -370,12 +405,12 @@ export default {
   }
 
   .plan-type-card h3 {
-    font-size: 0.95rem;
+    font-size: 0.8rem;
   }
 
   .plan-type-card p {
-    font-size: 0.8rem;
-    line-height: 1.4;
+    font-size: 0.65rem;
+    line-height: 1.3;
   }
 }
 
@@ -414,22 +449,23 @@ export default {
 }
 
 .plan-type-icon {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
+  font-size: 2rem;
+  margin-bottom: 0.25rem;
 }
 
 .plan-type-card h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: var(--text-primary);
+  line-height: 1.3;
 }
 
 .plan-type-card p {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: var(--text-secondary);
-  line-height: 1.4;
+  line-height: 1.3;
 }
 
 .modal-footer {
@@ -439,6 +475,11 @@ export default {
   padding: 1.5rem 2rem;
   border-top: 1px solid var(--border-color);
   align-items: center;
+  flex-shrink: 0;
+  background: var(--bg-primary);
+  position: sticky;
+  bottom: 0;
+  z-index: 10001;
 }
 
 .btn {
