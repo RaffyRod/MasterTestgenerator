@@ -600,6 +600,19 @@ export default {
     watch(showTitleSelection, (newVal) => {
       if (newVal && hasDifferentTitles.value) {
         updatePopoverPosition();
+        // Close popover when clicking outside
+        nextTick(() => {
+          const handleClickOutside = (event) => {
+            const popover = document.querySelector('.title-selection-popover');
+            if (popover && !popover.contains(event.target) && !titleInputRef.value?.contains(event.target)) {
+              showTitleSelection.value = false;
+              document.removeEventListener('click', handleClickOutside);
+            }
+          };
+          setTimeout(() => {
+            document.addEventListener('click', handleClickOutside);
+          }, 100);
+        });
       }
     });
 
