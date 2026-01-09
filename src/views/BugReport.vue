@@ -624,57 +624,121 @@ export default {
       const lowerDesc = description.toLowerCase()
       const lowerTitle = title.toLowerCase()
       
-      // Extract URLs/routes (more comprehensive patterns)
+      // Extract URLs/routes (dynamic patterns to catch all variations)
       const urlPatterns = [
-        /(?:url|route|path|page|visit|navigate|go to|access|open|load)\s+(?:to\s+)?(?:the\s+)?([\/a-z0-9\-_]+(?:\/[a-z0-9\-_]+)*)/i,
-        /(?:at|on)\s+([\/a-z0-9\-_]+(?:\/[a-z0-9\-_]+)*)/i,
-        /(https?:\/\/[^\s]+)/i,
-        /([\/][a-z0-9\-_]+(?:\/[a-z0-9\-_]+)*)/i
+        // Full URLs with protocol
+        /(https?:\/\/[^\s\)]+)/i,
+        // Routes with explicit keywords (url, route, path, etc.)
+        /(?:url|route|path|endpoint|api|page|visit|navigate|navigating|go to|goes to|going to|access|accessing|open|opening|load|loading)\s+(?:to\s+)?(?:the\s+)?['"]?([\/]?[a-z0-9\-_.]+(?:\/[a-z0-9\-_.]+)*(?:\?[^\s\)]+)?)['"]?/i,
+        // Routes mentioned with "at", "on", "in"
+        /(?:at|on|in)\s+(?:the\s+)?['"]?([\/]?[a-z0-9\-_.]+(?:\/[a-z0-9\-_.]+)*(?:\?[^\s\)]+)?)['"]?/i,
+        // Routes with slash at start (absolute paths)
+        /([\/][a-z0-9\-_.]+(?:\/[a-z0-9\-_.]+)*(?:\?[^\s\)]+)?)/i,
+        // Routes without slash (relative paths) - more flexible
+        /(?:to|from|of)\s+['"]?([a-z0-9\-_.]+(?:\/[a-z0-9\-_.]+)*(?:\?[^\s\)]+)?)['"]?/i,
+        // Routes with IDs or dynamic segments (numbers, UUIDs, etc.)
+        /([\/]?[a-z0-9\-_.]+\/[a-z0-9\-_.]+\/[0-9a-f\-]+)/i,
+        // Common route patterns (dashboard, login, users, etc.)
+        /(?:the\s+)?(dashboard|login|logout|signin|signout|signup|register|profile|settings|admin|users|posts|articles|pages|home|index)(?:\s+page|\s+route|\s+path)?/i
       ]
       let extractedUrl = null
       for (const pattern of urlPatterns) {
-        const match = description.match(pattern)
-        if (match && match[1]) {
-          extractedUrl = match[1].trim()
-          break
+        const matches = [...description.matchAll(pattern)]
+        for (const match of matches) {
+          // Get the captured group (could be match[0] for full match or match[1] for group)
+          const url = (match[1] || match[0]).trim()
+          // Validate it looks like a route/URL
+          if (url && url.length > 1 && url.length < 200) {
+            // Skip if it's just a common word without context
+            const commonWords = ['the', 'page', 'route', 'path', 'url', 'link', 'button', 'field']
+            if (!commonWords.includes(url.toLowerCase())) {
+              extractedUrl = url
+              break
+            }
+          }
+        }
+        if (extractedUrl) break
+      }
+      
+      // Clean up extracted URL
+      if (extractedUrl) {
+        // Remove trailing punctuation
+        extractedUrl = extractedUrl.replace(/[.,;:!?]+$/, '')
+        // Ensure it starts with / if it's a relative path and doesn't have protocol
+        if (!extractedUrl.startsWith('http') && !extractedUrl.startsWith('/') && extractedUrl.includes('/')) {
+          extractedUrl = '/' + extractedUrl
         }
       }
       
-      // Extract UI elements (buttons, fields, menus, etc.)
+      // Extract UI elements (buttons, fields, menus, etc.) - dynamic patterns
       const uiElements = []
       const uiPatterns = [
-        /(?:click|press|select|choose|use)\s+(?:the\s+)?(?:on\s+)?['"]([^'"]+)['"]/gi,
-        /(?:click|press|select|choose|use)\s+(?:the\s+)?(?:on\s+)?(button|link|menu|field|input|dropdown|select|checkbox|radio|tab|icon)[\s:]+['"]?([^'",.\n]+)['"]?/gi,
-        /(?:in|on|from)\s+(?:the\s+)?['"]([^'"]+)['"]\s+(?:button|field|menu|link|tab)/gi,
-        /(?:field|input|textbox|text\s+field)[\s:]+['"]?([^'",.\n]+)['"]?/gi
+        // Elements in quotes
+        /(?:click|press|select|choose|use|tap|hit)\s+(?:the\s+)?(?:on\s+)?['"]([^'"]+)['"]/gi,
+        // Elements with type specified (button, link, etc.)
+        /(?:click|press|select|choose|use|tap|hit)\s+(?:the\s+)?(?:on\s+)?(?:the\s+)?(button|link|menu|field|input|dropdown|select|checkbox|radio|tab|icon|option|item|element)[\s:]+['"]?([^'",.\n\)]+)['"]?/gi,
+        // Elements mentioned with "in", "on", "from"
+        /(?:in|on|from|with)\s+(?:the\s+)?['"]([^'"]+)['"]\s+(?:button|field|menu|link|tab|input|dropdown|select)/gi,
+        // Field/input patterns
+        /(?:field|input|textbox|text\s+field|textbox|textarea|form\s+field)[\s:]+['"]?([^'",.\n\)]+)['"]?/gi,
+        // Button/link patterns
+        /(?:button|link|menu|tab)[\s:]+['"]?([^'",.\n\)]+)['"]?/gi,
+        // Generic element mentions
+        /(?:the|a|an)\s+['"]([^'"]+)['"]\s+(?:button|link|field|menu|tab|input)/gi,
+        // Elements after action verbs
+        /(?:clicking|pressing|selecting|choosing|using|tapping)\s+(?:on\s+)?(?:the\s+)?['"]?([^'",.\n\)]+)['"]?/gi
       ]
       for (const pattern of uiPatterns) {
         const matches = [...description.matchAll(pattern)]
         matches.forEach(match => {
-          if (match[1] || match[2]) {
-            const element = (match[1] || match[2]).trim()
-            if (element && element.length > 2 && element.length < 50) {
-              uiElements.push(element)
+          const element = (match[1] || match[2] || match[0]).trim()
+          if (element && element.length > 1 && element.length < 60) {
+            // Clean up common prefixes/suffixes
+            const cleaned = element
+              .replace(/^(the|a|an)\s+/i, '')
+              .replace(/\s+(button|link|field|menu|tab|input|dropdown)$/i, '')
+              .trim()
+            if (cleaned && cleaned.length > 1) {
+              uiElements.push(cleaned)
             }
           }
         })
       }
       
-      // Extract specific actions
+      // Extract specific actions - dynamic patterns
       const actions = []
       const actionPatterns = [
-        /(?:click|press|tap)\s+(?:on\s+)?(?:the\s+)?['"]?([^'",.\n]+)['"]?/gi,
-        /(?:type|enter|input|fill|write)\s+(?:in\s+)?(?:the\s+)?['"]?([^'",.\n]+)['"]?\s+(?:field|input|textbox)/gi,
-        /(?:select|choose|pick)\s+(?:from\s+)?(?:the\s+)?['"]?([^'",.\n]+)['"]?/gi,
-        /(?:scroll|navigate|go|move)\s+(?:to\s+)?(?:the\s+)?['"]?([^'",.\n]+)['"]?/gi
+        // Click/press actions
+        /(?:click|press|tap|hit)\s+(?:on\s+)?(?:the\s+)?['"]?([^'",.\n\)]+)['"]?/gi,
+        // Type/enter actions
+        /(?:type|enter|input|fill|write|insert)\s+(?:in\s+)?(?:the\s+)?['"]?([^'",.\n\)]+)['"]?\s+(?:field|input|textbox|box)/gi,
+        // Select/choose actions
+        /(?:select|choose|pick)\s+(?:from\s+)?(?:the\s+)?['"]?([^'",.\n\)]+)['"]?/gi,
+        // Navigate/scroll actions
+        /(?:scroll|navigate|go|move|browse)\s+(?:to\s+)?(?:the\s+)?['"]?([^'",.\n\)]+)['"]?/gi,
+        // Submit/save actions
+        /(?:submit|save|send|upload|download)\s+(?:the\s+)?['"]?([^'",.\n\)]+)['"]?/gi,
+        // Delete/remove actions
+        /(?:delete|remove|clear)\s+(?:the\s+)?['"]?([^'",.\n\)]+)['"]?/gi,
+        // Open/close actions
+        /(?:open|close|expand|collapse)\s+(?:the\s+)?['"]?([^'",.\n\)]+)['"]?/gi,
+        // Generic action verbs with objects
+        /(?:perform|execute|trigger|activate)\s+(?:the\s+)?['"]?([^'",.\n\)]+)['"]?/gi
       ]
       for (const pattern of actionPatterns) {
         const matches = [...description.matchAll(pattern)]
         matches.forEach(match => {
           if (match[1]) {
             const action = match[1].trim()
-            if (action && action.length > 2 && action.length < 50) {
-              actions.push(action)
+            // More flexible length validation
+            if (action && action.length > 1 && action.length < 80) {
+              // Clean up common words
+              const cleaned = action
+                .replace(/^(the|a|an)\s+/i, '')
+                .trim()
+              if (cleaned && cleaned.length > 1) {
+                actions.push(cleaned)
+              }
             }
           }
         })
