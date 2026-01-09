@@ -120,12 +120,14 @@ function formatJira(bugData, evidenceList) {
   // Also fix common typos and spacing issues in title
   let cleanTitle = cleanTextForJira(title, true) // Remove headings from title
   
-  // Fix common spacing issues (e.g., "pageis" -> "page is", "properl" -> "properly")
+  // Fix common spacing issues and typos
   cleanTitle = cleanTitle.replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between lowercase and uppercase
+  cleanTitle = cleanTitle.replace(/\boage\b/gi, 'page') // Fix "oage" -> "page"
   cleanTitle = cleanTitle.replace(/(page)(is|was|are|were)/gi, '$1 $2') // Fix "pageis" -> "page is"
   cleanTitle = cleanTitle.replace(/(properl)(y|ies)/gi, 'properly') // Fix "properl" -> "properly"
   cleanTitle = cleanTitle.replace(/(loadin)(g)/gi, 'loading') // Fix "loadin" -> "loading"
   cleanTitle = cleanTitle.replace(/(displaye)(d)/gi, 'displayed') // Fix "displaye" -> "displayed"
+  cleanTitle = cleanTitle.replace(/(workin)(g)/gi, 'working') // Fix "workin" -> "working"
   cleanTitle = cleanTitle.replace(/\s+/g, ' ') // Normalize multiple spaces
   cleanTitle = cleanTitle.trim()
   
@@ -142,11 +144,17 @@ function formatJira(bugData, evidenceList) {
     // Split by newlines and process each line
     const lines = steps.split('\n').filter(line => line.trim())
     
+    if (lines.length === 0) return ''
+    
+    // Convert each line to Jira numbered list format
     return lines.map(line => {
-      // Remove existing numbering (1., 2., etc.) and convert to Jira format
-      const cleaned = line.replace(/^\d+\.\s*/, '').trim()
+      // Remove existing numbering (1., 2., etc.) and clean the line
+      let cleaned = line.replace(/^\d+\.\s*/, '').trim()
       
-      // Jira numbered list format: # at the start of line
+      // Remove any leading dashes or bullets
+      cleaned = cleaned.replace(/^[-*•]\s*/, '').trim()
+      
+      // Jira numbered list format: # at the start of line (must be at column 0)
       // Each step must be on its own line with # prefix
       return `# ${cleaned}`
     }).join('\n')
@@ -201,6 +209,19 @@ function formatJira(bugData, evidenceList) {
       report += `{panel:title=Reproduction Steps|borderStyle=solid|borderColor=#0052CC|titleBGColor=#E3FCEF|bgColor=#FAFBFC}\n`
       report += `${formattedSteps}\n`
       report += `{panel}\n\n`
+    } else {
+      // Fallback: if formatting fails, use the raw steps
+      report += `*Steps to Reproduce:*\n\n`
+      report += `{panel:title=Reproduction Steps|borderStyle=solid|borderColor=#0052CC|titleBGColor=#E3FCEF|bgColor=#FAFBFC}\n`
+      // Convert to numbered list manually
+      const lines = cleanSteps.split('\n').filter(line => line.trim())
+      if (lines.length > 0) {
+        report += lines.map((line, index) => {
+          const cleaned = line.replace(/^\d+\.\s*/, '').trim()
+          return `# ${cleaned}`
+        }).join('\n')
+      }
+      report += `\n{panel}\n\n`
     }
   }
   

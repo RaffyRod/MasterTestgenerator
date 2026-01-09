@@ -682,6 +682,12 @@ export default {
         } else {
           steps = `1. Navigate to the application\n2. Access the affected feature or page\n3. Perform the expected action\n4. Observe the broken behavior`
         }
+      } else if (lowerTitle.includes('not working') || lowerDesc.includes('not working') || lowerTitle.includes('working') || lowerDesc.includes('working')) {
+        if (extractedUrl) {
+          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Perform the action that should work\n4. Observe that the feature is not working as expected\n5. Check browser console for any errors`
+        } else {
+          steps = `1. Navigate to the application\n2. Access the main page or feature\n3. Perform the action that should work\n4. Observe that the feature is not working as expected\n5. Check browser console for any errors`
+        }
       } else {
         // Try to extract specific information from description
         // Filter out sentences that are descriptions of the problem (not actions)
@@ -728,8 +734,12 @@ export default {
           // Add observation step
           steps = `${actionSteps}\n${sentences.length + 1}. Observe the issue or unexpected behavior`
         } else {
-          // Generic fallback
-          steps = `1. Navigate to the application\n2. Perform the action described in the bug\n3. Observe the issue or unexpected behavior\n4. Check browser console for any errors`
+          // Generic fallback - always generate complete steps
+          if (extractedUrl) {
+            steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Perform the action described in the bug\n4. Observe the issue or unexpected behavior\n5. Check browser console for any errors`
+          } else {
+            steps = `1. Navigate to the application\n2. Access the page or feature mentioned in the description\n3. Perform the action described in the bug\n4. Observe the issue or unexpected behavior\n5. Check browser console for any errors`
+          }
         }
       }
 
@@ -741,6 +751,8 @@ export default {
         expectedResult = 'The content should be displayed correctly as designed after reloading or accessing the page'
       } else if (lowerTitle.includes('reload') || lowerDesc.includes('reload') || lowerDesc.includes('after reloading') || lowerTitle.includes('refresh') || lowerDesc.includes('refresh') || lowerDesc.includes('after refreshing')) {
         expectedResult = 'The page should reload/refresh successfully and display all content correctly'
+      } else if (lowerTitle.includes('not working') || lowerDesc.includes('not working') || (lowerTitle.includes('working') && lowerDesc.includes('not'))) {
+        expectedResult = 'The feature should work correctly and perform the expected functionality'
       } else if (lowerTitle.includes('click') || lowerDesc.includes('click')) {
         expectedResult = 'The action should execute successfully when clicked'
       }
@@ -753,6 +765,8 @@ export default {
         actualResult = 'The page content is not properly displayed. Elements may be missing, misaligned, or not rendering correctly.'
       } else if (lowerTitle.includes('not loading')) {
         actualResult = 'The page/feature does not load. The user sees a blank page, error message, or the application becomes unresponsive.'
+      } else if (lowerTitle.includes('not working') || lowerDesc.includes('not working') || (lowerTitle.includes('working') && lowerDesc.includes('not'))) {
+        actualResult = 'The feature does not work as expected. The functionality fails, behaves incorrectly, or does not perform the intended action.'
       } else if (lowerTitle.includes('error') || lowerDesc.includes('error')) {
         actualResult = 'An error occurs. The user sees an error message, the application crashes, or unexpected behavior is observed.'
       } else {
