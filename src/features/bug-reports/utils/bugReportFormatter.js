@@ -204,7 +204,7 @@ function formatJira(bugData, evidenceList) {
   // Steps to Reproduce in a panel
   if (cleanSteps && cleanSteps.trim()) {
     report += `*Steps to Reproduce:*\n\n`
-    report += `{panel:title=Reproduction Steps|borderStyle=solid|borderColor=#0052CC|titleBGColor=#E3FCEF|bgColor=#FAFBFC}\n`
+    report += `{panel:title=Reproduction Steps}\n`
     
     // Always format steps as numbered list
     const lines = cleanSteps.split('\n').filter(line => line.trim())
@@ -232,14 +232,14 @@ function formatJira(bugData, evidenceList) {
     
     if (cleanExpected) {
       report += `*Expected Result:*\n`
-      report += `{panel:borderStyle=solid|borderColor=#36B37E|titleBGColor=#E3FCEF|bgColor=#FAFBFC}\n`
+      report += `{panel:title=Expected Result}\n`
       report += `${cleanExpected}\n`
       report += `{panel}\n\n`
     }
     
     if (cleanActual) {
       report += `*Actual Result:*\n`
-      report += `{panel:borderStyle=solid|borderColor=#DE350B|titleBGColor=#FFEBE6|bgColor=#FAFBFC}\n`
+      report += `{panel:title=Actual Result}\n`
       report += `${formatCodeBlock(cleanActual)}\n`
       report += `{panel}\n\n`
     }
@@ -248,7 +248,7 @@ function formatJira(bugData, evidenceList) {
   // Evidence section
   if (evidenceList && evidenceList !== 'No evidence files attached') {
     report += `*Evidence:*\n\n`
-    report += `{panel:title=Attachments|borderStyle=solid|borderColor=#ccc|titleBGColor=#f4f5f7|bgColor=#ffffff}\n`
+    report += `{panel:title=Attachments}\n`
     report += `${evidenceList}\n`
     report += `{panel}\n\n`
   }
@@ -256,7 +256,7 @@ function formatJira(bugData, evidenceList) {
   // Additional Information
   if (cleanAdditional) {
     report += `*Additional Information:*\n\n`
-    report += `{panel:borderStyle=solid|borderColor=#ccc|bgColor=#FAFBFC}\n`
+    report += `{panel:title=Additional Information}\n`
     report += `${cleanAdditional}\n`
     report += `{panel}\n`
   }
