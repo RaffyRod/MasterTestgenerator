@@ -641,6 +641,18 @@ export default {
         } else {
           steps = `1. Navigate to the application\n2. Attempt to access the page or feature\n3. Observe that the page/feature does not load\n4. Check browser console for any errors`
         }
+      } else if (lowerTitle.includes('reload') || lowerDesc.includes('reload') || lowerDesc.includes('after reloading')) {
+        if (extractedUrl) {
+          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Reload the page (press F5 or Ctrl+R / Cmd+R)\n4. Observe that the page is not properly displayed after reloading`
+        } else {
+          steps = `1. Navigate to the application\n2. Access the main page or feature\n3. Reload the page (press F5 or Ctrl+R / Cmd+R)\n4. Observe that the page is not properly displayed after reloading\n5. Check browser console for any errors`
+        }
+      } else if (lowerTitle.includes('display') || lowerDesc.includes('display') || lowerDesc.includes('not properly displayed') || lowerDesc.includes('not displayed')) {
+        if (extractedUrl) {
+          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Observe the page display\n4. Verify that the content is not properly displayed as expected`
+        } else {
+          steps = `1. Navigate to the application\n2. Access the page or feature\n3. Observe the page display\n4. Verify that the content is not properly displayed as expected\n5. Check browser console for any errors`
+        }
       } else if (lowerTitle.includes('error') || lowerDesc.includes('error') || lowerDesc.includes('typeerror') || lowerDesc.includes('cannot read')) {
         if (extractedUrl && extractedError) {
           steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. Observe the error in the browser console: ${extractedError}\n4. Verify the page displays incorrectly or becomes unresponsive`
@@ -672,32 +684,52 @@ export default {
         }
       } else {
         // Try to extract specific information from description
-        const sentences = description.split(/[.!?]/).filter(s => s.trim().length > 0 && s.trim().length > 10)
-        if (sentences.length > 0) {
-          // Use first sentence as step 1, extract URL if present
-          const firstSentence = sentences[0].trim()
-          if (extractedUrl) {
-            steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. ${firstSentence}\n4. Observe the issue or unexpected behavior`
-          } else {
-            steps = sentences
-              .slice(0, 4)
-              .map((sentence, index) => {
-                const cleaned = sentence.trim()
-                if (index === 0 && !cleaned.toLowerCase().includes('navigate') && !cleaned.toLowerCase().includes('access')) {
-                  return `${index + 1}. Navigate to the application\n${index + 2}. ${cleaned}`
-                }
-                return `${index + 1}. ${cleaned}`
-              })
-              .join('\n')
-              .split('\n')
-              .filter((line, idx, arr) => {
-                // Remove duplicates
-                return idx === 0 || !arr.slice(0, idx).some(prev => prev.trim() === line.trim())
-              })
-              .join('\n')
-          }
+        // Filter out sentences that are descriptions of the problem (not actions)
+        const problemIndicators = ['not', 'is not', 'does not', 'fails', 'broken', 'error', 'issue', 'problem']
+        const sentences = description.split(/[.!?]/)
+          .filter(s => {
+            const trimmed = s.trim()
+            // Filter out very short sentences
+            if (trimmed.length < 10) return false
+            // Filter out sentences that are just describing the problem
+            const lower = trimmed.toLowerCase()
+            const isProblemDescription = problemIndicators.some(indicator => 
+              lower.includes(indicator) && (lower.includes('display') || lower.includes('work') || lower.includes('load'))
+            )
+            // Keep action-oriented sentences, not problem descriptions
+            return !isProblemDescription && (
+              lower.includes('navigate') || 
+              lower.includes('access') || 
+              lower.includes('click') || 
+              lower.includes('enter') || 
+              lower.includes('select') ||
+              lower.includes('reload') ||
+              lower.includes('refresh') ||
+              lower.includes('open') ||
+              lower.includes('visit')
+            )
+          })
+          .map(s => s.trim())
+          .filter(s => s.length > 0)
+        
+        if (sentences.length > 0 && extractedUrl) {
+          steps = `1. Navigate to the application\n2. Access the URL: ${extractedUrl}\n3. ${sentences[0]}\n4. Observe the issue or unexpected behavior`
+        } else if (sentences.length > 0) {
+          // Use action-oriented sentences as steps
+          const actionSteps = sentences.slice(0, 3).map((sentence, index) => {
+            const cleaned = sentence.trim()
+            // Ensure first step is navigation if not already present
+            if (index === 0 && !cleaned.toLowerCase().includes('navigate') && !cleaned.toLowerCase().includes('access')) {
+              return `1. Navigate to the application\n2. ${cleaned}`
+            }
+            return `${index + 1}. ${cleaned}`
+          }).join('\n')
+          
+          // Add observation step
+          steps = `${actionSteps}\n${sentences.length + 1}. Observe the issue or unexpected behavior`
         } else {
-          steps = `1. Navigate to the application\n2. Perform the action described in the bug\n3. Observe the issue or unexpected behavior`
+          // Generic fallback
+          steps = `1. Navigate to the application\n2. Perform the action described in the bug\n3. Observe the issue or unexpected behavior\n4. Check browser console for any errors`
         }
       }
 
@@ -705,23 +737,31 @@ export default {
       let expectedResult = 'The feature should work as expected without errors'
       if (lowerTitle.includes('loading') || lowerDesc.includes('loading')) {
         expectedResult = 'The page/feature should load correctly and display the expected content'
-      } else if (lowerTitle.includes('display') || lowerDesc.includes('display')) {
-        expectedResult = 'The content should be displayed correctly as designed'
+      } else if (lowerTitle.includes('display') || lowerDesc.includes('display') || lowerDesc.includes('not properly displayed')) {
+        expectedResult = 'The content should be displayed correctly as designed after reloading or accessing the page'
+      } else if (lowerTitle.includes('reload') || lowerDesc.includes('reload') || lowerDesc.includes('after reloading')) {
+        expectedResult = 'The page should reload successfully and display all content correctly'
       } else if (lowerTitle.includes('click') || lowerDesc.includes('click')) {
         expectedResult = 'The action should execute successfully when clicked'
       }
 
-      // Generate actual result - use description but make it more specific
-      let actualResult = description.trim() || 'The issue occurs as described'
-      if (actualResult.length > 150) {
-        actualResult = actualResult.substring(0, 150) + '...'
-      }
-      // If actual result is just repeating description, make it more specific
-      if (actualResult.toLowerCase() === description.toLowerCase().substring(0, actualResult.length).toLowerCase()) {
-        if (lowerTitle.includes('not loading')) {
-          actualResult = 'The page/feature does not load. The user sees a blank page, error message, or the application becomes unresponsive.'
-        } else if (lowerTitle.includes('error')) {
-          actualResult = 'An error occurs. The user sees an error message, the application crashes, or unexpected behavior is observed.'
+      // Generate actual result - make it specific based on the issue
+      let actualResult = ''
+      if (lowerTitle.includes('reload') || lowerDesc.includes('reload') || lowerDesc.includes('after reloading')) {
+        actualResult = 'After reloading the page, the content is not properly displayed. The page may show a blank screen, partial content, or layout issues.'
+      } else if (lowerTitle.includes('display') || lowerDesc.includes('display') || lowerDesc.includes('not properly displayed')) {
+        actualResult = 'The page content is not properly displayed. Elements may be missing, misaligned, or not rendering correctly.'
+      } else if (lowerTitle.includes('not loading')) {
+        actualResult = 'The page/feature does not load. The user sees a blank page, error message, or the application becomes unresponsive.'
+      } else if (lowerTitle.includes('error') || lowerDesc.includes('error')) {
+        actualResult = 'An error occurs. The user sees an error message, the application crashes, or unexpected behavior is observed.'
+      } else {
+        // Use description but make it more specific
+        const desc = description.trim()
+        if (desc.length > 0 && desc.length <= 200) {
+          actualResult = desc
+        } else if (desc.length > 200) {
+          actualResult = desc.substring(0, 197) + '...'
         } else {
           actualResult = 'The issue occurs as described. The expected behavior does not happen and the user experiences the problem.'
         }

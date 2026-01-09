@@ -124,24 +124,21 @@ function formatJira(bugData, evidenceList) {
   const cleanActual = cleanTextForJira(actualResult)
   const cleanAdditional = cleanTextForJira(additionalInfo)
 
-  // Format steps as numbered list if they contain line breaks
+  // Format steps as numbered list for Jira
   const formatSteps = (steps) => {
     if (!steps) return ''
-    // If steps already contain numbered lines (1., 2., etc.), keep them
-    if (steps.match(/^\d+\./m)) {
-      return steps.split('\n').map(line => {
-        // Ensure proper Jira list format
-        if (line.match(/^\d+\./)) {
-          return `# ${line.replace(/^\d+\.\s*/, '')}`
-        }
-        return line.trim() ? `# ${line.trim()}` : ''
-      }).filter(line => line).join('\n')
-    }
-    // Otherwise, split by newlines and number them
-    return steps.split('\n')
-      .filter(line => line.trim())
-      .map((line, index) => `# ${line.trim()}`)
-      .join('\n')
+    
+    // Split by newlines and process each line
+    const lines = steps.split('\n').filter(line => line.trim())
+    
+    return lines.map(line => {
+      // Remove existing numbering (1., 2., etc.) and convert to Jira format
+      const cleaned = line.replace(/^\d+\.\s*/, '').trim()
+      
+      // Jira numbered list format: # at the start of line
+      // Each step must be on its own line with # prefix
+      return `# ${cleaned}`
+    }).join('\n')
   }
 
   // Format code/error messages
