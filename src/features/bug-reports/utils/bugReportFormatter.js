@@ -189,15 +189,15 @@ function formatJira(bugData, evidenceList) {
   if (operatingSystem) metadata.push(`Operating System: ${operatingSystem}`)
   if (version) metadata.push(`Version: ${version}`)
 
-  // Start building the report
-  let report = `${cleanTitle}\n\n`
+  // Start building the report - title in bold
+  let report = `*${cleanTitle}*\n\n`
   
   // Metadata section - plain text, no heading
   report += `*Issue Details*\n`
   report += metadata.join('\n')
   report += `\n\n`
   
-  // Description section - using bold text
+  // Description section - using bold text (same size, just bold)
   report += `*Description:*\n`
   report += `${formatCodeBlock(cleanDescription)}\n\n`
   
