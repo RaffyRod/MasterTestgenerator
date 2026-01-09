@@ -516,11 +516,11 @@ async function generateTestPlanWithOpenAI(projectInfo, planType, language) {
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-        headers: {
+      headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
+      },
+      body: JSON.stringify({
         model: model,
         messages: [
           {
@@ -1562,21 +1562,37 @@ Generate the title now:`;
       if (titles.length > 0) {
         while (titles.length < 2) {
           // Generate different fallback variations
-          const fallback1 = generateIntelligentTitleFallback(text, type, "primary");
-          const fallback2 = generateIntelligentTitleFallback(text, type, "secondary");
+          const fallback1 = generateIntelligentTitleFallback(
+            text,
+            type,
+            "primary",
+          );
+          const fallback2 = generateIntelligentTitleFallback(
+            text,
+            type,
+            "secondary",
+          );
           // Use the one that's different from existing titles
           const newFallback = titles[0] === fallback1 ? fallback2 : fallback1;
           titles.push(newFallback);
         }
         return titles.slice(0, 2);
       }
-  } catch (error) {
+    } catch (error) {
       console.warn("Dual AI title generation failed, using fallback:", error);
     }
 
     // Fallback: return 2 different fallback titles
-    const fallbackTitle1 = generateIntelligentTitleFallback(text, type, "primary");
-    const fallbackTitle2 = generateIntelligentTitleFallback(text, type, "secondary");
+    const fallbackTitle1 = generateIntelligentTitleFallback(
+      text,
+      type,
+      "primary",
+    );
+    const fallbackTitle2 = generateIntelligentTitleFallback(
+      text,
+      type,
+      "secondary",
+    );
     return [fallbackTitle1, fallbackTitle2];
   }
 
@@ -1630,15 +1646,18 @@ async function generateTitleWithGroq(prompt, type) {
             },
             {
               role: "user",
-              content: type === "bugReport"
-                ? prompt.replace(
-                    "Create a title that describes the bug/problem",
-                    "Create a SHORT, ACTION-ORIENTED title focusing on USER IMPACT"
-                  ).replace(
-                    "Use action verbs: \"not loading\", \"fails to\", \"error in\", \"broken\", \"missing\", etc.",
-                    "Use DIFFERENT phrasing: \"won't load\", \"breaks when\", \"crashes on\", \"missing\", \"unresponsive\", etc. Be creative and concise."
-                  )
-                : prompt,
+              content:
+                type === "bugReport"
+                  ? prompt
+                      .replace(
+                        "Create a title that describes the bug/problem",
+                        "Create a SHORT, ACTION-ORIENTED title focusing on USER IMPACT",
+                      )
+                      .replace(
+                        'Use action verbs: "not loading", "fails to", "error in", "broken", "missing", etc.',
+                        'Use DIFFERENT phrasing: "won\'t load", "breaks when", "crashes on", "missing", "unresponsive", etc. Be creative and concise.',
+                      )
+                  : prompt,
             },
           ],
           max_tokens: 50,
@@ -1792,7 +1811,11 @@ async function generateTitleWithHuggingFace(prompt, type = "testCase") {
 /**
  * Fallback intelligent title generation without AI
  */
-function generateIntelligentTitleFallback(text, type = "testCase", variation = "primary") {
+function generateIntelligentTitleFallback(
+  text,
+  type = "testCase",
+  variation = "primary",
+) {
   if (!text || typeof text !== "string") {
     return type === "testCase"
       ? "Test Case"
@@ -1874,19 +1897,22 @@ function generateIntelligentTitleFallback(text, type = "testCase", variation = "
             ? `Error: ${errorText.substring(0, 9)}...`
             : `Error: ${errorText}`;
       } else {
-        issueTitle = variation === "primary" ? "Error occurred" : "Error detected";
+        issueTitle =
+          variation === "primary" ? "Error occurred" : "Error detected";
       }
     }
     // 5. Broken
     else if (lowerTitle.includes("broken")) {
-      issueTitle = variation === "primary" ? "Feature broken" : "Component broken";
+      issueTitle =
+        variation === "primary" ? "Feature broken" : "Component broken";
     }
     // 6. Missing/not showing
     else if (
       lowerTitle.includes("missing") ||
       lowerTitle.includes("not showing")
     ) {
-      issueTitle = variation === "primary" ? "Content missing" : "Element missing";
+      issueTitle =
+        variation === "primary" ? "Content missing" : "Element missing";
     }
     // 7. Display issues
     else if (
@@ -1897,16 +1923,19 @@ function generateIntelligentTitleFallback(text, type = "testCase", variation = "
       if (lowerTitle.includes("blank")) {
         issueTitle = variation === "primary" ? "Blank screen" : "Empty screen";
       } else {
-        issueTitle = variation === "primary" ? "Display issue" : "Rendering issue";
+        issueTitle =
+          variation === "primary" ? "Display issue" : "Rendering issue";
       }
     }
     // 8. Reload/refresh issues (without failing)
     else if (lowerTitle.includes("reload") || lowerTitle.includes("refresh")) {
-      issueTitle = variation === "primary" ? "Issue on reload" : "Reload problem";
+      issueTitle =
+        variation === "primary" ? "Issue on reload" : "Reload problem";
     }
     // 9. Failing (general)
     else if (lowerTitle.includes("failing") || lowerTitle.includes("fails")) {
-      issueTitle = variation === "primary" ? "App failing" : "Application fails";
+      issueTitle =
+        variation === "primary" ? "App failing" : "Application fails";
     }
     // 10. Extract key words and create concise title
     else {

@@ -141,13 +141,19 @@
         <Teleport to="body">
           <transition name="popover-fade">
             <div
-              v-if="showTitleSelection && titleOptions.length >= 2 && hasDifferentTitles"
+              v-if="
+                showTitleSelection &&
+                titleOptions.length >= 2 &&
+                hasDifferentTitles
+              "
               class="title-selection-popover"
               :style="popoverStyle"
               @click.stop
             >
               <div class="popover-header">
-                <span class="popover-title">{{ $t("bugReport.selectTitle") || "Choose title" }}</span>
+                <span class="popover-title">{{
+                  $t("bugReport.selectTitle") || "Choose title"
+                }}</span>
                 <button
                   @click="showTitleSelection = false"
                   class="popover-close"
@@ -165,7 +171,9 @@
                   :class="{ selected: bugData.title === option.text }"
                 >
                   <span class="option-text">{{ option.text }}</span>
-                  <span class="option-badge">{{ option.source === "Primary AI" ? "1" : "2" }}</span>
+                  <span class="option-badge">{{
+                    option.source === "Primary AI" ? "1" : "2"
+                  }}</span>
                 </button>
               </div>
             </div>
@@ -603,14 +611,18 @@ export default {
         // Close popover when clicking outside
         nextTick(() => {
           const handleClickOutside = (event) => {
-            const popover = document.querySelector('.title-selection-popover');
-            if (popover && !popover.contains(event.target) && !titleInputRef.value?.contains(event.target)) {
+            const popover = document.querySelector(".title-selection-popover");
+            if (
+              popover &&
+              !popover.contains(event.target) &&
+              !titleInputRef.value?.contains(event.target)
+            ) {
               showTitleSelection.value = false;
-              document.removeEventListener('click', handleClickOutside);
+              document.removeEventListener("click", handleClickOutside);
             }
           };
           setTimeout(() => {
-            document.addEventListener('click', handleClickOutside);
+            document.addEventListener("click", handleClickOutside);
           }, 100);
         });
       }
@@ -2994,7 +3006,9 @@ export default {
   position: fixed;
   background: var(--card-bg);
   border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 0 0 0 1px var(--border-color);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.15),
+    0 0 0 1px var(--border-color);
   z-index: 10000;
   min-width: 320px;
   max-width: 500px;
@@ -3106,7 +3120,9 @@ export default {
 
 .popover-fade-enter-active,
 .popover-fade-leave-active {
-  transition: opacity 0.15s, transform 0.15s;
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
 }
 
 .popover-fade-enter-from {
