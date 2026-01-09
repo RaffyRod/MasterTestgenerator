@@ -776,21 +776,22 @@ export default {
       const lowerTitle = title.toLowerCase()
       
       // Extract URLs/routes (dynamic patterns to catch all variations)
+      // IMPORTANT: All patterns used with matchAll MUST have the 'g' flag
       const urlPatterns = [
         // Full URLs with protocol
-        /(https?:\/\/[^\s\)]+)/i,
+        /(https?:\/\/[^\s\)]+)/gi,
         // Routes with explicit keywords (url, route, path, etc.)
-        /(?:url|route|path|endpoint|api|page|visit|navigate|navigating|go to|goes to|going to|access|accessing|open|opening|load|loading)\s+(?:to\s+)?(?:the\s+)?['"]?([\/]?[a-z0-9\-_.]+(?:\/[a-z0-9\-_.]+)*(?:\?[^\s\)]+)?)['"]?/i,
+        /(?:url|route|path|endpoint|api|page|visit|navigate|navigating|go to|goes to|going to|access|accessing|open|opening|load|loading)\s+(?:to\s+)?(?:the\s+)?['"]?([\/]?[a-z0-9\-_.]+(?:\/[a-z0-9\-_.]+)*(?:\?[^\s\)]+)?)['"]?/gi,
         // Routes mentioned with "at", "on", "in"
-        /(?:at|on|in)\s+(?:the\s+)?['"]?([\/]?[a-z0-9\-_.]+(?:\/[a-z0-9\-_.]+)*(?:\?[^\s\)]+)?)['"]?/i,
+        /(?:at|on|in)\s+(?:the\s+)?['"]?([\/]?[a-z0-9\-_.]+(?:\/[a-z0-9\-_.]+)*(?:\?[^\s\)]+)?)['"]?/gi,
         // Routes with slash at start (absolute paths)
-        /([\/][a-z0-9\-_.]+(?:\/[a-z0-9\-_.]+)*(?:\?[^\s\)]+)?)/i,
+        /([\/][a-z0-9\-_.]+(?:\/[a-z0-9\-_.]+)*(?:\?[^\s\)]+)?)/gi,
         // Routes without slash (relative paths) - more flexible
-        /(?:to|from|of)\s+['"]?([a-z0-9\-_.]+(?:\/[a-z0-9\-_.]+)*(?:\?[^\s\)]+)?)['"]?/i,
+        /(?:to|from|of)\s+['"]?([a-z0-9\-_.]+(?:\/[a-z0-9\-_.]+)*(?:\?[^\s\)]+)?)['"]?/gi,
         // Routes with IDs or dynamic segments (numbers, UUIDs, etc.)
-        /([\/]?[a-z0-9\-_.]+\/[a-z0-9\-_.]+\/[0-9a-f\-]+)/i,
+        /([\/]?[a-z0-9\-_.]+\/[a-z0-9\-_.]+\/[0-9a-f\-]+)/gi,
         // Common route patterns (dashboard, login, users, etc.)
-        /(?:the\s+)?(dashboard|login|logout|signin|signout|signup|register|profile|settings|admin|users|posts|articles|pages|home|index)(?:\s+page|\s+route|\s+path)?/i
+        /(?:the\s+)?(dashboard|login|logout|signin|signout|signup|register|profile|settings|admin|users|posts|articles|pages|home|index)(?:\s+page|\s+route|\s+path)?/gi
       ]
       let extractedUrl = null
       for (const pattern of urlPatterns) {
