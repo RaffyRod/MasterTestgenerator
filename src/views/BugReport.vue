@@ -501,28 +501,28 @@ export default {
         if (generatedTitle && generatedTitle.trim() !== '') {
           // Always update if title was auto-generated, or if it's empty
           if (bugData.value.title.trim() === '' || titleGenerated.value) {
-            // Limit to 20 characters for bug reports - smart truncation
+            // Limit to 30 characters for bug reports - smart truncation
             let finalTitle = generatedTitle.trim()
             // Remove any extra whitespace first
             finalTitle = finalTitle.replace(/\s+/g, ' ').trim()
             // Smart truncation: try to cut at word boundary
-            if (finalTitle.length > 20) {
+            if (finalTitle.length > 30) {
               const words = finalTitle.split(' ')
               let shortened = ''
               for (const word of words) {
-                if ((shortened + ' ' + word).length <= 17) {
+                if ((shortened + ' ' + word).length <= 27) {
                   shortened += (shortened ? ' ' : '') + word
                 } else {
                   break
                 }
               }
-              finalTitle = shortened || finalTitle.substring(0, 17)
+              finalTitle = shortened || finalTitle.substring(0, 27)
               if (finalTitle.length < finalTitle.split(' ').join('').length) {
                 finalTitle = finalTitle.trim() + '...'
               }
             }
-            // Ensure it's exactly 20 or less
-            finalTitle = finalTitle.substring(0, 20).trim()
+            // Ensure it's exactly 30 or less
+            finalTitle = finalTitle.substring(0, 30).trim()
             bugData.value.title = finalTitle
             titleGenerated.value = true
             titleEditable.value = false
@@ -562,14 +562,14 @@ export default {
             // Extract first meaningful phrase, limit to 20 chars
             const firstSentence = bugData.value.description.split(/[.!?]/)[0]?.trim()
             if (firstSentence && firstSentence.length > 0) {
-              fallbackTitle = firstSentence.length > 20 
-                ? firstSentence.substring(0, 17) + '...' 
+              fallbackTitle = firstSentence.length > 30 
+                ? firstSentence.substring(0, 27) + '...' 
                 : firstSentence
             }
           }
           
           // Ensure max 20 characters
-          bugData.value.title = fallbackTitle.substring(0, 20).trim()
+          bugData.value.title = fallbackTitle.substring(0, 30).trim()
           titleGenerated.value = true
           titleEditable.value = false
         }
@@ -660,22 +660,22 @@ export default {
             // Extract first meaningful phrase, limit to 20 chars
             const firstSentence = bugData.value.description.split(/[.!?]/)[0]?.trim()
             if (firstSentence && firstSentence.length > 0) {
-              fallbackTitle = firstSentence.length > 20 
-                ? firstSentence.substring(0, 17) + '...' 
+              fallbackTitle = firstSentence.length > 30 
+                ? firstSentence.substring(0, 27) + '...' 
                 : firstSentence
             }
           }
           
-          bugData.value.title = fallbackTitle.substring(0, 20).trim()
+          bugData.value.title = fallbackTitle.substring(0, 30).trim()
           titleGenerated.value = true
         }
         
-        // FORCE title to max 20 characters - this is critical
-        if (bugData.value.title && bugData.value.title.length > 20) {
-          bugData.value.title = bugData.value.title.substring(0, 17).trim() + '...'
-          // Ensure it's exactly 20 or less
-          bugData.value.title = bugData.value.title.substring(0, 20)
-          console.log('Title forced to 20 chars:', bugData.value.title)
+        // FORCE title to max 30 characters - this is critical
+        if (bugData.value.title && bugData.value.title.length > 30) {
+          bugData.value.title = bugData.value.title.substring(0, 27).trim() + '...'
+          // Ensure it's exactly 30 or less
+          bugData.value.title = bugData.value.title.substring(0, 30)
+          console.log('Title forced to 30 chars:', bugData.value.title)
         }
       }
 
@@ -1240,11 +1240,11 @@ export default {
     }
 
     function enforceTitleLength() {
-      // Force title to max 20 characters whenever it changes
-      if (bugData.value.title && bugData.value.title.length > 20) {
-        const limited = bugData.value.title.substring(0, 17).trim() + '...'
-        bugData.value.title = limited.substring(0, 20)
-        console.log('Title enforced to 20 chars:', bugData.value.title)
+      // Force title to max 30 characters whenever it changes
+      if (bugData.value.title && bugData.value.title.length > 30) {
+        const limited = bugData.value.title.substring(0, 27).trim() + '...'
+        bugData.value.title = limited.substring(0, 30)
+        console.log('Title enforced to 30 chars:', bugData.value.title)
       }
     }
     

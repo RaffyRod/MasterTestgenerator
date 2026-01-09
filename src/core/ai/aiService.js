@@ -1375,7 +1375,7 @@ export async function generateIntelligentTitle(text, language = 'en', type = 'te
 
   const lang = language === 'es' ? 'español' : 'English'
   const typeLabel = type === 'testCase' ? 'test case' : type === 'bugReport' ? 'bug report title' : 'test plan'
-  const maxLength = type === 'bugReport' ? 20 : 60
+  const maxLength = type === 'bugReport' ? 30 : 60
 
   const prompt = type === 'bugReport' 
     ? `You are an expert QA engineer. Analyze the bug description and create a concise, descriptive bug title.
@@ -1466,8 +1466,8 @@ async function generateTitleWithOllama(prompt, type = 'testCase') {
     .replace(/\s*h[1-6]\.\s*/gi, ' ') // Remove heading format anywhere in text
     .trim()
   
-  // Limit to 20 characters for bug reports, 60 for others
-  const maxLength = type === 'bugReport' ? 20 : 60
+  // Limit to 30 characters for bug reports, 60 for others
+  const maxLength = type === 'bugReport' ? 30 : 60
   return cleaned.substring(0, maxLength)
 }
 
@@ -1512,8 +1512,8 @@ async function generateTitleWithHuggingFace(prompt, type = 'testCase') {
     .replace(/\s*h[1-6]\.\s*/gi, ' ') // Remove heading format anywhere in text
     .trim()
   
-  // Limit to 20 characters for bug reports, 60 for others
-  const maxLength = type === 'bugReport' ? 20 : 60
+  // Limit to 30 characters for bug reports, 60 for others
+  const maxLength = type === 'bugReport' ? 30 : 60
   return cleaned.substring(0, maxLength)
 }
 
@@ -1525,7 +1525,7 @@ function generateIntelligentTitleFallback(text, type = 'testCase') {
     return type === 'testCase' ? 'Test Case' : type === 'bugReport' ? 'Bug Report' : 'Test Plan'
   }
   
-  const maxLength = type === 'bugReport' ? 20 : 60
+  const maxLength = type === 'bugReport' ? 30 : 60
 
   // Remove common prefixes
   let title = text
@@ -1634,7 +1634,7 @@ function generateIntelligentTitleFallback(text, type = 'testCase') {
       }
     }
     
-    // Ensure title is max 20 characters, cut at word boundary if possible
+    // Ensure title is max 30 characters, cut at word boundary if possible
     if (issueTitle.length > maxLength) {
       const words = issueTitle.split(' ')
       let shortened = ''
