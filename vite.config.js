@@ -27,6 +27,17 @@ export default defineConfig({
     deps: {
       inline: ["@exodus/bytes", "html-encoding-sniffer"],
     },
+    reporters:
+      process.env.CI || process.env.VITEST_CI
+        ? ["default", "junit", "json"]
+        : ["default"],
+    outputFile:
+      process.env.CI || process.env.VITEST_CI
+        ? {
+            junit: "./test-results/junit.xml",
+            json: "./test-results/results.json",
+          }
+        : undefined,
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html", "lcov"],

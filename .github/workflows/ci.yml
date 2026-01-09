@@ -35,7 +35,30 @@ jobs:
         run: pnpm format:check
       
       - name: Run unit tests
-        run: pnpm test:run
+        run: pnpm test:ci
+      
+      - name: Generate test report
+        run: pnpm test:report
+        continue-on-error: true
+        if: always()
+      
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-report
+          path: |
+            test-results/test-report.md
+            test-results/junit.xml
+            test-results/results.json
+      
+      - name: Display test report
+        run: |
+          if [ -f test-results/test-report.md ]; then
+            echo "## 📊 Test Execution Report" >> $GITHUB_STEP_SUMMARY
+            cat test-results/test-report.md >> $GITHUB_STEP_SUMMARY
+          fi
+        continue-on-error: true
       
       - name: Generate coverage report
         run: pnpm test:coverage

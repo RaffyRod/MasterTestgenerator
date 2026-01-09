@@ -6,3 +6,5 @@ dist
 .env.local
 .pnpm-store
 .husky/_/
+test-results/
+coverage/
