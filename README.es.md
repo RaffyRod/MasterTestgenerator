@@ -47,10 +47,16 @@ Genera documentación de pruebas en **Inglés** o **Español**
 ### 🐛 Generador de Reportes de Bug
 
 - **Reportes de bugs completos** con campos de información detallados
-- **Adjuntar evidencias** - sube imágenes, logs y archivos de texto
-- **Múltiples formatos de exportación** - Jira, Markdown y Texto Plano
+- **🤖 Generación Dual de Títulos con IA** - Genera automáticamente **2 opciones de título** de diferentes proveedores de IA (IA Principal + Groq IA) para que elijas el mejor
+- **🎯 Selección Inteligente de Títulos** - Hermosa interfaz modal para seleccionar entre títulos generados por IA con indicadores de fuente
+- **Generación de contenido con IA** - Genera automáticamente pasos para reproducir, resultados esperados/actuales
+- **Adjuntar evidencias** - sube imágenes, logs y archivos de texto con soporte de arrastrar y soltar
+- **Múltiples formatos de exportación** - Jira, Markdown y Texto Plano con limpieza de etiquetas HTML
 - **Auto-detección** de navegador y sistema operativo
 - **Copiar al portapapeles** para pegar fácilmente en rastreadores de issues
+- **Interfaz hermosa** - Indicadores de progreso, validación en tiempo real, badges visuales y secciones colapsables
+- **Validación inteligente de formularios** - Retroalimentación en tiempo real con indicadores visuales
+- **Límite de longitud de título** - Aplica automáticamente un máximo de 30 caracteres para títulos concisos
 
 ---
 
@@ -74,8 +80,11 @@ Este proyecto está construido con increíbles tecnologías de código abierto. 
 ### Pruebas y Calidad
 
 - **[Vitest](https://vitest.dev/)** - Framework de pruebas unitarias rápido
+- **[@vitest/coverage-v8](https://vitest.dev/guide/coverage.html)** - Reportes de cobertura de código
 - **[@vue/test-utils](https://test-utils.vuejs.org/)** - Utilidades para probar componentes Vue
 - **[Testing Library](https://testing-library.com/)** - Utilidades de prueba simples y completas
+- **CI/CD con GitHub Actions** - Pruebas automatizadas en cada push y pull request
+- **Pruebas Unitarias** - Cobertura completa de pruebas para generación de IA y funcionalidad principal
 
 ### Procesamiento de Datos
 
@@ -87,9 +96,12 @@ Este proyecto está construido con increíbles tecnologías de código abierto. 
 
 - **[Ollama](https://ollama.com/)** - Ejecuta modelos de lenguaje grandes localmente
 - **[Hugging Face](https://huggingface.co/)** - Comunidad y plataforma de IA
-- **[OpenAI API](https://platform.openai.com/)** - Modelos GPT para generación con IA
-- **[Anthropic Claude](https://www.anthropic.com/)** - Modelos de IA Claude
-- **[Google Gemini](https://ai.google.dev/)** - Modelos de IA de Google
+- **[Groq API](https://groq.com/)** - Inferencia de IA rápida y gratuita para generación dual de títulos (reportes de bugs)
+- **[OpenAI API](https://platform.openai.com/)** - Modelos GPT para generación con IA (configurable vía UI)
+- **[Anthropic Claude](https://www.anthropic.com/)** - Modelos de IA Claude (configurable vía UI)
+- **[Google Gemini](https://ai.google.dev/)** - Modelos de IA de Google (configurable vía UI)
+- **Proveedores de API Personalizados** - Configura cualquier proveedor de IA con endpoints personalizados
+- **Sistema Dual de IA** - Los títulos de reportes de bugs usan dos proveedores de IA en paralelo para mejores opciones
 
 ### Herramientas Adicionales
 
@@ -328,6 +340,42 @@ Después de ejecutar `pnpm setup`, Ollama está listo para usar:
 8. **Copia casos de prueba individuales** con el botón de copiar en cada tarjeta
 9. Vista previa del formato de exportación y descarga CSV
 
+### Configurar Proveedores de IA
+
+1. Haz clic en el icono **⚙️ Configuración** en el encabezado
+2. Selecciona **🤖 Configuración de IA**
+3. Elige tu proveedor de IA:
+   - **IA Local (Ollama)** - No se necesita clave API
+   - **IA en Línea (Hugging Face)** - Clave API opcional para mejor rendimiento
+   - **OpenAI GPT** - Requiere clave API
+   - **Anthropic Claude** - Requiere clave API
+   - **Google Gemini** - Requiere clave API
+   - **API Personalizada** - Configura tu propio endpoint
+4. Ingresa tu clave API (si es requerida)
+5. Selecciona el modelo que deseas usar
+6. Haz clic en **Guardar Configuración**
+7. Tu proveedor de IA se usará para la generación de casos de prueba y reportes de bugs
+
+### Generar Reportes de Bug
+
+1. Navega a la sección **🐛 Reporte de Bug**
+2. Ingresa la **Descripción** del bug (requerido) - **¡El título se genera automáticamente!**
+3. **🤖 Generación Dual de Títulos con IA**: La aplicación genera automáticamente **2 opciones de título** de diferentes proveedores de IA:
+   - **IA Principal**: Usa tu proveedor de IA configurado (Ollama, Hugging Face, etc.)
+   - **Groq IA**: Alternativa rápida y gratuita para comparación
+   - Aparecerá un modal para que **selecciones el mejor título**
+4. Selecciona **Prioridad** y **Severidad** de los dropdowns
+5. **Opcional**: Expande "Información Opcional" para agregar detalles del entorno (auto-detectado por defecto)
+6. **Sube evidencias** - Arrastra y suelta o haz clic para subir imágenes, logs o archivos de texto
+7. **Habilita IA** (por defecto) para generar automáticamente:
+   - Pasos para Reproducir
+   - Resultado Esperado
+   - Resultado Actual
+   - Información Adicional
+8. Haz clic en **🚀 Generar Bug**
+9. Selecciona formato de exportación (Jira, Markdown o Texto Plano)
+10. Haz clic en **📋 Copiar** para copiar el reporte formateado al portapapeles
+
 ### Exportar a Herramientas de Gestión de Pruebas
 
 1. Genera tus casos de prueba
@@ -422,13 +470,33 @@ pnpm format:check
 
 **Prettier se ejecuta automáticamente** antes de cada commit para asegurar formateo de código consistente. ¡No necesitas ejecutarlo manualmente!
 
-### Tests Unitarios
+### Ejecutar Tests
 
 ```bash
 # Ejecutar tests en modo watch
 pnpm test
 
 # Ejecutar tests una vez
+pnpm test:run
+
+# Ejecutar tests con cobertura
+pnpm test:coverage
+```
+
+### CI/CD con GitHub Actions
+
+Este proyecto incluye **CI/CD automatizado** que se ejecuta en cada push y pull request:
+
+- ✅ **Pruebas Automatizadas** - Ejecuta todas las pruebas unitarias en Node.js 18.x y 20.x
+- ✅ **Verificación de Formateo** - Valida la consistencia del estilo de código
+- ✅ **Verificación de Compilación** - Asegura que el proyecto se compile exitosamente
+- ✅ **Reportes de Cobertura** - Genera reportes de cobertura de pruebas
+
+El pipeline de CI está configurado en `.github/workflows/ci.yml` y se ejecuta automáticamente para:
+- Cada push a la rama `main`
+- Cada pull request dirigido a la rama `main`
+
+**¡No se requiere acción** - se ejecuta automáticamente! 🎉
 pnpm test:run
 
 # Ejecutar tests con cobertura
