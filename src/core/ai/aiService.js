@@ -1370,19 +1370,42 @@ function parseTestPlanResponse(response, planType) {
  */
 export async function generateIntelligentTitle(text, language = 'en', type = 'testCase') {
   if (!text || text.trim().length === 0) {
-    return type === 'testCase' ? 'Test Case' : 'Test Plan'
+    return type === 'testCase' ? 'Test Case' : type === 'bugReport' ? 'Bug Report' : 'Test Plan'
   }
 
   const lang = language === 'es' ? 'español' : 'English'
-  const typeLabel = type === 'testCase' ? 'test case' : 'test plan'
+  const typeLabel = type === 'testCase' ? 'test case' : type === 'bugReport' ? 'bug report title' : 'test plan'
+  const maxLength = type === 'bugReport' ? 20 : 60
 
-  const prompt = `You are an expert QA engineer. Generate a concise, professional ${typeLabel} title from the following text.
+  const prompt = type === 'bugReport' 
+    ? `You are an expert QA engineer. Analyze the bug description and create a concise, descriptive bug title.
+
+Language: ${lang}
+Bug Description: ${text}
+
+Requirements:
+1. Analyze the issue/problem described, NOT just copy text
+2. Create a title that describes the bug/problem (maximum ${maxLength} characters)
+3. Focus on: what is broken, what doesn't work, what error occurs
+4. Use action verbs: "not loading", "fails to", "error in", "broken", "missing", etc.
+5. Be specific about the issue, not generic
+6. Do NOT copy the description verbatim - analyze and summarize the problem
+7. Return ONLY the title, nothing else
+
+Examples:
+- "When I reload the page, it shows a blank screen" → "Page blank on reload"
+- "The login button doesn't work when I click it" → "Login button fails"
+- "Error: Cannot read property 'name' of null" → "Null reference error"
+- "The dashboard page is not loading properly after refresh" → "Dashboard not loading"
+
+Generate the bug title now:`
+    : `You are an expert QA engineer. Generate a concise, professional ${typeLabel} title from the following text.
 
 Language: ${lang}
 Text: ${text}
 
 Requirements:
-1. Create a short, clear title (maximum 60 characters)
+1. Create a short, clear title (maximum ${maxLength} characters)
 2. Remove all Gherkin keywords (Given, When, Then, etc.)
 3. Remove common prefixes (AC, Acceptance Criteria, etc.)
 4. Focus on the main action and object
@@ -1399,9 +1422,9 @@ Generate the title now:`
 
   try {
     if (currentProvider === AI_PROVIDERS.LOCAL) {
-      return await generateTitleWithOllama(prompt)
+      return await generateTitleWithOllama(prompt, type)
     } else {
-      return await generateTitleWithHuggingFace(prompt)
+      return await generateTitleWithHuggingFace(prompt, type)
     }
   } catch (error) {
     console.warn('AI title generation failed, using fallback:', error)
@@ -1413,7 +1436,7 @@ Generate the title now:`
 /**
  * Generate title with Ollama
  */
-async function generateTitleWithOllama(prompt) {
+async function generateTitleWithOllama(prompt, type = 'testCase') {
   const response = await fetch(`${ollamaBaseUrl}/api/generate`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1436,19 +1459,22 @@ async function generateTitleWithOllama(prompt) {
   const title = data.response?.trim() || ''
 
   // Clean up the response
-  return title
+  const cleaned = title
     .replace(/^Title:\s*/i, '')
     .replace(/^"|"$/g, '')
     .replace(/^h[1-6]\.\s*/gi, '') // Remove Jira heading format if present
     .replace(/\s*h[1-6]\.\s*/gi, ' ') // Remove heading format anywhere in text
     .trim()
-    .substring(0, 60)
+  
+  // Limit to 20 characters for bug reports, 60 for others
+  const maxLength = type === 'bugReport' ? 20 : 60
+  return cleaned.substring(0, maxLength)
 }
 
 /**
  * Generate title with Hugging Face
  */
-async function generateTitleWithHuggingFace(prompt) {
+async function generateTitleWithHuggingFace(prompt, type = 'testCase') {
   const apiKey = import.meta.env.VITE_HUGGING_FACE_API_KEY || ''
 
   const response = await fetch(
@@ -1479,13 +1505,16 @@ async function generateTitleWithHuggingFace(prompt) {
   const title = generatedText?.trim() || ''
 
   // Clean up the response
-  return title
+  const cleaned = title
     .replace(/^Title:\s*/i, '')
     .replace(/^"|"$/g, '')
     .replace(/^h[1-6]\.\s*/gi, '') // Remove Jira heading format if present
     .replace(/\s*h[1-6]\.\s*/gi, ' ') // Remove heading format anywhere in text
     .trim()
-    .substring(0, 60)
+  
+  // Limit to 20 characters for bug reports, 60 for others
+  const maxLength = type === 'bugReport' ? 20 : 60
+  return cleaned.substring(0, maxLength)
 }
 
 /**
@@ -1493,8 +1522,10 @@ async function generateTitleWithHuggingFace(prompt) {
  */
 function generateIntelligentTitleFallback(text, type = 'testCase') {
   if (!text || typeof text !== 'string') {
-    return type === 'testCase' ? 'Test Case' : 'Test Plan'
+    return type === 'testCase' ? 'Test Case' : type === 'bugReport' ? 'Bug Report' : 'Test Plan'
   }
+  
+  const maxLength = type === 'bugReport' ? 20 : 60
 
   // Remove common prefixes
   let title = text

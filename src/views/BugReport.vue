@@ -270,7 +270,7 @@
       <div class="button-group">
         <button 
           @click="generateReport" 
-          :disabled="!isFormValid || generating" 
+          :disabled="!bugData.description || bugData.description.trim() === '' || generating" 
           class="btn btn-primary generate-btn"
           :class="{ 'btn-loading': generating }"
         >
@@ -494,7 +494,7 @@ export default {
         const generatedTitle = await generateIntelligentTitle(
           bugData.value.description,
           locale.value,
-          'testCase'
+          'bugReport'
         )
 
         if (generatedTitle && generatedTitle.trim() !== '') {
@@ -562,16 +562,43 @@ export default {
         
         // If title is still empty after generation attempt, use fallback
         if (!bugData.value.title || bugData.value.title.trim() === '') {
-          const desc = bugData.value.description.trim()
-          const firstSentence = desc.split(/[.!?]/)[0]?.trim()
-          if (firstSentence && firstSentence.length > 0) {
-            bugData.value.title = firstSentence.length > 60 
-              ? firstSentence.substring(0, 57) + '...' 
-              : firstSentence
-            titleGenerated.value = true
+          // Use intelligent fallback that analyzes the issue
+          const desc = bugData.value.description.trim().toLowerCase()
+          let fallbackTitle = 'Bug Report'
+          
+          // Analyze issue type
+          if (desc.includes('not loading') || desc.includes('doesn\'t load')) {
+            fallbackTitle = 'Page not loading'
+          } else if (desc.includes('not working') || desc.includes('doesn\'t work')) {
+            fallbackTitle = 'Feature not working'
+          } else if (desc.includes('error') || desc.includes('exception')) {
+            const errorMatch = bugData.value.description.match(/(?:error|exception)[:\s]+([^.!?\n]{0,12})/i)
+            fallbackTitle = errorMatch ? `Error: ${errorMatch[1].trim()}` : 'Error occurred'
+          } else if (desc.includes('broken')) {
+            fallbackTitle = 'Feature broken'
+          } else if (desc.includes('missing') || desc.includes('not showing')) {
+            fallbackTitle = 'Content missing'
+          } else if (desc.includes('reload') || desc.includes('refresh')) {
+            fallbackTitle = 'Issue on reload'
+          } else if (desc.includes('display') || desc.includes('not displayed')) {
+            fallbackTitle = 'Display issue'
           } else {
-            bugData.value.title = 'Bug Report'
+            // Extract first meaningful phrase, limit to 20 chars
+            const firstSentence = bugData.value.description.split(/[.!?]/)[0]?.trim()
+            if (firstSentence && firstSentence.length > 0) {
+              fallbackTitle = firstSentence.length > 20 
+                ? firstSentence.substring(0, 17) + '...' 
+                : firstSentence
+            }
           }
+          
+          bugData.value.title = fallbackTitle.substring(0, 20).trim()
+          titleGenerated.value = true
+        }
+        
+        // Ensure title is max 20 characters
+        if (bugData.value.title.length > 20) {
+          bugData.value.title = bugData.value.title.substring(0, 17) + '...'
         }
       }
 
