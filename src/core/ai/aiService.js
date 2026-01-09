@@ -1368,9 +1368,18 @@ function parseTestPlanResponse(response, planType) {
  * @param {string} type - 'testCase' or 'testPlan'
  * @returns {Promise<string>} - Generated intelligent title
  */
+/**
+ * Generate intelligent title with dual AI support for bug reports
+ * Returns 2 titles from different AI providers for user selection
+ * @param {string} text - Input text to generate title from
+ * @param {string} language - Language code ('en' or 'es')
+ * @param {string} type - Type of title ('testCase', 'bugReport', 'testPlan')
+ * @returns {Promise<string|Array>} Single title for test cases, array of 2 titles for bug reports
+ */
 export async function generateIntelligentTitle(text, language = 'en', type = 'testCase') {
   if (!text || text.trim().length === 0) {
-    return type === 'testCase' ? 'Test Case' : type === 'bugReport' ? 'Bug Report' : 'Test Plan'
+    const defaultTitle = type === 'testCase' ? 'Test Case' : type === 'bugReport' ? 'Bug Report' : 'Test Plan'
+    return type === 'bugReport' ? [defaultTitle, defaultTitle] : defaultTitle
   }
 
   const lang = language === 'es' ? 'español' : 'English'
@@ -1420,6 +1429,39 @@ Examples:
 
 Generate the title now:`
 
+  // For bug reports, generate 2 titles from different AI providers
+  if (type === 'bugReport') {
+    try {
+      const [title1, title2] = await Promise.allSettled([
+        generateTitleWithPrimaryAI(prompt, type),
+        generateTitleWithGroq(prompt, type)
+      ])
+      
+      const titles = []
+      if (title1.status === 'fulfilled' && title1.value) {
+        titles.push(limitTitle(title1.value, maxLength))
+      }
+      if (title2.status === 'fulfilled' && title2.value) {
+        titles.push(limitTitle(title2.value, maxLength))
+      }
+      
+      // If we got at least one title, return them (pad with fallback if needed)
+      if (titles.length > 0) {
+        while (titles.length < 2) {
+          titles.push(generateIntelligentTitleFallback(text, type))
+        }
+        return titles.slice(0, 2)
+      }
+    } catch (error) {
+      console.warn('Dual AI title generation failed, using fallback:', error)
+    }
+    
+    // Fallback: return 2 fallback titles
+    const fallbackTitle = generateIntelligentTitleFallback(text, type)
+    return [fallbackTitle, fallbackTitle]
+  }
+
+  // For other types, use single AI generation
   try {
     if (currentProvider === AI_PROVIDERS.LOCAL) {
       return await generateTitleWithOllama(prompt, type)
@@ -1428,9 +1470,106 @@ Generate the title now:`
     }
   } catch (error) {
     console.warn('AI title generation failed, using fallback:', error)
-    // Fallback to intelligent non-AI generation
     return generateIntelligentTitleFallback(text, type)
   }
+}
+
+/**
+ * Generate title with primary AI (current provider)
+ */
+async function generateTitleWithPrimaryAI(prompt, type) {
+  if (currentProvider === AI_PROVIDERS.LOCAL) {
+    return await generateTitleWithOllama(prompt, type)
+  } else {
+    return await generateTitleWithHuggingFace(prompt, type)
+  }
+}
+
+/**
+ * Generate title with Groq API (fast and free alternative)
+ */
+async function generateTitleWithGroq(prompt, type) {
+  const maxLength = type === 'bugReport' ? 30 : 60
+  
+  try {
+    // Groq API is free and fast - using llama-3.1-8b-instant
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${import.meta.env.VITE_GROQ_API_KEY || ''}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.1-8b-instant',
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert QA engineer. Generate concise, professional titles. Return ONLY the title, nothing else.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        max_tokens: 50,
+        temperature: 0.3
+      })
+    })
+
+    if (!response.ok) {
+      // If no API key, try without auth (may work for some endpoints)
+      if (response.status === 401) {
+        throw new Error('Groq API key not configured')
+      }
+      throw new Error('Groq API error')
+    }
+
+    const data = await response.json()
+    const title = data.choices?.[0]?.message?.content?.trim() || ''
+    
+    return cleanTitle(title, maxLength)
+  } catch (error) {
+    console.warn('Groq API failed, will use fallback:', error)
+    throw error
+  }
+}
+
+/**
+ * Clean and limit title
+ */
+function limitTitle(title, maxLength) {
+  if (!title) return ''
+  let cleaned = title
+    .replace(/^Title:\s*/i, '')
+    .replace(/^"|"$/g, '')
+    .replace(/^h[1-6]\.\s*/gi, '')
+    .replace(/\s*h[1-6]\.\s*/gi, ' ')
+    .trim()
+  
+  if (cleaned.length > maxLength) {
+    const words = cleaned.split(' ')
+    let shortened = ''
+    for (const word of words) {
+      if ((shortened + ' ' + word).length <= maxLength - 3) {
+        shortened += (shortened ? ' ' : '') + word
+      } else {
+        break
+      }
+    }
+    cleaned = shortened || cleaned.substring(0, maxLength - 3)
+    if (cleaned.length < cleaned.split(' ').join('').length) {
+      cleaned += '...'
+    }
+  }
+  
+  return cleaned.substring(0, maxLength).trim()
+}
+
+/**
+ * Clean title text
+ */
+function cleanTitle(title, maxLength) {
+  return limitTitle(title, maxLength)
 }
 
 /**
