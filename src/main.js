@@ -1,31 +1,31 @@
-import { createApp } from 'vue'
-import { createI18n } from 'vue-i18n'
-import App from '@/App.vue'
-import router from '@router/index.js'
-import { messages } from '@i18n/index.js'
+import { createApp } from "vue";
+import { createI18n } from "vue-i18n";
+import App from "@/App.vue";
+import router from "@router/index.js";
+import { messages } from "@i18n/index.js";
 
 const i18n = createI18n({
-  locale: 'en',
-  fallbackLocale: 'en',
+  locale: "en",
+  fallbackLocale: "en",
   messages,
-  legacy: false
-})
+  legacy: false,
+});
 
-const savedTheme = localStorage.getItem('app-theme')
-const theme = savedTheme || 'dark'
-document.documentElement.setAttribute('data-theme', theme)
+const savedTheme = localStorage.getItem("app-theme");
+const theme = savedTheme || "dark";
+document.documentElement.setAttribute("data-theme", theme);
 
-const app = createApp(App)
+const app = createApp(App);
 
-app.use(router)
-app.use(i18n)
+app.use(router);
+app.use(i18n);
 
 // Error handling
 app.config.errorHandler = (err, instance, info) => {
-  console.error('Vue Error:', err, info)
-}
+  console.error("Vue Error:", err, info);
+};
 
 // Mount app
-app.mount('#app')
+app.mount("#app");
 
-console.log('✅ App mounted successfully')
+console.log("✅ App mounted successfully");

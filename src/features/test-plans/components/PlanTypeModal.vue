@@ -3,11 +3,19 @@
     <div v-if="show" class="plan-type-modal-overlay" @click.self="handleClose">
       <div class="plan-type-modal-container">
         <div class="modal-header">
-          <h2>{{ $t('testPlan.selectType') }}</h2>
-          <button @click="handleClose" class="modal-close-btn" :aria-label="$t('testPlan.closeModal')">×</button>
+          <h2>{{ $t("testPlan.selectType") }}</h2>
+          <button
+            @click="handleClose"
+            class="modal-close-btn"
+            :aria-label="$t('testPlan.closeModal')"
+          >
+            ×
+          </button>
         </div>
         <div class="modal-body">
-          <p class="modal-description">{{ $t('testPlan.selectTypeDescription') }}</p>
+          <p class="modal-description">
+            {{ $t("testPlan.selectTypeDescription") }}
+          </p>
           <div class="plan-type-grid">
             <button
               v-for="type in testPlanTypes"
@@ -23,9 +31,15 @@
           </div>
         </div>
         <div class="modal-footer">
-          <button @click="handleClose" class="btn btn-secondary">{{ $t('common.cancel') }}</button>
-          <button @click="handleConfirm" :disabled="!selectedType" class="btn btn-primary">
-            {{ $t('testPlan.generatePlan') }}
+          <button @click="handleClose" class="btn btn-secondary">
+            {{ $t("common.cancel") }}
+          </button>
+          <button
+            @click="handleConfirm"
+            :disabled="!selectedType"
+            class="btn btn-primary"
+          >
+            {{ $t("testPlan.generatePlan") }}
           </button>
         </div>
       </div>
@@ -34,111 +48,111 @@
 </template>
 
 <script>
-import { ref, watch, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { ref, watch, computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 export default {
-  name: 'PlanTypeModal',
+  name: "PlanTypeModal",
   props: {
     show: {
       type: Boolean,
-      default: false
+      default: false,
     },
     selectedType: {
       type: String,
-      default: null
-    }
+      default: null,
+    },
   },
-  emits: ['close', 'select', 'confirm'],
+  emits: ["close", "select", "confirm"],
   setup(props, { emit }) {
-    const { t } = useI18n()
-    
+    const { t } = useI18n();
+
     const testPlanTypes = computed(() => {
       const typeIds = [
-        'functional',
-        'performance',
-        'security',
-        'integration',
-        'system',
-        'acceptance',
-        'regression',
-        'comprehensive',
-        'shiftLeft',
-        'shiftRight',
-        'continuous',
-        'tdd',
-        'bdd',
-        'apiFirst',
-        'devops'
-      ]
-      
+        "functional",
+        "performance",
+        "security",
+        "integration",
+        "system",
+        "acceptance",
+        "regression",
+        "comprehensive",
+        "shiftLeft",
+        "shiftRight",
+        "continuous",
+        "tdd",
+        "bdd",
+        "apiFirst",
+        "devops",
+      ];
+
       const icons = {
-        functional: '⚙️',
-        performance: '⚡',
-        security: '🔒',
-        integration: '🔗',
-        system: '🖥️',
-        acceptance: '✅',
-        regression: '🔄',
-        comprehensive: '📋',
-        shiftLeft: '⬅️',
-        shiftRight: '➡️',
-        continuous: '🔄',
-        tdd: '🧪',
-        bdd: '📖',
-        apiFirst: '🔌',
-        devops: '🚀'
-      }
-      
-      return typeIds.map(id => ({
+        functional: "⚙️",
+        performance: "⚡",
+        security: "🔒",
+        integration: "🔗",
+        system: "🖥️",
+        acceptance: "✅",
+        regression: "🔄",
+        comprehensive: "📋",
+        shiftLeft: "⬅️",
+        shiftRight: "➡️",
+        continuous: "🔄",
+        tdd: "🧪",
+        bdd: "📖",
+        apiFirst: "🔌",
+        devops: "🚀",
+      };
+
+      return typeIds.map((id) => ({
         id,
         name: t(`testPlan.planTypes.${id}.name`),
         icon: icons[id],
-        description: t(`testPlan.planTypes.${id}.description`)
-      }))
-    })
+        description: t(`testPlan.planTypes.${id}.description`),
+      }));
+    });
 
     const handleClose = () => {
-      emit('close')
-    }
+      emit("close");
+    };
 
-    const handleSelect = typeId => {
-      emit('select', typeId)
-    }
+    const handleSelect = (typeId) => {
+      emit("select", typeId);
+    };
 
     const handleConfirm = () => {
       if (props.selectedType) {
-        emit('confirm', props.selectedType)
+        emit("confirm", props.selectedType);
       }
-    }
+    };
 
     // Handle Escape key
-    const handleEscape = event => {
-      if (event.key === 'Escape' && props.show) {
-        handleClose()
+    const handleEscape = (event) => {
+      if (event.key === "Escape" && props.show) {
+        handleClose();
       }
-    }
+    };
 
     watch(
       () => props.show,
-      isVisible => {
+      (isVisible) => {
         if (isVisible) {
-          window.addEventListener('keydown', handleEscape)
+          window.addEventListener("keydown", handleEscape);
         } else {
-          window.removeEventListener('keydown', handleEscape)
+          window.removeEventListener("keydown", handleEscape);
         }
-      }
-    )
+      },
+    );
 
     return {
       testPlanTypes,
       handleClose,
       handleSelect,
       handleConfirm,
-      t
-    }
-  }
-}
+      t,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -157,7 +171,7 @@ export default {
   animation: fadeIn 0.3s ease;
 }
 
-[data-theme='light'] .plan-type-modal-overlay {
+[data-theme="light"] .plan-type-modal-overlay {
   background: rgba(0, 0, 0, 0.4);
 }
 
@@ -178,12 +192,12 @@ export default {
   z-index: 10001;
 }
 
-[data-theme='light'] .plan-type-modal-container {
+[data-theme="light"] .plan-type-modal-container {
   background: #ffffff;
   border-color: #e0e0e0;
 }
 
-[data-theme='dark'] .plan-type-modal-container {
+[data-theme="dark"] .plan-type-modal-container {
   background: #1a1a1a;
   border-color: #3a3a3a;
 }
@@ -221,11 +235,11 @@ export default {
   color: var(--text-primary);
 }
 
-[data-theme='light'] .modal-header h2 {
+[data-theme="light"] .modal-header h2 {
   color: #000000;
 }
 
-[data-theme='dark'] .modal-header h2 {
+[data-theme="dark"] .modal-header h2 {
   color: #ffffff;
 }
 
@@ -281,11 +295,11 @@ export default {
   font-size: 1rem;
 }
 
-[data-theme='light'] .modal-description {
+[data-theme="light"] .modal-description {
   color: #666666;
 }
 
-[data-theme='dark'] .modal-description {
+[data-theme="dark"] .modal-description {
   color: #e0e0e0;
 }
 
@@ -370,13 +384,13 @@ export default {
   }
 }
 
-[data-theme='light'] .plan-type-card {
+[data-theme="light"] .plan-type-card {
   background: #f5f5f5;
   border-color: #e0e0e0;
   color: #000000;
 }
 
-[data-theme='dark'] .plan-type-card {
+[data-theme="dark"] .plan-type-card {
   background: #2a2a2a;
   border-color: #3a3a3a;
   color: #ffffff;
@@ -394,12 +408,12 @@ export default {
   box-shadow: 0 0 0 3px rgba(91, 141, 239, 0.2);
 }
 
-[data-theme='light'] .plan-type-card.active {
+[data-theme="light"] .plan-type-card.active {
   background: #e8f2ff;
   border-color: #5b8def;
 }
 
-[data-theme='dark'] .plan-type-card.active {
+[data-theme="dark"] .plan-type-card.active {
   background: #2a3a4a;
   border-color: #5b8def;
 }
@@ -473,13 +487,13 @@ export default {
   border: 1px solid var(--border-color);
 }
 
-[data-theme='light'] .btn-secondary {
+[data-theme="light"] .btn-secondary {
   background: #e8e8e8;
   color: #000000;
   border-color: #d0d0d0;
 }
 
-[data-theme='dark'] .btn-secondary {
+[data-theme="dark"] .btn-secondary {
   background: #2a2a2a;
   color: #ffffff;
   border-color: #3a3a3a;

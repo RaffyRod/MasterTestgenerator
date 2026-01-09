@@ -3,40 +3,43 @@
  * Handles saving and loading AI provider settings from localStorage
  */
 
-import { ref, watch } from 'vue'
-import { AI_PROVIDERS, AI_PROVIDER_CONFIG } from '@core/constants/aiProviders.js'
+import { ref, watch } from "vue";
+import {
+  AI_PROVIDERS,
+  AI_PROVIDER_CONFIG,
+} from "@core/constants/aiProviders.js";
 
-const STORAGE_KEY = 'ai_config'
+const STORAGE_KEY = "ai_config";
 const DEFAULT_CONFIG = {
   provider: AI_PROVIDERS.ONLINE,
-  apiKey: '',
-  model: '',
-  customEndpoint: '',
-  ollamaUrl: 'http://localhost:11434'
-}
+  apiKey: "",
+  model: "",
+  customEndpoint: "",
+  ollamaUrl: "http://localhost:11434",
+};
 
-const config = ref(loadConfig())
+const config = ref(loadConfig());
 
 /**
  * Load AI configuration from localStorage
  */
 function loadConfig() {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY)
+    const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      const parsed = JSON.parse(stored)
+      const parsed = JSON.parse(stored);
       // Validate provider exists
       if (AI_PROVIDER_CONFIG[parsed.provider]) {
         return {
           ...DEFAULT_CONFIG,
-          ...parsed
-        }
+          ...parsed,
+        };
       }
     }
   } catch (error) {
-    console.error('Error loading AI config:', error)
+    console.error("Error loading AI config:", error);
   }
-  return { ...DEFAULT_CONFIG }
+  return { ...DEFAULT_CONFIG };
 }
 
 /**
@@ -48,15 +51,15 @@ function saveConfig(newConfig) {
     const configToSave = {
       provider: newConfig.provider,
       model: newConfig.model || getDefaultModel(newConfig.provider),
-      customEndpoint: newConfig.customEndpoint || '',
-      ollamaUrl: newConfig.ollamaUrl || 'http://localhost:11434'
-    }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(configToSave))
-    config.value = { ...config.value, ...newConfig }
-    return true
+      customEndpoint: newConfig.customEndpoint || "",
+      ollamaUrl: newConfig.ollamaUrl || "http://localhost:11434",
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(configToSave));
+    config.value = { ...config.value, ...newConfig };
+    return true;
   } catch (error) {
-    console.error('Error saving AI config:', error)
-    return false
+    console.error("Error saving AI config:", error);
+    return false;
   }
 }
 
@@ -65,11 +68,11 @@ function saveConfig(newConfig) {
  */
 function getApiKey(provider) {
   try {
-    const key = sessionStorage.getItem(`${STORAGE_KEY}_key_${provider}`)
-    return key || ''
+    const key = sessionStorage.getItem(`${STORAGE_KEY}_key_${provider}`);
+    return key || "";
   } catch (error) {
-    console.error('Error getting API key:', error)
-    return ''
+    console.error("Error getting API key:", error);
+    return "";
   }
 }
 
@@ -79,14 +82,14 @@ function getApiKey(provider) {
 function saveApiKey(provider, apiKey) {
   try {
     if (apiKey) {
-      sessionStorage.setItem(`${STORAGE_KEY}_key_${provider}`, apiKey)
+      sessionStorage.setItem(`${STORAGE_KEY}_key_${provider}`, apiKey);
     } else {
-      sessionStorage.removeItem(`${STORAGE_KEY}_key_${provider}`)
+      sessionStorage.removeItem(`${STORAGE_KEY}_key_${provider}`);
     }
-    return true
+    return true;
   } catch (error) {
-    console.error('Error saving API key:', error)
-    return false
+    console.error("Error saving API key:", error);
+    return false;
   }
 }
 
@@ -94,16 +97,16 @@ function saveApiKey(provider, apiKey) {
  * Get default model for provider
  */
 function getDefaultModel(provider) {
-  const providerConfig = AI_PROVIDER_CONFIG[provider]
-  return providerConfig?.defaultModel || ''
+  const providerConfig = AI_PROVIDER_CONFIG[provider];
+  return providerConfig?.defaultModel || "";
 }
 
 /**
  * Get current provider configuration
  */
 function getProviderConfig(provider = null) {
-  const providerId = provider || config.value.provider
-  return AI_PROVIDER_CONFIG[providerId] || null
+  const providerId = provider || config.value.provider;
+  return AI_PROVIDER_CONFIG[providerId] || null;
 }
 
 /**
@@ -111,32 +114,41 @@ function getProviderConfig(provider = null) {
  */
 function validateApiKey(provider, apiKey) {
   if (!apiKey || apiKey.trim().length === 0) {
-    return { valid: false, message: 'API key is required' }
+    return { valid: false, message: "API key is required" };
   }
 
-  const providerId = provider || config.value.provider
-  const key = apiKey.trim()
+  const providerId = provider || config.value.provider;
+  const key = apiKey.trim();
 
   // Basic format validation based on provider
   switch (providerId) {
     case AI_PROVIDERS.OPENAI:
-      if (!key.startsWith('sk-')) {
-        return { valid: false, message: 'OpenAI API key should start with "sk-"' }
+      if (!key.startsWith("sk-")) {
+        return {
+          valid: false,
+          message: 'OpenAI API key should start with "sk-"',
+        };
       }
-      break
+      break;
     case AI_PROVIDERS.CLAUDE:
-      if (!key.startsWith('sk-ant-')) {
-        return { valid: false, message: 'Claude API key should start with "sk-ant-"' }
+      if (!key.startsWith("sk-ant-")) {
+        return {
+          valid: false,
+          message: 'Claude API key should start with "sk-ant-"',
+        };
       }
-      break
+      break;
     case AI_PROVIDERS.GEMINI:
-      if (!key.startsWith('AIza')) {
-        return { valid: false, message: 'Gemini API key should start with "AIza"' }
+      if (!key.startsWith("AIza")) {
+        return {
+          valid: false,
+          message: 'Gemini API key should start with "AIza"',
+        };
       }
-      break
+      break;
   }
 
-  return { valid: true, message: '' }
+  return { valid: true, message: "" };
 }
 
 /**
@@ -144,26 +156,29 @@ function validateApiKey(provider, apiKey) {
  */
 async function testApiKey(provider, apiKey, model = null) {
   try {
-    const providerConfig = getProviderConfig(provider)
+    const providerConfig = getProviderConfig(provider);
     if (!providerConfig) {
-      return { success: false, message: 'Invalid provider' }
+      return { success: false, message: "Invalid provider" };
     }
 
-    const testModel = model || providerConfig.defaultModel
+    const testModel = model || providerConfig.defaultModel;
 
     // Test based on provider
     switch (provider) {
       case AI_PROVIDERS.OPENAI:
-        return await testOpenAIKey(apiKey, testModel)
+        return await testOpenAIKey(apiKey, testModel);
       case AI_PROVIDERS.CLAUDE:
-        return await testClaudeKey(apiKey, testModel)
+        return await testClaudeKey(apiKey, testModel);
       case AI_PROVIDERS.GEMINI:
-        return await testGeminiKey(apiKey, testModel)
+        return await testGeminiKey(apiKey, testModel);
       default:
-        return { success: true, message: 'API key format is valid' }
+        return { success: true, message: "API key format is valid" };
     }
   } catch (error) {
-    return { success: false, message: error.message || 'Failed to test API key' }
+    return {
+      success: false,
+      message: error.message || "Failed to test API key",
+    };
   }
 }
 
@@ -172,22 +187,22 @@ async function testApiKey(provider, apiKey, model = null) {
  */
 async function testOpenAIKey(apiKey, model) {
   try {
-    const response = await fetch('https://api.openai.com/v1/models', {
-      method: 'GET',
+    const response = await fetch("https://api.openai.com/v1/models", {
+      method: "GET",
       headers: {
-        Authorization: `Bearer ${apiKey}`
-      }
-    })
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
 
     if (response.ok) {
-      return { success: true, message: 'API key is valid' }
+      return { success: true, message: "API key is valid" };
     } else if (response.status === 401) {
-      return { success: false, message: 'Invalid API key' }
+      return { success: false, message: "Invalid API key" };
     } else {
-      return { success: false, message: `API error: ${response.statusText}` }
+      return { success: false, message: `API error: ${response.statusText}` };
     }
   } catch (error) {
-    return { success: false, message: `Connection error: ${error.message}` }
+    return { success: false, message: `Connection error: ${error.message}` };
   }
 }
 
@@ -196,30 +211,30 @@ async function testOpenAIKey(apiKey, model) {
  */
 async function testClaudeKey(apiKey, model) {
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01'
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
         model: model,
         max_tokens: 10,
-        messages: [{ role: 'user', content: 'test' }]
-      })
-    })
+        messages: [{ role: "user", content: "test" }],
+      }),
+    });
 
     if (response.ok || response.status === 400) {
       // 400 might be due to short message, but key is valid
-      return { success: true, message: 'API key is valid' }
+      return { success: true, message: "API key is valid" };
     } else if (response.status === 401 || response.status === 403) {
-      return { success: false, message: 'Invalid API key' }
+      return { success: false, message: "Invalid API key" };
     } else {
-      return { success: false, message: `API error: ${response.statusText}` }
+      return { success: false, message: `API error: ${response.statusText}` };
     }
   } catch (error) {
-    return { success: false, message: `Connection error: ${error.message}` }
+    return { success: false, message: `Connection error: ${error.message}` };
   }
 }
 
@@ -228,20 +243,20 @@ async function testClaudeKey(apiKey, model) {
  */
 async function testGeminiKey(apiKey, model) {
   try {
-    const url = `https://generativelanguage.googleapis.com/v1/models/${model}?key=${apiKey}`
+    const url = `https://generativelanguage.googleapis.com/v1/models/${model}?key=${apiKey}`;
     const response = await fetch(url, {
-      method: 'GET'
-    })
+      method: "GET",
+    });
 
     if (response.ok) {
-      return { success: true, message: 'API key is valid' }
+      return { success: true, message: "API key is valid" };
     } else if (response.status === 400 || response.status === 403) {
-      return { success: false, message: 'Invalid API key' }
+      return { success: false, message: "Invalid API key" };
     } else {
-      return { success: false, message: `API error: ${response.statusText}` }
+      return { success: false, message: `API error: ${response.statusText}` };
     }
   } catch (error) {
-    return { success: false, message: `Connection error: ${error.message}` }
+    return { success: false, message: `Connection error: ${error.message}` };
   }
 }
 
@@ -250,16 +265,16 @@ async function testGeminiKey(apiKey, model) {
  */
 function clearConfig() {
   try {
-    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(STORAGE_KEY);
     // Clear all API keys from session storage
-    Object.values(AI_PROVIDERS).forEach(provider => {
-      sessionStorage.removeItem(`${STORAGE_KEY}_key_${provider}`)
-    })
-    config.value = { ...DEFAULT_CONFIG }
-    return true
+    Object.values(AI_PROVIDERS).forEach((provider) => {
+      sessionStorage.removeItem(`${STORAGE_KEY}_key_${provider}`);
+    });
+    config.value = { ...DEFAULT_CONFIG };
+    return true;
   } catch (error) {
-    console.error('Error clearing AI config:', error)
-    return false
+    console.error("Error clearing AI config:", error);
+    return false;
   }
 }
 
@@ -267,13 +282,13 @@ export function useAIConfig() {
   // Watch for config changes and save automatically
   watch(
     () => config.value.provider,
-    newProvider => {
+    (newProvider) => {
       // Update model to default when provider changes
-      if (config.value.model === '') {
-        config.value.model = getDefaultModel(newProvider)
+      if (config.value.model === "") {
+        config.value.model = getDefaultModel(newProvider);
       }
-    }
-  )
+    },
+  );
 
   return {
     config,
@@ -286,9 +301,8 @@ export function useAIConfig() {
     testApiKey,
     clearConfig,
     loadConfig: () => {
-      config.value = loadConfig()
-      return config.value
-    }
-  }
+      config.value = loadConfig();
+      return config.value;
+    },
+  };
 }
-

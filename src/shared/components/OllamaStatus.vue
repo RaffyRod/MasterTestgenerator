@@ -12,7 +12,9 @@
           <ul>
             <li>
               Windows/Mac: Download from
-              <a href="https://ollama.com" target="_blank" rel="noopener">ollama.com</a>
+              <a href="https://ollama.com" target="_blank" rel="noopener"
+                >ollama.com</a
+              >
             </li>
             <li>
               Linux:
@@ -37,8 +39,8 @@
         </li>
       </ol>
       <p class="help-note">
-        💡 The app will automatically detect Ollama once it's running. You can also use Online AI
-        (Hugging Face) which doesn't require installation.
+        💡 The app will automatically detect Ollama once it's running. You can
+        also use Online AI (Hugging Face) which doesn't require installation.
       </p>
     </div>
   </div>
@@ -46,18 +48,18 @@
 
 <script>
 export default {
-  name: 'OllamaStatus',
+  name: "OllamaStatus",
   props: {
     available: {
       type: Boolean,
-      default: false
+      default: false,
     },
     show: {
       type: Boolean,
-      default: false
-    }
-  }
-}
+      default: false,
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -70,12 +72,12 @@ export default {
   border-left: 4px solid var(--warning-color);
 }
 
-[data-theme='light'] .ollama-status-help {
+[data-theme="light"] .ollama-status-help {
   background: #fff8e1 !important;
   border-color: #ffc107 !important;
 }
 
-[data-theme='dark'] .ollama-status-help {
+[data-theme="dark"] .ollama-status-help {
   background: #2a2a1a !important;
   border-color: #ffc107 !important;
 }
@@ -116,7 +118,7 @@ export default {
   background: var(--bg-tertiary);
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 0.85rem;
   display: inline-block;
   margin: 0.25rem 0;
@@ -151,11 +153,11 @@ export default {
   color: var(--text-secondary);
 }
 
-[data-theme='light'] .help-content {
+[data-theme="light"] .help-content {
   color: #333333 !important;
 }
 
-[data-theme='dark'] .help-content {
+[data-theme="dark"] .help-content {
   color: #e0e0e0 !important;
 }
 </style>

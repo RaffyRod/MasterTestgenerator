@@ -1,13 +1,13 @@
 <template>
   <div class="test-cases-view">
     <div class="header">
-      <h1>{{ $t('testCase.title') }}</h1>
-      <p class="subtitle">{{ $t('testCase.subtitle') }}</p>
+      <h1>{{ $t("testCase.title") }}</h1>
+      <p class="subtitle">{{ $t("testCase.subtitle") }}</p>
     </div>
 
     <div class="input-section">
       <div class="form-group">
-        <label for="project-info">{{ $t('testCase.projectInfo') }}</label>
+        <label for="project-info">{{ $t("testCase.projectInfo") }}</label>
         <textarea
           id="project-info"
           v-model="projectInfo"
@@ -18,18 +18,20 @@
       </div>
 
       <div class="form-group">
-        <label>{{ $t('testCase.format') }}</label>
+        <label>{{ $t("testCase.format") }}</label>
         <div class="format-options">
           <label class="radio-option">
             <input type="radio" v-model="format" value="stepByStep" />
             <div class="radio-label-content">
-              <span class="radio-label-text">{{ $t('testCase.stepByStep') }}</span>
+              <span class="radio-label-text">{{
+                $t("testCase.stepByStep")
+              }}</span>
             </div>
           </label>
           <label class="radio-option">
             <input type="radio" v-model="format" value="gherkin" />
             <div class="radio-label-content">
-              <span class="radio-label-text">{{ $t('testCase.gherkin') }}</span>
+              <span class="radio-label-text">{{ $t("testCase.gherkin") }}</span>
             </div>
           </label>
         </div>
@@ -37,19 +39,31 @@
 
       <div class="form-group">
         <label for="tests-per-ac" class="form-label">
-          {{ $t('testCase.testsPerAC') || 'Test Cases per Acceptance Criteria' }}
+          {{
+            $t("testCase.testsPerAC") || "Test Cases per Acceptance Criteria"
+          }}
         </label>
         <select id="tests-per-ac" v-model="testsPerAC" class="select-input">
-          <option :value="1">1 {{ $t('testCase.testCase') || 'Test Case' }}</option>
-          <option :value="2">2 {{ $t('testCase.testCases') || 'Test Cases' }}</option>
-          <option :value="3">3 {{ $t('testCase.testCases') || 'Test Cases' }}</option>
-          <option :value="4">4 {{ $t('testCase.testCases') || 'Test Cases' }}</option>
-          <option :value="5">5 {{ $t('testCase.testCases') || 'Test Cases' }}</option>
+          <option :value="1">
+            1 {{ $t("testCase.testCase") || "Test Case" }}
+          </option>
+          <option :value="2">
+            2 {{ $t("testCase.testCases") || "Test Cases" }}
+          </option>
+          <option :value="3">
+            3 {{ $t("testCase.testCases") || "Test Cases" }}
+          </option>
+          <option :value="4">
+            4 {{ $t("testCase.testCases") || "Test Cases" }}
+          </option>
+          <option :value="5">
+            5 {{ $t("testCase.testCases") || "Test Cases" }}
+          </option>
         </select>
         <small class="form-hint">
           {{
-            $t('testCase.testsPerACHint') ||
-            'Generate multiple test case variations for each acceptance criteria'
+            $t("testCase.testsPerACHint") ||
+            "Generate multiple test case variations for each acceptance criteria"
           }}
         </small>
       </div>
@@ -57,46 +71,72 @@
       <div class="form-group">
         <label class="checkbox-label">
           <input type="checkbox" v-model="useAIEnhancement" class="ai-toggle" />
-          <span class="checkbox-text">🤖 {{ $t('testCase.useAI') || 'Use AI Enhancement' }}</span>
+          <span class="checkbox-text"
+            >🤖 {{ $t("testCase.useAI") || "Use AI Enhancement" }}</span
+          >
         </label>
         <div v-if="useAIEnhancement" class="ai-options">
           <label class="radio-option">
-            <input type="radio" v-model="aiProvider" :value="AI_PROVIDERS.ONLINE" />
+            <input
+              type="radio"
+              v-model="aiProvider"
+              :value="AI_PROVIDERS.ONLINE"
+            />
             <div class="radio-label-content">
               <span class="radio-label-text">🌐 Online AI (Hugging Face)</span>
             </div>
           </label>
           <label class="radio-option">
-            <input type="radio" v-model="aiProvider" :value="AI_PROVIDERS.LOCAL" />
+            <input
+              type="radio"
+              v-model="aiProvider"
+              :value="AI_PROVIDERS.LOCAL"
+            />
             <div class="radio-label-content">
               <span class="radio-label-text">
                 💻 Local AI (Ollama)
-                <span v-if="ollamaAvailable" class="status-badge available">✓ Available</span>
-                <span v-else class="status-badge unavailable">⚠ Not Available</span>
+                <span v-if="ollamaAvailable" class="status-badge available"
+                  >✓ Available</span
+                >
+                <span v-else class="status-badge unavailable"
+                  >⚠ Not Available</span
+                >
               </span>
             </div>
           </label>
           <label class="radio-option">
-            <input type="radio" v-model="aiProvider" :value="AI_PROVIDERS.OPENAI" />
+            <input
+              type="radio"
+              v-model="aiProvider"
+              :value="AI_PROVIDERS.OPENAI"
+            />
             <div class="radio-label-content">
               <span class="radio-label-text">🤖 OpenAI (GPT)</span>
             </div>
           </label>
           <label class="radio-option">
-            <input type="radio" v-model="aiProvider" :value="AI_PROVIDERS.CLAUDE" />
+            <input
+              type="radio"
+              v-model="aiProvider"
+              :value="AI_PROVIDERS.CLAUDE"
+            />
             <div class="radio-label-content">
               <span class="radio-label-text">🧠 Anthropic Claude</span>
             </div>
           </label>
           <label class="radio-option">
-            <input type="radio" v-model="aiProvider" :value="AI_PROVIDERS.GEMINI" />
+            <input
+              type="radio"
+              v-model="aiProvider"
+              :value="AI_PROVIDERS.GEMINI"
+            />
             <div class="radio-label-content">
               <span class="radio-label-text">💎 Google Gemini</span>
             </div>
           </label>
           <div class="ai-config-hint">
             <router-link to="/ai-config" class="config-link">
-              ⚙️ {{ $t('testCase.configureAI') || 'Configure AI Settings' }}
+              ⚙️ {{ $t("testCase.configureAI") || "Configure AI Settings" }}
             </router-link>
           </div>
         </div>
@@ -115,38 +155,56 @@
         >
           <span v-if="loading" class="spinner"></span>
           <span v-else>✨</span>
-          <span>{{ loading ? $t('testCase.loading') : $t('testCase.generate') }}</span>
+          <span>{{
+            loading ? $t("testCase.loading") : $t("testCase.generate")
+          }}</span>
         </button>
         <button @click="clearTestCases" class="btn btn-secondary">
           <span>🗑️</span>
-          <span>{{ $t('testCase.clear') }}</span>
+          <span>{{ $t("testCase.clear") }}</span>
         </button>
       </div>
     </div>
 
     <div v-if="testCases.length > 0" class="test-cases-section">
       <div class="section-header">
-        <h2>{{ $t('testCase.testCases') }} ({{ testCases.length }})</h2>
+        <h2>{{ $t("testCase.testCases") }} ({{ testCases.length }})</h2>
         <div class="export-controls">
           <select v-model="selectedTool" class="tool-select">
-            <option value="">{{ $t('testCase.selectTool') }}</option>
-            <option v-for="tool in testManagementTools" :key="tool.id" :value="tool.id">
+            <option value="">{{ $t("testCase.selectTool") }}</option>
+            <option
+              v-for="tool in testManagementTools"
+              :key="tool.id"
+              :value="tool.id"
+            >
               {{ tool.icon }} {{ tool.name }}
             </option>
           </select>
-          <button @click="showPreview" :disabled="!selectedTool" class="btn btn-preview">
+          <button
+            @click="showPreview"
+            :disabled="!selectedTool"
+            class="btn btn-preview"
+          >
             <span>👁️</span>
-            <span>{{ $t('testCase.preview') }}</span>
+            <span>{{ $t("testCase.preview") }}</span>
           </button>
-          <button @click="exportCSV" :disabled="!selectedTool" class="btn btn-export">
+          <button
+            @click="exportCSV"
+            :disabled="!selectedTool"
+            class="btn btn-export"
+          >
             <span>📥</span>
-            <span>{{ $t('testCase.export') }}</span>
+            <span>{{ $t("testCase.export") }}</span>
           </button>
         </div>
       </div>
 
       <div v-if="groupedTestCases.length > 0" class="test-cases-container">
-        <div v-for="group in groupedTestCases" :key="group.acId || 'ungrouped'" class="ac-group">
+        <div
+          v-for="group in groupedTestCases"
+          :key="group.acId || 'ungrouped'"
+          class="ac-group"
+        >
           <div
             v-if="group.acId"
             class="ac-group-header"
@@ -172,7 +230,9 @@
               <span class="ac-text">{{ group.acText }}</span>
             </div>
             <span class="ac-count">
-              {{ group.testCases.length }} test case{{ group.testCases.length !== 1 ? 's' : '' }}
+              {{ group.testCases.length }} test case{{
+                group.testCases.length !== 1 ? "s" : ""
+              }}
             </span>
           </div>
           <div
@@ -199,7 +259,10 @@
                     >
                       {{ testCase.priority }}
                     </span>
-                    <span class="badge badge-type" :aria-label="`Type: ${testCase.type}`">
+                    <span
+                      class="badge badge-type"
+                      :aria-label="`Type: ${testCase.type}`"
+                    >
                       {{ testCase.type }}
                     </span>
                   </div>
@@ -223,7 +286,14 @@
                       <path
                         d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
                       ></path>
-                      <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                      <rect
+                        x="8"
+                        y="2"
+                        width="8"
+                        height="4"
+                        rx="1"
+                        ry="1"
+                      ></rect>
                     </svg>
                   </button>
                 </div>
@@ -231,19 +301,22 @@
 
               <div class="card-content">
                 <section v-if="testCase.preconditions" class="field">
-                  <strong>{{ $t('testCase.preconditions') }}:</strong>
+                  <strong>{{ $t("testCase.preconditions") }}:</strong>
                   <p>{{ testCase.preconditions }}</p>
                 </section>
 
                 <section class="field">
-                  <strong>{{ $t('testCase.steps') }}:</strong>
-                  <pre class="steps-content" role="textbox" aria-label="Test steps">{{
-                    testCase.steps
-                  }}</pre>
+                  <strong>{{ $t("testCase.steps") }}:</strong>
+                  <pre
+                    class="steps-content"
+                    role="textbox"
+                    aria-label="Test steps"
+                    >{{ testCase.steps }}</pre
+                  >
                 </section>
 
                 <section class="field">
-                  <strong>{{ $t('testCase.expectedResult') }}:</strong>
+                  <strong>{{ $t("testCase.expectedResult") }}:</strong>
                   <p>{{ testCase.expectedResult }}</p>
                 </section>
               </div>
@@ -254,7 +327,7 @@
     </div>
 
     <div v-else class="empty-state">
-      <p>{{ $t('testCase.noTestCases') }}</p>
+      <p>{{ $t("testCase.noTestCases") }}</p>
     </div>
 
     <ExportPreview
@@ -268,203 +341,216 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import {
   generateTestCases,
   configureAI,
   checkOllamaAvailability,
-  AI_PROVIDERS
-} from '@features/test-cases/generators/testCaseGenerator.js'
-import { initAIService } from '@core/ai/aiService.js'
+  AI_PROVIDERS,
+} from "@features/test-cases/generators/testCaseGenerator.js";
+import { initAIService } from "@core/ai/aiService.js";
 import {
   TEST_MANAGEMENT_TOOLS,
   exportToCSV,
   getPreviewData,
-  downloadCSV
-} from '@features/test-cases/utils/csvExport.js'
-import ExportPreview from '@shared/components/ExportPreview.vue'
-import OllamaStatus from '@shared/components/OllamaStatus.vue'
-import { useNotification } from '@shared/composables/useNotification.js'
-import { useAIConfig } from '@shared/composables/useAIConfig.js'
-import { AI_PROVIDER_CONFIG } from '@core/constants/aiProviders.js'
+  downloadCSV,
+} from "@features/test-cases/utils/csvExport.js";
+import ExportPreview from "@shared/components/ExportPreview.vue";
+import OllamaStatus from "@shared/components/OllamaStatus.vue";
+import { useNotification } from "@shared/composables/useNotification.js";
+import { useAIConfig } from "@shared/composables/useAIConfig.js";
+import { AI_PROVIDER_CONFIG } from "@core/constants/aiProviders.js";
 
 export default {
-  name: 'TestCases',
+  name: "TestCases",
   components: {
     ExportPreview,
-    OllamaStatus
+    OllamaStatus,
   },
   setup() {
-    const { locale, t } = useI18n()
-    const { showNotification } = useNotification()
-    const { config: aiConfig, getApiKey, getProviderConfig } = useAIConfig()
-    const projectInfo = ref('')
-    const format = ref('stepByStep')
-    const testsPerAC = ref(1)
-    const testCases = ref([])
-    const loading = ref(false)
-    const selectedTool = ref('')
-    const showExportPreview = ref(false)
-    const useAIEnhancement = ref(false)
-    const aiProvider = ref(AI_PROVIDERS.ONLINE)
-    const ollamaAvailable = ref(false)
+    const { locale, t } = useI18n();
+    const { showNotification } = useNotification();
+    const { config: aiConfig, getApiKey, getProviderConfig } = useAIConfig();
+    const projectInfo = ref("");
+    const format = ref("stepByStep");
+    const testsPerAC = ref(1);
+    const testCases = ref([]);
+    const loading = ref(false);
+    const selectedTool = ref("");
+    const showExportPreview = ref(false);
+    const useAIEnhancement = ref(false);
+    const aiProvider = ref(AI_PROVIDERS.ONLINE);
+    const ollamaAvailable = ref(false);
 
-    const testManagementTools = TEST_MANAGEMENT_TOOLS
-    const expandedGroups = ref({})
+    const testManagementTools = TEST_MANAGEMENT_TOOLS;
+    const expandedGroups = ref({});
 
     const selectedToolName = computed(() => {
-      const tool = testManagementTools.find(t => t.id === selectedTool.value)
-      return tool ? tool.name : ''
-    })
+      const tool = testManagementTools.find((t) => t.id === selectedTool.value);
+      return tool ? tool.name : "";
+    });
 
     const previewData = computed(() => {
       if (!selectedTool.value || testCases.value.length === 0) {
-        return { columns: [], rows: [] }
+        return { columns: [], rows: [] };
       }
-      return getPreviewData(testCases.value, selectedTool.value)
-    })
+      return getPreviewData(testCases.value, selectedTool.value);
+    });
 
     const groupedTestCases = computed(() => {
       if (!testCases.value || testCases.value.length === 0) {
-        return []
+        return [];
       }
 
       // Group test cases by AC
-      const groups = {}
-      const ungrouped = []
+      const groups = {};
+      const ungrouped = [];
 
-      testCases.value.forEach(testCase => {
+      testCases.value.forEach((testCase) => {
         if (testCase && testCase.acId != null && testCase.acText) {
-          const key = String(testCase.acId)
+          const key = String(testCase.acId);
           if (!groups[key]) {
             groups[key] = {
               acId: testCase.acId,
               acText: testCase.acText,
-              testCases: []
-            }
+              testCases: [],
+            };
             // Expand by default
             if (!expandedGroups.value[key]) {
-              expandedGroups.value[key] = true
+              expandedGroups.value[key] = true;
             }
           }
-          groups[key].testCases.push(testCase)
+          groups[key].testCases.push(testCase);
         } else {
-          ungrouped.push(testCase)
+          ungrouped.push(testCase);
         }
-      })
+      });
 
       // Convert to array and sort by AC ID
-      const groupedArray = Object.values(groups).sort((a, b) => a.acId - b.acId)
+      const groupedArray = Object.values(groups).sort(
+        (a, b) => a.acId - b.acId,
+      );
 
       // Add ungrouped test cases if any
       if (ungrouped.length > 0) {
         groupedArray.push({
           acId: null,
           acText: null,
-          testCases: ungrouped
-        })
+          testCases: ungrouped,
+        });
       }
 
-      return groupedArray
-    })
+      return groupedArray;
+    });
 
-    const toggleGroup = acId => {
+    const toggleGroup = (acId) => {
       if (acId != null) {
-        const key = String(acId)
-        expandedGroups.value[key] = !expandedGroups.value[key]
+        const key = String(acId);
+        expandedGroups.value[key] = !expandedGroups.value[key];
       }
-    }
+    };
 
     const checkOllama = async () => {
       try {
         // Get Ollama URL from saved config or environment or use default
-        const ollamaUrl = aiConfig.value.ollamaUrl || import.meta.env.VITE_OLLAMA_BASE_URL || 'http://localhost:11434'
-        ollamaAvailable.value = await checkOllamaAvailability(ollamaUrl)
+        const ollamaUrl =
+          aiConfig.value.ollamaUrl ||
+          import.meta.env.VITE_OLLAMA_BASE_URL ||
+          "http://localhost:11434";
+        ollamaAvailable.value = await checkOllamaAvailability(ollamaUrl);
 
         // Only initialize AI service if user has selected a provider
         // Default behavior: use Local/Online without saved config
-        const currentProvider = aiProvider.value || AI_PROVIDERS.ONLINE
+        const currentProvider = aiProvider.value || AI_PROVIDERS.ONLINE;
 
         if (currentProvider === AI_PROVIDERS.LOCAL) {
           if (ollamaAvailable.value) {
-            configureAI(true, AI_PROVIDERS.LOCAL)
+            configureAI(true, AI_PROVIDERS.LOCAL);
             initAIService(AI_PROVIDERS.LOCAL, {
-              ollamaUrl: ollamaUrl
-            })
+              ollamaUrl: ollamaUrl,
+            });
           } else {
-            configureAI(false)
+            configureAI(false);
           }
         } else if (currentProvider === AI_PROVIDERS.ONLINE) {
           // Use Online (Hugging Face) - no config needed
-          configureAI(true, AI_PROVIDERS.ONLINE)
-          initAIService(AI_PROVIDERS.ONLINE)
+          configureAI(true, AI_PROVIDERS.ONLINE);
+          initAIService(AI_PROVIDERS.ONLINE);
         } else {
           // Custom provider (OpenAI, Claude, Gemini, Custom) - use saved config
-          const savedApiKey = getApiKey(currentProvider)
-          const savedModel = aiConfig.value.model || ''
-          const savedCustomEndpoint = aiConfig.value.customEndpoint || ''
+          const savedApiKey = getApiKey(currentProvider);
+          const savedModel = aiConfig.value.model || "";
+          const savedCustomEndpoint = aiConfig.value.customEndpoint || "";
 
           if (savedApiKey || currentProvider === AI_PROVIDERS.CUSTOM) {
-            configureAI(true, currentProvider)
+            configureAI(true, currentProvider);
             initAIService(currentProvider, {
               apiKey: savedApiKey,
               model: savedModel,
               customEndpoint: savedCustomEndpoint,
-              ollamaUrl: ollamaUrl
-            })
+              ollamaUrl: ollamaUrl,
+            });
           } else {
             // No API key configured for custom provider, fallback to Online
-            configureAI(true, AI_PROVIDERS.ONLINE)
-            initAIService(AI_PROVIDERS.ONLINE)
+            configureAI(true, AI_PROVIDERS.ONLINE);
+            initAIService(AI_PROVIDERS.ONLINE);
           }
         }
       } catch (error) {
-        console.error('Error checking Ollama:', error)
-        ollamaAvailable.value = false
+        console.error("Error checking Ollama:", error);
+        ollamaAvailable.value = false;
       }
-    }
+    };
 
     const generateTestCasesHandler = async () => {
       if (!projectInfo.value.trim()) {
-        showNotification(t('notifications.invalidInput'), 'warning', 3000)
-        return
+        showNotification(t("notifications.invalidInput"), "warning", 3000);
+        return;
       }
 
-      loading.value = true
+      loading.value = true;
 
       try {
         // Configure AI based on user selection
         if (useAIEnhancement.value) {
-          await checkOllama()
-          
+          await checkOllama();
+
           // Check if custom provider needs API key
           const customProviders = [
             AI_PROVIDERS.OPENAI,
             AI_PROVIDERS.CLAUDE,
             AI_PROVIDERS.GEMINI,
-            AI_PROVIDERS.CUSTOM
-          ]
-          
+            AI_PROVIDERS.CUSTOM,
+          ];
+
           if (customProviders.includes(aiProvider.value)) {
-            const apiKey = getApiKey(aiProvider.value)
+            const apiKey = getApiKey(aiProvider.value);
             if (!apiKey && aiProvider.value !== AI_PROVIDERS.CUSTOM) {
               showNotification(
-                t('notifications.aiConfigRequired') || 'Please configure API key in AI Settings',
-                'warning',
-                5000
-              )
+                t("notifications.aiConfigRequired") ||
+                  "Please configure API key in AI Settings",
+                "warning",
+                5000,
+              );
               // Fallback to Online
-              aiProvider.value = AI_PROVIDERS.ONLINE
-              await checkOllama()
+              aiProvider.value = AI_PROVIDERS.ONLINE;
+              await checkOllama();
             }
           }
-          
-          if (!ollamaAvailable.value && aiProvider.value === AI_PROVIDERS.LOCAL) {
-            showNotification(t('notifications.aiNotAvailable'), 'warning', 4000)
+
+          if (
+            !ollamaAvailable.value &&
+            aiProvider.value === AI_PROVIDERS.LOCAL
+          ) {
+            showNotification(
+              t("notifications.aiNotAvailable"),
+              "warning",
+              4000,
+            );
           }
         } else {
-          configureAI(false)
+          configureAI(false);
         }
 
         const generated = await generateTestCases(
@@ -472,50 +558,53 @@ export default {
           format.value,
           locale.value,
           useAIEnhancement.value,
-          testsPerAC.value
-        )
+          testsPerAC.value,
+        );
 
         if (Array.isArray(generated) && generated.length > 0) {
-          testCases.value = generated
-          console.log('Test cases generated:', testCases.value.length)
+          testCases.value = generated;
+          console.log("Test cases generated:", testCases.value.length);
           showNotification(
-            t('notifications.testCasesGeneratedCount', { count: generated.length }),
-            'success',
-            4000
-          )
+            t("notifications.testCasesGeneratedCount", {
+              count: generated.length,
+            }),
+            "success",
+            4000,
+          );
         } else {
-          console.warn('No test cases generated, but no error occurred')
-          showNotification(t('notifications.noTestCases'), 'warning', 4000)
+          console.warn("No test cases generated, but no error occurred");
+          showNotification(t("notifications.noTestCases"), "warning", 4000);
           // Fallback: create at least one test case
           testCases.value = [
             {
               id: 1,
-              title: 'Test Case: ' + projectInfo.value.substring(0, 50),
-              priority: 'Medium',
-              type: 'Functional',
-              preconditions: 'User has accessed the application; System is ready',
+              title: "Test Case: " + projectInfo.value.substring(0, 50),
+              priority: "Medium",
+              type: "Functional",
+              preconditions:
+                "User has accessed the application; System is ready",
               steps:
-                format.value === 'gherkin'
-                  ? 'Given The System Is In A Valid State\nWhen The User Performs The Required Action\nThen The Expected Result Should Be Achieved'
-                  : '1. Navigate to the application\n2. Perform the required action\n3. Verify the expected result',
-              expectedResult: 'Operation completes successfully'
-            }
-          ]
+                format.value === "gherkin"
+                  ? "Given The System Is In A Valid State\nWhen The User Performs The Required Action\nThen The Expected Result Should Be Achieved"
+                  : "1. Navigate to the application\n2. Perform the required action\n3. Verify the expected result",
+              expectedResult: "Operation completes successfully",
+            },
+          ];
         }
       } catch (error) {
-        console.error('Error generating test cases:', error)
-        console.error('Error details:', {
+        console.error("Error generating test cases:", error);
+        console.error("Error details:", {
           message: error.message,
           stack: error.stack,
           projectInfo: projectInfo.value.substring(0, 100),
           format: format.value,
-          testsPerAC: testsPerAC.value
-        })
+          testsPerAC: testsPerAC.value,
+        });
         showNotification(
-          `${t('notifications.testCasesError')}: ${error.message || 'Unknown error'}`,
-          'error',
-          5000
-        )
+          `${t("notifications.testCasesError")}: ${error.message || "Unknown error"}`,
+          "error",
+          5000,
+        );
         // Fallback to non-AI generation
         try {
           const generated = await generateTestCases(
@@ -523,150 +612,157 @@ export default {
             format.value,
             locale.value,
             false,
-            testsPerAC.value
-          )
+            testsPerAC.value,
+          );
           if (Array.isArray(generated) && generated.length > 0) {
-            testCases.value = generated
+            testCases.value = generated;
             showNotification(
-              t('notifications.testCasesGeneratedCount', { count: generated.length }),
-              'success',
-              4000
-            )
+              t("notifications.testCasesGeneratedCount", {
+                count: generated.length,
+              }),
+              "success",
+              4000,
+            );
           }
         } catch (fallbackError) {
-          console.error('Fallback generation also failed:', fallbackError)
-          console.error('Fallback error details:', {
+          console.error("Fallback generation also failed:", fallbackError);
+          console.error("Fallback error details:", {
             message: fallbackError.message,
-            stack: fallbackError.stack
-          })
+            stack: fallbackError.stack,
+          });
         }
       } finally {
-        loading.value = false
+        loading.value = false;
       }
-    }
+    };
 
     onMounted(async () => {
       // Don't auto-load saved config - let user choose Local/Online by default
       // Only use saved config if it's a custom provider (OpenAI, Claude, Gemini, Custom)
-      const savedConfig = aiConfig.value
+      const savedConfig = aiConfig.value;
       const customProviders = [
         AI_PROVIDERS.OPENAI,
         AI_PROVIDERS.CLAUDE,
         AI_PROVIDERS.GEMINI,
-        AI_PROVIDERS.CUSTOM
-      ]
-      
+        AI_PROVIDERS.CUSTOM,
+      ];
+
       // Only auto-load if it's a custom provider that requires configuration
-      if (savedConfig.provider && customProviders.includes(savedConfig.provider)) {
+      if (
+        savedConfig.provider &&
+        customProviders.includes(savedConfig.provider)
+      ) {
         // Make it available but don't auto-select it
         // User can still select Local/Online if they want
       }
 
       // Check Ollama availability on mount
-      await checkOllama()
+      await checkOllama();
 
       // Also check periodically if Local AI is selected
       const checkInterval = setInterval(async () => {
         if (aiProvider.value === AI_PROVIDERS.LOCAL) {
-          await checkOllama()
+          await checkOllama();
         }
-      }, 10000) // Check every 10 seconds
+      }, 10000); // Check every 10 seconds
 
       // Cleanup on unmount
       onUnmounted(() => {
-        clearInterval(checkInterval)
-      })
-    })
+        clearInterval(checkInterval);
+      });
+    });
 
     // Watch for provider changes
-    watch(aiProvider, async newProvider => {
+    watch(aiProvider, async (newProvider) => {
       if (newProvider === AI_PROVIDERS.LOCAL) {
-        await checkOllama()
+        await checkOllama();
       } else if (newProvider === AI_PROVIDERS.ONLINE) {
         // Reinitialize Online provider
-        configureAI(true, AI_PROVIDERS.ONLINE)
-        initAIService(AI_PROVIDERS.ONLINE)
+        configureAI(true, AI_PROVIDERS.ONLINE);
+        initAIService(AI_PROVIDERS.ONLINE);
       } else {
         // Custom provider - check if configured
-        await checkOllama()
+        await checkOllama();
       }
-    })
+    });
 
     const clearTestCases = () => {
-      projectInfo.value = ''
-      testCases.value = []
-      selectedTool.value = ''
-      showNotification(t('notifications.clearSuccess'), 'success', 2000)
-    }
+      projectInfo.value = "";
+      testCases.value = [];
+      selectedTool.value = "";
+      showNotification(t("notifications.clearSuccess"), "success", 2000);
+    };
 
     const showPreview = () => {
-      if (!selectedTool.value) return
-      showExportPreview.value = true
-    }
+      if (!selectedTool.value) return;
+      showExportPreview.value = true;
+    };
 
     const closePreview = () => {
-      showExportPreview.value = false
-    }
+      showExportPreview.value = false;
+    };
 
     const handleDownload = () => {
-      exportCSV()
-      closePreview()
-    }
+      exportCSV();
+      closePreview();
+    };
 
     const exportCSV = () => {
       if (!selectedTool.value || testCases.value.length === 0) {
-        showNotification(t('notifications.exportError'), 'error', 3000)
-        return
+        showNotification(t("notifications.exportError"), "error", 3000);
+        return;
       }
 
       try {
-        const csvContent = exportToCSV(testCases.value, selectedTool.value)
-        const tool = testManagementTools.find(t => t.id === selectedTool.value)
-        const filename = `test-cases-${tool?.name.toLowerCase() || 'export'}-${Date.now()}.csv`
-        downloadCSV(csvContent, filename)
-        showNotification(t('notifications.exportSuccess'), 'success', 3000)
+        const csvContent = exportToCSV(testCases.value, selectedTool.value);
+        const tool = testManagementTools.find(
+          (t) => t.id === selectedTool.value,
+        );
+        const filename = `test-cases-${tool?.name.toLowerCase() || "export"}-${Date.now()}.csv`;
+        downloadCSV(csvContent, filename);
+        showNotification(t("notifications.exportSuccess"), "success", 3000);
       } catch (error) {
-        console.error('Error exporting CSV:', error)
-        showNotification(t('notifications.exportError'), 'error', 4000)
+        console.error("Error exporting CSV:", error);
+        showNotification(t("notifications.exportError"), "error", 4000);
       }
-    }
+    };
 
-    const copyTestCase = async testCase => {
+    const copyTestCase = async (testCase) => {
       // Format test case content
-      let content = `Title: ${testCase.title}\n`
-      content += `Priority: ${testCase.priority}\n`
-      content += `Type: ${testCase.type}\n\n`
+      let content = `Title: ${testCase.title}\n`;
+      content += `Priority: ${testCase.priority}\n`;
+      content += `Type: ${testCase.type}\n\n`;
 
       if (testCase.preconditions) {
-        content += `Preconditions:\n${testCase.preconditions}\n\n`
+        content += `Preconditions:\n${testCase.preconditions}\n\n`;
       }
 
-      content += `Steps:\n${testCase.steps}\n\n`
-      content += `Expected Result:\n${testCase.expectedResult}`
+      content += `Steps:\n${testCase.steps}\n\n`;
+      content += `Expected Result:\n${testCase.expectedResult}`;
 
       try {
         // Copy to clipboard
-        await navigator.clipboard.writeText(content)
-        showNotification(t('notifications.testCaseCopied'), 'success', 2000)
+        await navigator.clipboard.writeText(content);
+        showNotification(t("notifications.testCaseCopied"), "success", 2000);
       } catch (error) {
-        console.error('Error copying test case:', error)
+        console.error("Error copying test case:", error);
         // Fallback for older browsers
         try {
-          const textArea = document.createElement('textarea')
-          textArea.value = content
-          textArea.style.position = 'fixed'
-          textArea.style.left = '-999999px'
-          document.body.appendChild(textArea)
-          textArea.select()
-          document.execCommand('copy')
-          document.body.removeChild(textArea)
-          showNotification(t('notifications.testCaseCopied'), 'success', 2000)
+          const textArea = document.createElement("textarea");
+          textArea.value = content;
+          textArea.style.position = "fixed";
+          textArea.style.left = "-999999px";
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand("copy");
+          document.body.removeChild(textArea);
+          showNotification(t("notifications.testCaseCopied"), "success", 2000);
         } catch (fallbackError) {
-          console.error('Fallback copy failed:', fallbackError)
-          showNotification(t('notifications.copyError'), 'error', 3000)
+          console.error("Fallback copy failed:", fallbackError);
+          showNotification(t("notifications.copyError"), "error", 3000);
         }
       }
-    }
+    };
 
     return {
       projectInfo,
@@ -692,10 +788,10 @@ export default {
       groupedTestCases,
       expandedGroups,
       toggleGroup,
-      AI_PROVIDERS
-    }
-  }
-}
+      AI_PROVIDERS,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -738,12 +834,12 @@ export default {
   background-clip: text;
 }
 
-[data-theme='light'] .header h1 {
+[data-theme="light"] .header h1 {
   color: #000000 !important;
   -webkit-text-fill-color: #000000 !important;
 }
 
-[data-theme='dark'] .header h1 {
+[data-theme="dark"] .header h1 {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
@@ -768,12 +864,12 @@ export default {
   max-width: 100%;
 }
 
-[data-theme='light'] .input-section {
+[data-theme="light"] .input-section {
   background: #ffffff !important;
   border-color: #e0e0e0 !important;
 }
 
-[data-theme='dark'] .input-section {
+[data-theme="dark"] .input-section {
   background: var(--bg-primary) !important;
   border-color: var(--border-color) !important;
 }
@@ -806,11 +902,11 @@ export default {
   align-self: flex-start;
 }
 
-[data-theme='light'] .form-group > label:not(.radio-option) {
+[data-theme="light"] .form-group > label:not(.radio-option) {
   color: #000000 !important;
 }
 
-[data-theme='dark'] .form-group > label:not(.radio-option) {
+[data-theme="dark"] .form-group > label:not(.radio-option) {
   color: #ffffff !important;
 }
 
@@ -819,7 +915,7 @@ export default {
   padding: 1rem;
   border: 2px solid var(--border-color);
   border-radius: 12px;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 0.95rem;
   resize: vertical;
   transition: all 0.2s ease;
@@ -846,7 +942,7 @@ export default {
   color: var(--text-tertiary);
 }
 
-[data-theme='light'] .textarea-input {
+[data-theme="light"] .textarea-input {
   font-family: inherit;
 }
 
@@ -881,13 +977,13 @@ export default {
   outline-offset: 2px;
 }
 
-[data-theme='light'] .radio-option {
+[data-theme="light"] .radio-option {
   background: #f0f0f0 !important;
   color: #000000 !important;
   border-color: #d0d0d0 !important;
 }
 
-[data-theme='dark'] .radio-option {
+[data-theme="dark"] .radio-option {
   background: #1a1a1a !important;
   color: #ffffff !important;
   border-color: #3a3a3a !important;
@@ -900,17 +996,17 @@ export default {
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
 }
 
-[data-theme='light'] .radio-option:hover {
+[data-theme="light"] .radio-option:hover {
   background: #e0e0e0 !important;
   color: #000000 !important;
 }
 
-[data-theme='dark'] .radio-option:hover {
+[data-theme="dark"] .radio-option:hover {
   background: #2a2a2a !important;
   color: #ffffff !important;
 }
 
-.radio-option input[type='radio'] {
+.radio-option input[type="radio"] {
   cursor: pointer;
   width: 20px;
   height: 20px;
@@ -1005,13 +1101,13 @@ export default {
   opacity: 1 !important;
 }
 
-[data-theme='light'] .btn-secondary {
+[data-theme="light"] .btn-secondary {
   background: #e8e8e8 !important;
   color: #000000 !important;
   border-color: #d0d0d0 !important;
 }
 
-[data-theme='dark'] .btn-secondary {
+[data-theme="dark"] .btn-secondary {
   background: #2a2a2a !important;
   color: #ffffff !important;
   border-color: #3a3a3a !important;
@@ -1027,12 +1123,12 @@ export default {
   transform: translateY(0);
 }
 
-[data-theme='light'] .btn-secondary:hover {
+[data-theme="light"] .btn-secondary:hover {
   background: #d8d8d8 !important;
   color: #000000 !important;
 }
 
-[data-theme='dark'] .btn-secondary:hover {
+[data-theme="dark"] .btn-secondary:hover {
   background: #3a3a3a !important;
   color: #ffffff !important;
 }
@@ -1091,12 +1187,12 @@ export default {
   overflow: visible;
 }
 
-[data-theme='light'] .test-cases-section {
+[data-theme="light"] .test-cases-section {
   background: #ffffff !important;
   border-color: #e0e0e0 !important;
 }
 
-[data-theme='dark'] .test-cases-section {
+[data-theme="dark"] .test-cases-section {
   background: var(--bg-primary) !important;
   border-color: var(--border-color) !important;
 }
@@ -1118,11 +1214,11 @@ export default {
   font-weight: 700;
 }
 
-[data-theme='light'] .section-header h2 {
+[data-theme="light"] .section-header h2 {
   color: #000000 !important;
 }
 
-[data-theme='dark'] .section-header h2 {
+[data-theme="dark"] .section-header h2 {
   color: #ffffff !important;
 }
 
@@ -1240,22 +1336,22 @@ export default {
   margin-left: 1rem;
 }
 
-[data-theme='light'] .ac-group-header {
+[data-theme="light"] .ac-group-header {
   background: #f5f5f5 !important;
   border-color: #e0e0e0 !important;
 }
 
-[data-theme='light'] .ac-group-header:hover {
+[data-theme="light"] .ac-group-header:hover {
   background: #fafafa !important;
   border-color: #667eea !important;
 }
 
-[data-theme='dark'] .ac-group-header {
+[data-theme="dark"] .ac-group-header {
   background: #2a2a2a !important;
   border-color: #3a3a3a !important;
 }
 
-[data-theme='dark'] .ac-group-header:hover {
+[data-theme="dark"] .ac-group-header:hover {
   background: #1a1a1a !important;
   border-color: #667eea !important;
 }
@@ -1292,13 +1388,13 @@ export default {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-[data-theme='light'] .test-case-card {
+[data-theme="light"] .test-case-card {
   background: #fafafa !important;
   color: #000000 !important;
   border-color: #e0e0e0 !important;
 }
 
-[data-theme='dark'] .test-case-card {
+[data-theme="dark"] .test-case-card {
   background: #1a1a1a !important;
   color: #ffffff !important;
   border-color: #3a3a3a !important;
@@ -1367,25 +1463,25 @@ export default {
   height: 20px;
 }
 
-[data-theme='light'] .copy-btn {
+[data-theme="light"] .copy-btn {
   background: #f5f5f5 !important;
   border-color: #e0e0e0 !important;
   color: #666666 !important;
 }
 
-[data-theme='light'] .copy-btn:hover {
+[data-theme="light"] .copy-btn:hover {
   background: #667eea !important;
   color: #ffffff !important;
   border-color: #667eea !important;
 }
 
-[data-theme='dark'] .copy-btn {
+[data-theme="dark"] .copy-btn {
   background: #2a2a2a !important;
   border-color: #3a3a3a !important;
   color: #cccccc !important;
 }
 
-[data-theme='dark'] .copy-btn:hover {
+[data-theme="dark"] .copy-btn:hover {
   background: #667eea !important;
   color: #ffffff !important;
   border-color: #667eea !important;
@@ -1406,11 +1502,11 @@ export default {
   text-overflow: ellipsis;
 }
 
-[data-theme='light'] .card-title {
+[data-theme="light"] .card-title {
   color: #000000 !important;
 }
 
-[data-theme='dark'] .card-title {
+[data-theme="dark"] .card-title {
   color: #ffffff !important;
 }
 
@@ -1489,7 +1585,7 @@ export default {
   padding: 1rem;
   border-radius: 12px;
   border: 1px solid var(--border-color);
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 0.9rem;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -1505,11 +1601,11 @@ export default {
   box-sizing: border-box;
 }
 
-[data-theme='light'] .steps-content {
+[data-theme="light"] .steps-content {
   background: #f5f5f5 !important;
 }
 
-[data-theme='dark'] .steps-content {
+[data-theme="dark"] .steps-content {
   background: #2a2a2a !important;
 }
 
@@ -1524,7 +1620,7 @@ export default {
 }
 
 .empty-state::before {
-  content: '📝';
+  content: "📝";
   font-size: 3rem;
   display: block;
   margin-bottom: 1rem;
@@ -1862,11 +1958,11 @@ export default {
   font-style: italic;
 }
 
-[data-theme='light'] .status-hint {
+[data-theme="light"] .status-hint {
   color: #666666 !important;
 }
 
-[data-theme='dark'] .status-hint {
+[data-theme="dark"] .status-hint {
   color: #b0b0b0 !important;
 }
 
@@ -1895,13 +1991,13 @@ export default {
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
 }
 
-[data-theme='light'] .select-input {
+[data-theme="light"] .select-input {
   background: #f5f5f5 !important;
   color: #000000 !important;
   border-color: #e0e0e0 !important;
 }
 
-[data-theme='dark'] .select-input {
+[data-theme="dark"] .select-input {
   background: #1a1a1a !important;
   color: #ffffff !important;
   border-color: #3a3a3a !important;
@@ -1914,11 +2010,11 @@ export default {
   color: var(--text-secondary);
 }
 
-[data-theme='light'] .form-hint {
+[data-theme="light"] .form-hint {
   color: #666666 !important;
 }
 
-[data-theme='dark'] .form-hint {
+[data-theme="dark"] .form-hint {
   color: #e0e0e0 !important;
 }
 
@@ -1944,11 +2040,11 @@ export default {
   color: var(--primary-color-dark, #5568d3);
 }
 
-[data-theme='light'] .config-link {
+[data-theme="light"] .config-link {
   color: #667eea !important;
 }
 
-[data-theme='dark'] .config-link {
+[data-theme="dark"] .config-link {
   color: #8b9aff !important;
 }
 </style>

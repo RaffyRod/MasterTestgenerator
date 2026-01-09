@@ -1,9 +1,9 @@
 <template>
   <Teleport to="body">
     <Transition name="modal">
-      <div 
-        v-if="show" 
-        class="export-preview-overlay" 
+      <div
+        v-if="show"
+        class="export-preview-overlay"
         @click.self="close"
         @keydown.escape="close"
         role="dialog"
@@ -12,9 +12,9 @@
       >
         <div class="export-preview-modal" @click.stop>
           <div class="modal-header">
-            <h2 id="modal-title">{{ $t('export.preview') }}</h2>
-            <button 
-              @click="close" 
+            <h2 id="modal-title">{{ $t("export.preview") }}</h2>
+            <button
+              @click="close"
               class="close-btn"
               :aria-label="$t('export.closeModal')"
               @keydown.enter="close"
@@ -23,66 +23,71 @@
             </button>
           </div>
 
-      <div class="modal-content">
-        <div class="preview-info">
-          <div class="info-item">
-            <strong>{{ $t('export.tool') }}:</strong>
-            {{ toolName }}
-          </div>
-          <div class="info-item">
-            <strong>{{ $t('export.columns') }}:</strong>
-            {{ previewData.columns.length }}
-          </div>
-          <div class="info-item">
-            <strong>{{ $t('export.rows') }}:</strong>
-            {{ previewData.rows.length }}
-          </div>
-        </div>
+          <div class="modal-content">
+            <div class="preview-info">
+              <div class="info-item">
+                <strong>{{ $t("export.tool") }}:</strong>
+                {{ toolName }}
+              </div>
+              <div class="info-item">
+                <strong>{{ $t("export.columns") }}:</strong>
+                {{ previewData.columns.length }}
+              </div>
+              <div class="info-item">
+                <strong>{{ $t("export.rows") }}:</strong>
+                {{ previewData.rows.length }}
+              </div>
+            </div>
 
-        <p class="preview-note">{{ $t('export.previewNote') }}</p>
+            <p class="preview-note">{{ $t("export.previewNote") }}</p>
 
-        <div class="preview-table-container">
-          <table class="preview-table">
-            <thead>
-              <tr>
-                <th v-for="column in previewData.columns" :key="column">
-                  {{ column }}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(row, index) in previewData.rows.slice(0, 5)" :key="index">
-                <td v-for="column in previewData.columns" :key="column">
-                  {{ formatCellValue(row[column]) }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <p v-if="previewData.rows.length > 5" class="more-rows">
-            {{ $t('export.moreRows', { count: previewData.rows.length - 5 }) }}
-          </p>
-        </div>
-      </div>
+            <div class="preview-table-container">
+              <table class="preview-table">
+                <thead>
+                  <tr>
+                    <th v-for="column in previewData.columns" :key="column">
+                      {{ column }}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(row, index) in previewData.rows.slice(0, 5)"
+                    :key="index"
+                  >
+                    <td v-for="column in previewData.columns" :key="column">
+                      {{ formatCellValue(row[column]) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <p v-if="previewData.rows.length > 5" class="more-rows">
+                {{
+                  $t("export.moreRows", { count: previewData.rows.length - 5 })
+                }}
+              </p>
+            </div>
+          </div>
 
-      <div class="modal-footer">
-        <button 
-          @click="download" 
-          class="btn btn-download"
-          @keydown.enter="download"
-          :aria-label="$t('export.download')"
-        >
-          <span>📥</span>
-          <span>{{ $t('export.download') }}</span>
-        </button>
-        <button 
-          @click="close" 
-          class="btn btn-cancel"
-          @keydown.enter="close"
-          :aria-label="$t('export.close')"
-        >
-          {{ $t('export.close') }}
-        </button>
-      </div>
+          <div class="modal-footer">
+            <button
+              @click="download"
+              class="btn btn-download"
+              @keydown.enter="download"
+              :aria-label="$t('export.download')"
+            >
+              <span>📥</span>
+              <span>{{ $t("export.download") }}</span>
+            </button>
+            <button
+              @click="close"
+              class="btn btn-cancel"
+              @keydown.enter="close"
+              :aria-label="$t('export.close')"
+            >
+              {{ $t("export.close") }}
+            </button>
+          </div>
         </div>
       </div>
     </Transition>
@@ -90,106 +95,109 @@
 </template>
 
 <script>
-import { watch, onMounted, onUnmounted } from 'vue'
+import { watch, onMounted, onUnmounted } from "vue";
 
 export default {
-  name: 'ExportPreview',
+  name: "ExportPreview",
   props: {
     show: {
       type: Boolean,
-      default: false
+      default: false,
     },
     previewData: {
       type: Object,
-      default: () => ({ columns: [], rows: [] })
+      default: () => ({ columns: [], rows: [] }),
     },
     toolName: {
       type: String,
-      default: ''
-    }
+      default: "",
+    },
   },
-  emits: ['close', 'download'],
+  emits: ["close", "download"],
   setup(props, { emit }) {
     const close = () => {
-      emit('close')
-    }
-    
+      emit("close");
+    };
+
     const download = () => {
-      emit('download')
-    }
-    
+      emit("download");
+    };
+
     const formatCellValue = (value) => {
-      if (!value) return '-'
-      if (typeof value === 'string' && value.length > 50) {
-        return value.substring(0, 50) + '...'
+      if (!value) return "-";
+      if (typeof value === "string" && value.length > 50) {
+        return value.substring(0, 50) + "...";
       }
-      return value
-    }
+      return value;
+    };
 
     // Trap focus within modal when open
     const handleTabKey = (e) => {
-      if (!props.show) return
-      
-      const modal = document.querySelector('.export-preview-modal')
-      if (!modal) return
-      
+      if (!props.show) return;
+
+      const modal = document.querySelector(".export-preview-modal");
+      if (!modal) return;
+
       const focusableElements = modal.querySelectorAll(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      )
-      const firstElement = focusableElements[0]
-      const lastElement = focusableElements[focusableElements.length - 1]
-      
-      if (e.key === 'Tab') {
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      );
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+
+      if (e.key === "Tab") {
         if (e.shiftKey) {
           if (document.activeElement === firstElement) {
-            e.preventDefault()
-            lastElement.focus()
+            e.preventDefault();
+            lastElement.focus();
           }
         } else {
           if (document.activeElement === lastElement) {
-            e.preventDefault()
-            firstElement.focus()
+            e.preventDefault();
+            firstElement.focus();
           }
         }
       }
-    }
+    };
 
-    watch(() => props.show, (isOpen) => {
-      if (isOpen) {
-        document.body.style.overflow = 'hidden'
-        setTimeout(() => {
-          const modal = document.querySelector('.export-preview-modal')
-          if (modal) {
-            const firstButton = modal.querySelector('button')
-            if (firstButton) firstButton.focus()
-          }
-        }, 100)
-      } else {
-        document.body.style.overflow = ''
-      }
-    })
+    watch(
+      () => props.show,
+      (isOpen) => {
+        if (isOpen) {
+          document.body.style.overflow = "hidden";
+          setTimeout(() => {
+            const modal = document.querySelector(".export-preview-modal");
+            if (modal) {
+              const firstButton = modal.querySelector("button");
+              if (firstButton) firstButton.focus();
+            }
+          }, 100);
+        } else {
+          document.body.style.overflow = "";
+        }
+      },
+    );
 
     onMounted(() => {
-      document.addEventListener('keydown', handleTabKey)
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && props.show) {
-          close()
+      document.addEventListener("keydown", handleTabKey);
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && props.show) {
+          close();
         }
-      })
-    })
+      });
+    });
 
     onUnmounted(() => {
-      document.removeEventListener('keydown', handleTabKey)
-      document.body.style.overflow = ''
-    })
+      document.removeEventListener("keydown", handleTabKey);
+      document.body.style.overflow = "";
+    });
 
     return {
       close,
       download,
-      formatCellValue
-    }
-  }
-}
+      formatCellValue,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -209,7 +217,7 @@ export default {
   padding: 1rem;
 }
 
-[data-theme='light'] .export-preview-overlay {
+[data-theme="light"] .export-preview-overlay {
   background: rgba(0, 0, 0, 0.6);
 }
 
@@ -277,7 +285,7 @@ export default {
   border-radius: 16px 16px 0 0;
 }
 
-[data-theme='light'] .modal-header {
+[data-theme="light"] .modal-header {
   background: var(--bg-secondary);
 }
 
@@ -292,7 +300,7 @@ export default {
 }
 
 .modal-header h2::before {
-  content: '👁️';
+  content: "👁️";
   font-size: 1.25rem;
 }
 

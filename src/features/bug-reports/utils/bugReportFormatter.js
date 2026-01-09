@@ -5,7 +5,7 @@
  * @param {string} format - Format type: 'jira', 'markdown', or 'plain'
  * @returns {string} Formatted bug report
  */
-export function formatBugReport(bugData, evidenceFiles = [], format = 'jira') {
+export function formatBugReport(bugData, evidenceFiles = [], format = "jira") {
   const {
     title,
     description,
@@ -18,26 +18,29 @@ export function formatBugReport(bugData, evidenceFiles = [], format = 'jira') {
     browser,
     operatingSystem,
     version,
-    additionalInfo
-  } = bugData
+    additionalInfo,
+  } = bugData;
 
   // Format evidence files - list file names only
   // Note: Images cannot be copied via clipboard, they must be manually attached in Jira
-  const evidenceList = evidenceFiles.length > 0
-    ? evidenceFiles.map((file, index) => {
-        return `${index + 1}. ${file.name}`
-      }).join('\n')
-    : 'No evidence files attached'
+  const evidenceList =
+    evidenceFiles.length > 0
+      ? evidenceFiles
+          .map((file, index) => {
+            return `${index + 1}. ${file.name}`;
+          })
+          .join("\n")
+      : "No evidence files attached";
 
   switch (format) {
-    case 'jira':
-      return formatJira(bugData, evidenceList)
-    case 'markdown':
-      return formatMarkdown(bugData, evidenceList)
-    case 'plain':
-      return formatPlain(bugData, evidenceList)
+    case "jira":
+      return formatJira(bugData, evidenceList);
+    case "markdown":
+      return formatMarkdown(bugData, evidenceList);
+    case "plain":
+      return formatPlain(bugData, evidenceList);
     default:
-      return formatJira(bugData, evidenceList)
+      return formatJira(bugData, evidenceList);
   }
 }
 
@@ -48,57 +51,57 @@ export function formatBugReport(bugData, evidenceFiles = [], format = 'jira') {
  * @param {boolean} removeHeadings - If true, removes heading tags instead of converting them (for titles)
  */
 function cleanTextForJira(text, removeHeadings = false) {
-  if (!text) return ''
-  
-  let cleaned = text
-  
+  if (!text) return "";
+
+  let cleaned = text;
+
   if (removeHeadings) {
     // For titles, remove heading tags completely (just extract the text)
     cleaned = cleaned
-      .replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/gi, '$1')
+      .replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/gi, "$1")
       // Remove Jira heading format if already present (at start or anywhere)
-      .replace(/^h[1-6]\.\s*/gi, '')
-      .replace(/\s*h[1-6]\.\s*/gi, ' ')
+      .replace(/^h[1-6]\.\s*/gi, "")
+      .replace(/\s*h[1-6]\.\s*/gi, " ")
       // Remove any remaining heading markers
-      .replace(/^(h[1-6]\.\s*)+/gi, '')
+      .replace(/^(h[1-6]\.\s*)+/gi, "");
   } else {
     // For content, convert HTML heading tags to Jira format
     cleaned = cleaned
-      .replace(/<h1[^>]*>(.*?)<\/h1>/gi, 'h1. $1')
-      .replace(/<h2[^>]*>(.*?)<\/h2>/gi, 'h2. $1')
-      .replace(/<h3[^>]*>(.*?)<\/h3>/gi, 'h3. $1')
-      .replace(/<h4[^>]*>(.*?)<\/h4>/gi, 'h4. $1')
-      .replace(/<h5[^>]*>(.*?)<\/h5>/gi, 'h5. $1')
-      .replace(/<h6[^>]*>(.*?)<\/h6>/gi, 'h6. $1')
+      .replace(/<h1[^>]*>(.*?)<\/h1>/gi, "h1. $1")
+      .replace(/<h2[^>]*>(.*?)<\/h2>/gi, "h2. $1")
+      .replace(/<h3[^>]*>(.*?)<\/h3>/gi, "h3. $1")
+      .replace(/<h4[^>]*>(.*?)<\/h4>/gi, "h4. $1")
+      .replace(/<h5[^>]*>(.*?)<\/h5>/gi, "h5. $1")
+      .replace(/<h6[^>]*>(.*?)<\/h6>/gi, "h6. $1");
   }
-  
+
   // Remove all remaining HTML tags
-  cleaned = cleaned.replace(/<[^>]+>/g, '')
-  
+  cleaned = cleaned.replace(/<[^>]+>/g, "");
+
   // Decode common HTML entities
   const entityMap = {
-    '&amp;': '&',
-    '&lt;': '<',
-    '&gt;': '>',
-    '&quot;': '"',
-    '&#39;': "'",
-    '&nbsp;': ' ',
-    '&apos;': "'"
-  }
+    "&amp;": "&",
+    "&lt;": "<",
+    "&gt;": ">",
+    "&quot;": '"',
+    "&#39;": "'",
+    "&nbsp;": " ",
+    "&apos;": "'",
+  };
   cleaned = cleaned.replace(/&[#\w]+;/g, (entity) => {
-    return entityMap[entity] || entity
-  })
-  
+    return entityMap[entity] || entity;
+  });
+
   // Remove Jira heading format if it appears in the middle of text (should only be at start of line)
   if (!removeHeadings) {
     // Only remove h2., h3. etc if they're not at the start of a line
-    cleaned = cleaned.replace(/([^\n])h([1-6])\.\s+/g, '$1')
+    cleaned = cleaned.replace(/([^\n])h([1-6])\.\s+/g, "$1");
   }
-  
+
   // Clean up extra whitespace
-  cleaned = cleaned.replace(/\n{3,}/g, '\n\n').trim()
-  
-  return cleaned
+  cleaned = cleaned.replace(/\n{3,}/g, "\n\n").trim();
+
+  return cleaned;
 }
 
 /**
@@ -117,57 +120,59 @@ function formatJira(bugData, evidenceList) {
     browser,
     operatingSystem,
     version,
-    additionalInfo
-  } = bugData
+    additionalInfo,
+  } = bugData;
 
   // Clean title (remove headings completely) and all text fields
   // Also fix common typos and spacing issues in title
-  let cleanTitle = cleanTextForJira(title, true) // Remove headings from title
-  
+  let cleanTitle = cleanTextForJira(title, true); // Remove headings from title
+
   // Fix common spacing issues and typos
-  cleanTitle = cleanTitle.replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between lowercase and uppercase
-  cleanTitle = cleanTitle.replace(/\boage\b/gi, 'page') // Fix "oage" -> "page"
-  cleanTitle = cleanTitle.replace(/(page)(is|was|are|were)/gi, '$1 $2') // Fix "pageis" -> "page is"
-  cleanTitle = cleanTitle.replace(/(properl)(y|ies)/gi, 'properly') // Fix "properl" -> "properly"
-  cleanTitle = cleanTitle.replace(/(loadin)(g)/gi, 'loading') // Fix "loadin" -> "loading"
-  cleanTitle = cleanTitle.replace(/(displaye)(d)/gi, 'displayed') // Fix "displaye" -> "displayed"
-  cleanTitle = cleanTitle.replace(/(workin)(g)/gi, 'working') // Fix "workin" -> "working"
-  cleanTitle = cleanTitle.replace(/\s+/g, ' ') // Normalize multiple spaces
-  cleanTitle = cleanTitle.trim()
-  
-  const cleanDescription = cleanTextForJira(description)
-  const cleanSteps = cleanTextForJira(stepsToReproduce)
-  const cleanExpected = cleanTextForJira(expectedResult)
-  const cleanActual = cleanTextForJira(actualResult)
-  const cleanAdditional = cleanTextForJira(additionalInfo)
+  cleanTitle = cleanTitle.replace(/([a-z])([A-Z])/g, "$1 $2"); // Add space between lowercase and uppercase
+  cleanTitle = cleanTitle.replace(/\boage\b/gi, "page"); // Fix "oage" -> "page"
+  cleanTitle = cleanTitle.replace(/(page)(is|was|are|were)/gi, "$1 $2"); // Fix "pageis" -> "page is"
+  cleanTitle = cleanTitle.replace(/(properl)(y|ies)/gi, "properly"); // Fix "properl" -> "properly"
+  cleanTitle = cleanTitle.replace(/(loadin)(g)/gi, "loading"); // Fix "loadin" -> "loading"
+  cleanTitle = cleanTitle.replace(/(displaye)(d)/gi, "displayed"); // Fix "displaye" -> "displayed"
+  cleanTitle = cleanTitle.replace(/(workin)(g)/gi, "working"); // Fix "workin" -> "working"
+  cleanTitle = cleanTitle.replace(/\s+/g, " "); // Normalize multiple spaces
+  cleanTitle = cleanTitle.trim();
+
+  const cleanDescription = cleanTextForJira(description);
+  const cleanSteps = cleanTextForJira(stepsToReproduce);
+  const cleanExpected = cleanTextForJira(expectedResult);
+  const cleanActual = cleanTextForJira(actualResult);
+  const cleanAdditional = cleanTextForJira(additionalInfo);
 
   // Format steps as numbered list for Jira
   const formatSteps = (steps) => {
-    if (!steps) return ''
-    
+    if (!steps) return "";
+
     // Split by newlines and process each line
-    const lines = steps.split('\n').filter(line => line.trim())
-    
-    if (lines.length === 0) return ''
-    
+    const lines = steps.split("\n").filter((line) => line.trim());
+
+    if (lines.length === 0) return "";
+
     // Convert each line to Jira numbered list format
-    return lines.map(line => {
-      // Remove existing numbering (1., 2., etc.) and clean the line
-      let cleaned = line.replace(/^\d+\.\s*/, '').trim()
-      
-      // Remove any leading dashes or bullets
-      cleaned = cleaned.replace(/^[-*•]\s*/, '').trim()
-      
-      // Jira numbered list format: # at the start of line (must be at column 0)
-      // Each step must be on its own line with # prefix
-      return `# ${cleaned}`
-    }).join('\n')
-  }
+    return lines
+      .map((line) => {
+        // Remove existing numbering (1., 2., etc.) and clean the line
+        let cleaned = line.replace(/^\d+\.\s*/, "").trim();
+
+        // Remove any leading dashes or bullets
+        cleaned = cleaned.replace(/^[-*•]\s*/, "").trim();
+
+        // Jira numbered list format: # at the start of line (must be at column 0)
+        // Each step must be on its own line with # prefix
+        return `# ${cleaned}`;
+      })
+      .join("\n");
+  };
 
   // Format code/error messages - only for actual code/errors, not descriptions
   const formatCodeBlock = (text) => {
-    if (!text) return ''
-    
+    if (!text) return "";
+
     // Only format as code if it contains actual code patterns or technical errors
     // Be more strict - don't format descriptive text as code
     const codePatterns = [
@@ -179,103 +184,105 @@ function formatJira(bugData, evidenceList) {
       /<[a-z]+[^>]*>/i, // HTML tags
       /function\s+\w+\s*\(/i, // Function definitions
       /const\s+\w+\s*=|let\s+\w+\s*=|var\s+\w+\s*=/i, // Variable declarations
-      /^\s*\d+\.\d+\.\d+\.\d+/ // IP addresses
-    ]
-    
+      /^\s*\d+\.\d+\.\d+\.\d+/, // IP addresses
+    ];
+
     // Check if text looks like actual code/error (not just descriptive text)
-    const isCodeLike = codePatterns.some(pattern => pattern.test(text))
-    
+    const isCodeLike = codePatterns.some((pattern) => pattern.test(text));
+
     // Also check if it's a short technical error message (not a long description)
-    const isShortTechnicalError = text.length < 100 && (
-      /^(Error|Exception|TypeError|ReferenceError|SyntaxError)/i.test(text) ||
-      /at\s+\w+\.\w+/i.test(text) // Stack trace pattern
-    )
-    
+    const isShortTechnicalError =
+      text.length < 100 &&
+      (/^(Error|Exception|TypeError|ReferenceError|SyntaxError)/i.test(text) ||
+        /at\s+\w+\.\w+/i.test(text)); // Stack trace pattern
+
     if (isCodeLike || isShortTechnicalError) {
       // Wrap code-like content in code blocks
-      return `{code}${text}{code}`
+      return `{code}${text}{code}`;
     }
-    return text
-  }
+    return text;
+  };
 
   // Build metadata panel - no bold for metadata fields, only section headers
-  let metadata = []
-  metadata.push(`Priority: ${priority}`)
-  metadata.push(`Severity: ${severity}`)
-  if (environment) metadata.push(`Environment: ${environment}`)
-  if (browser) metadata.push(`Browser: ${browser}`)
-  if (operatingSystem) metadata.push(`Operating System: ${operatingSystem}`)
-  if (version) metadata.push(`Version: ${version}`)
+  let metadata = [];
+  metadata.push(`Priority: ${priority}`);
+  metadata.push(`Severity: ${severity}`);
+  if (environment) metadata.push(`Environment: ${environment}`);
+  if (browser) metadata.push(`Browser: ${browser}`);
+  if (operatingSystem) metadata.push(`Operating System: ${operatingSystem}`);
+  if (version) metadata.push(`Version: ${version}`);
 
   // Start building the report - title in bold (Markdown format: **text**)
-  let report = `**${cleanTitle}**\n\n`
-  
+  let report = `**${cleanTitle}**\n\n`;
+
   // Metadata section - plain text, no heading
-  report += `**Issue Details**\n`
-  report += metadata.join('\n')
-  report += `\n\n`
-  
+  report += `**Issue Details**\n`;
+  report += metadata.join("\n");
+  report += `\n\n`;
+
   // Description section - using bold text (Markdown format: **text**)
-  report += `**Description:**\n`
-  report += `${formatCodeBlock(cleanDescription)}\n\n`
-  
+  report += `**Description:**\n`;
+  report += `${formatCodeBlock(cleanDescription)}\n\n`;
+
   // Steps to Reproduce - must be numbered list (1., 2., 3., etc.)
   if (cleanSteps && cleanSteps.trim()) {
-    report += `**Steps to Reproduce:**\n`
-    
+    report += `**Steps to Reproduce:**\n`;
+
     // Always format steps as numbered list (1., 2., 3., etc.)
-    const lines = cleanSteps.split('\n').filter(line => line.trim())
+    const lines = cleanSteps.split("\n").filter((line) => line.trim());
     if (lines.length > 0) {
-      const formattedSteps = lines.map((line, index) => {
-        // Remove existing numbering (1., 2., etc.) and clean the line
-        let cleaned = line.replace(/^\d+\.\s*/, '').trim()
-        // Remove any leading dashes or bullets
-        cleaned = cleaned.replace(/^[-*•]\s*/, '').trim()
-        // Remove # if present (from previous format)
-        cleaned = cleaned.replace(/^#\s*/, '').trim()
-        // Numbered list format: 1., 2., 3., etc.
-        return `${index + 1}. ${cleaned}`
-      }).join('\n')
-      report += `${formattedSteps}\n\n`
+      const formattedSteps = lines
+        .map((line, index) => {
+          // Remove existing numbering (1., 2., etc.) and clean the line
+          let cleaned = line.replace(/^\d+\.\s*/, "").trim();
+          // Remove any leading dashes or bullets
+          cleaned = cleaned.replace(/^[-*•]\s*/, "").trim();
+          // Remove # if present (from previous format)
+          cleaned = cleaned.replace(/^#\s*/, "").trim();
+          // Numbered list format: 1., 2., 3., etc.
+          return `${index + 1}. ${cleaned}`;
+        })
+        .join("\n");
+      report += `${formattedSteps}\n\n`;
     } else {
       // Fallback if no steps found
-      report += `1. Navigate to the application\n2. Perform the action described\n3. Observe the issue\n\n`
+      report += `1. Navigate to the application\n2. Perform the action described\n3. Observe the issue\n\n`;
     }
   }
-  
+
   // Expected vs Actual
   if (cleanExpected || cleanActual) {
     if (cleanExpected) {
-      report += `**Expected Result:**\n`
-      report += `${cleanExpected}\n\n`
+      report += `**Expected Result:**\n`;
+      report += `${cleanExpected}\n\n`;
     }
-    
+
     if (cleanActual) {
-      report += `**Actual Result:**\n`
-      report += `${formatCodeBlock(cleanActual)}\n\n`
+      report += `**Actual Result:**\n`;
+      report += `${formatCodeBlock(cleanActual)}\n\n`;
     }
   }
-  
+
   // Evidence section
-  if (evidenceList && evidenceList !== 'No evidence files attached') {
-    report += `**Evidence:**\n`
-    report += `${evidenceList}\n`
+  if (evidenceList && evidenceList !== "No evidence files attached") {
+    report += `**Evidence:**\n`;
+    report += `${evidenceList}\n`;
     // Check if there are any image files by looking for common image extensions
-    const imageExtensions = /\.(jpg|jpeg|png|gif|bmp|webp|svg)(\s|$)/i
-    const hasImages = imageExtensions.test(evidenceList)
+    const imageExtensions = /\.(jpg|jpeg|png|gif|bmp|webp|svg)(\s|$)/i;
+    const hasImages = imageExtensions.test(evidenceList);
     if (hasImages) {
-      report += `\n_Note: Images cannot be copied via clipboard. Please attach them manually in Jira after pasting this report._\n`
+      report += `\n_Note: Images cannot be copied via clipboard. Please attach them manually in Jira after pasting this report._\n`;
     }
-    report += `\n`
+    report += `\n`;
   }
-  
+
   // Additional Information
   if (cleanAdditional) {
-    report += `**Additional Information:**\n`
-    report += `${cleanAdditional}\n`
+    report += `**Additional Information:**\n`;
+    report += `${cleanAdditional}\n`;
   }
-  
-  return report.trim()
+
+  return report.trim();
 }
 
 /**
@@ -294,42 +301,42 @@ function formatMarkdown(bugData, evidenceList) {
     browser,
     operatingSystem,
     version,
-    additionalInfo
-  } = bugData
+    additionalInfo,
+  } = bugData;
 
-  let report = `# ${title}\n\n`
-  
-  report += `**Priority:** ${priority}  \n`
-  report += `**Severity:** ${severity}\n\n`
-  
-  if (environment) report += `**Environment:** ${environment}  \n`
-  if (browser) report += `**Browser:** ${browser}  \n`
-  if (operatingSystem) report += `**Operating System:** ${operatingSystem}  \n`
-  if (version) report += `**Version:** ${version}\n\n`
-  
-  report += `## Description\n\n${description}\n\n`
-  
+  let report = `# ${title}\n\n`;
+
+  report += `**Priority:** ${priority}  \n`;
+  report += `**Severity:** ${severity}\n\n`;
+
+  if (environment) report += `**Environment:** ${environment}  \n`;
+  if (browser) report += `**Browser:** ${browser}  \n`;
+  if (operatingSystem) report += `**Operating System:** ${operatingSystem}  \n`;
+  if (version) report += `**Version:** ${version}\n\n`;
+
+  report += `## Description\n\n${description}\n\n`;
+
   if (stepsToReproduce) {
-    report += `## Steps to Reproduce\n\n${stepsToReproduce}\n\n`
+    report += `## Steps to Reproduce\n\n${stepsToReproduce}\n\n`;
   }
-  
+
   if (expectedResult) {
-    report += `## Expected Result\n\n${expectedResult}\n\n`
+    report += `## Expected Result\n\n${expectedResult}\n\n`;
   }
-  
+
   if (actualResult) {
-    report += `## Actual Result\n\n${actualResult}\n\n`
+    report += `## Actual Result\n\n${actualResult}\n\n`;
   }
-  
-  if (evidenceList && evidenceList !== 'No evidence files attached') {
-    report += `## Evidence\n\n${evidenceList}\n\n`
+
+  if (evidenceList && evidenceList !== "No evidence files attached") {
+    report += `## Evidence\n\n${evidenceList}\n\n`;
   }
-  
+
   if (additionalInfo) {
-    report += `## Additional Information\n\n${additionalInfo}\n`
+    report += `## Additional Information\n\n${additionalInfo}\n`;
   }
-  
-  return report.trim()
+
+  return report.trim();
 }
 
 /**
@@ -348,43 +355,42 @@ function formatPlain(bugData, evidenceList) {
     browser,
     operatingSystem,
     version,
-    additionalInfo
-  } = bugData
+    additionalInfo,
+  } = bugData;
 
-  let report = `${title}\n`
-  report += '='.repeat(title.length) + '\n\n'
-  
-  report += `Priority: ${priority}\n`
-  report += `Severity: ${severity}\n\n`
-  
-  if (environment) report += `Environment: ${environment}\n`
-  if (browser) report += `Browser: ${browser}\n`
-  if (operatingSystem) report += `Operating System: ${operatingSystem}\n`
-  if (version) report += `Version: ${version}\n`
-  report += '\n'
-  
-  report += `DESCRIPTION\n${'-'.repeat(11)}\n${description}\n\n`
-  
+  let report = `${title}\n`;
+  report += "=".repeat(title.length) + "\n\n";
+
+  report += `Priority: ${priority}\n`;
+  report += `Severity: ${severity}\n\n`;
+
+  if (environment) report += `Environment: ${environment}\n`;
+  if (browser) report += `Browser: ${browser}\n`;
+  if (operatingSystem) report += `Operating System: ${operatingSystem}\n`;
+  if (version) report += `Version: ${version}\n`;
+  report += "\n";
+
+  report += `DESCRIPTION\n${"-".repeat(11)}\n${description}\n\n`;
+
   if (stepsToReproduce) {
-    report += `STEPS TO REPRODUCE\n${'-'.repeat(18)}\n${stepsToReproduce}\n\n`
+    report += `STEPS TO REPRODUCE\n${"-".repeat(18)}\n${stepsToReproduce}\n\n`;
   }
-  
-  if (expectedResult) {
-    report += `EXPECTED RESULT\n${'-'.repeat(15)}\n${expectedResult}\n\n`
-  }
-  
-  if (actualResult) {
-    report += `ACTUAL RESULT\n${'-'.repeat(13)}\n${actualResult}\n\n`
-  }
-  
-  if (evidenceList && evidenceList !== 'No evidence files attached') {
-    report += `EVIDENCE\n${'-'.repeat(8)}\n${evidenceList}\n\n`
-  }
-  
-  if (additionalInfo) {
-    report += `ADDITIONAL INFORMATION\n${'-'.repeat(22)}\n${additionalInfo}\n`
-  }
-  
-  return report.trim()
-}
 
+  if (expectedResult) {
+    report += `EXPECTED RESULT\n${"-".repeat(15)}\n${expectedResult}\n\n`;
+  }
+
+  if (actualResult) {
+    report += `ACTUAL RESULT\n${"-".repeat(13)}\n${actualResult}\n\n`;
+  }
+
+  if (evidenceList && evidenceList !== "No evidence files attached") {
+    report += `EVIDENCE\n${"-".repeat(8)}\n${evidenceList}\n\n`;
+  }
+
+  if (additionalInfo) {
+    report += `ADDITIONAL INFORMATION\n${"-".repeat(22)}\n${additionalInfo}\n`;
+  }
+
+  return report.trim();
+}

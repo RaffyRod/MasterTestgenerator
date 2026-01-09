@@ -105,61 +105,61 @@ The project uses **dynamic path aliases** configured in `vite.config.js` to avoi
 
 ```javascript
 // AI Service
-import { initAIService, AI_PROVIDERS } from '@core/ai/aiService.js'
+import { initAIService, AI_PROVIDERS } from "@core/ai/aiService.js";
 
 // Analysis
-import { analyzeProjectInfo } from '@core/analysis/intelligentAnalyzer.js'
+import { analyzeProjectInfo } from "@core/analysis/intelligentAnalyzer.js";
 
 // Constants
-import { AI_PROVIDERS } from '@core/constants/aiProviders.js'
+import { AI_PROVIDERS } from "@core/constants/aiProviders.js";
 ```
 
 ### Feature Modules
 
 ```javascript
 // Test Cases
-import { generateTestCases } from '@features/test-cases/generators/testCaseGenerator.js'
-import { exportToCSV } from '@features/test-cases/utils/csvExport.js'
+import { generateTestCases } from "@features/test-cases/generators/testCaseGenerator.js";
+import { exportToCSV } from "@features/test-cases/utils/csvExport.js";
 
 // Bug Reports
-import { formatBugReport } from '@features/bug-reports/utils/bugReportFormatter.js'
+import { formatBugReport } from "@features/bug-reports/utils/bugReportFormatter.js";
 
 // Test Plans
-import { generateTestPlan } from '@features/test-plans/generators/testPlanGenerator.js'
-import { exportTestPlanToPDF } from '@features/test-plans/utils/testPlanExport.js'
-import PlanTypeModal from '@features/test-plans/components/PlanTypeModal.vue'
+import { generateTestPlan } from "@features/test-plans/generators/testPlanGenerator.js";
+import { exportTestPlanToPDF } from "@features/test-plans/utils/testPlanExport.js";
+import PlanTypeModal from "@features/test-plans/components/PlanTypeModal.vue";
 ```
 
 ### Shared Resources
 
 ```javascript
 // Components
-import NotificationToast from '@shared/components/NotificationToast.vue'
-import ExportPreview from '@shared/components/ExportPreview.vue'
+import NotificationToast from "@shared/components/NotificationToast.vue";
+import ExportPreview from "@shared/components/ExportPreview.vue";
 
 // Composables
-import { useAIConfig } from '@shared/composables/useAIConfig.js'
-import { useNotification } from '@shared/composables/useNotification.js'
-import { useTheme } from '@shared/composables/useTheme.js'
+import { useAIConfig } from "@shared/composables/useAIConfig.js";
+import { useNotification } from "@shared/composables/useNotification.js";
+import { useTheme } from "@shared/composables/useTheme.js";
 
 // Data
-import testCasePatterns from '@shared/data/patterns/test-case-patterns.json'
+import testCasePatterns from "@shared/data/patterns/test-case-patterns.json";
 ```
 
 ### Views and Router
 
 ```javascript
 // Views
-import AIConfig from '@views/AIConfig.vue'
-import BugReport from '@views/BugReport.vue'
-import TestCases from '@views/TestCases.vue'
-import TestPlans from '@views/TestPlans.vue'
+import AIConfig from "@views/AIConfig.vue";
+import BugReport from "@views/BugReport.vue";
+import TestCases from "@views/TestCases.vue";
+import TestPlans from "@views/TestPlans.vue";
 
 // Router
-import router from '@router/index.js'
+import router from "@router/index.js";
 
 // i18n
-import { messages } from '@i18n/index.js'
+import { messages } from "@i18n/index.js";
 ```
 
 ### Benefits of Dynamic Aliases

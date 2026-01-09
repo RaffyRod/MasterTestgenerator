@@ -2,40 +2,68 @@
   <div class="bug-report-view">
     <div class="header">
       <div class="header-icon">🐛</div>
-      <h1>{{ $t('bugReport.title') }}</h1>
-      <p class="subtitle">{{ $t('bugReport.subtitle') }}</p>
+      <h1>{{ $t("bugReport.title") }}</h1>
+      <p class="subtitle">{{ $t("bugReport.subtitle") }}</p>
     </div>
 
     <!-- Progress Indicator -->
     <div class="progress-indicator">
-      <div class="progress-step" :class="{ active: bugData.title.trim() !== '', completed: bugData.title.trim() !== '' }">
+      <div
+        class="progress-step"
+        :class="{
+          active: bugData.title.trim() !== '',
+          completed: bugData.title.trim() !== '',
+        }"
+      >
         <div class="step-number">1</div>
-        <div class="step-label">{{ $t('bugReport.titleLabel') }}</div>
+        <div class="step-label">{{ $t("bugReport.titleLabel") }}</div>
       </div>
-      <div class="progress-line" :class="{ active: bugData.title.trim() !== '' }"></div>
-      <div class="progress-step" :class="{ active: bugData.description.trim() !== '', completed: bugData.description.trim() !== '' }">
+      <div
+        class="progress-line"
+        :class="{ active: bugData.title.trim() !== '' }"
+      ></div>
+      <div
+        class="progress-step"
+        :class="{
+          active: bugData.description.trim() !== '',
+          completed: bugData.description.trim() !== '',
+        }"
+      >
         <div class="step-number">2</div>
-        <div class="step-label">{{ $t('bugReport.description') }}</div>
+        <div class="step-label">{{ $t("bugReport.description") }}</div>
       </div>
       <div class="progress-line" :class="{ active: isFormValid }"></div>
-      <div class="progress-step" :class="{ active: isFormValid, completed: generatedReport !== '' }">
+      <div
+        class="progress-step"
+        :class="{ active: isFormValid, completed: generatedReport !== '' }"
+      >
         <div class="step-number">3</div>
-        <div class="step-label">{{ $t('bugReport.generatedReport') }}</div>
+        <div class="step-label">{{ $t("bugReport.generatedReport") }}</div>
       </div>
     </div>
 
     <div class="form-section">
       <!-- Essential Information -->
       <div class="section-header">
-        <h2>📝 {{ $t('bugReport.essentialInfo') || 'Essential Information' }}</h2>
-        <p class="section-subtitle">{{ $t('bugReport.essentialInfoHint') || 'Tell us about the bug' }}</p>
+        <h2>
+          📝 {{ $t("bugReport.essentialInfo") || "Essential Information" }}
+        </h2>
+        <p class="section-subtitle">
+          {{ $t("bugReport.essentialInfoHint") || "Tell us about the bug" }}
+        </p>
       </div>
 
       <div class="form-group full-width">
         <label for="bug-title" class="label-with-indicator">
-          {{ $t('bugReport.titleLabel') }} *
-          <span v-if="generatingTitle" class="field-indicator generating">🤖</span>
-          <span v-else-if="bugData.title.trim() !== ''" class="field-indicator valid">✓</span>
+          {{ $t("bugReport.titleLabel") }} *
+          <span v-if="generatingTitle" class="field-indicator generating"
+            >🤖</span
+          >
+          <span
+            v-else-if="bugData.title.trim() !== ''"
+            class="field-indicator valid"
+            >✓</span
+          >
           <span v-else class="field-indicator invalid">!</span>
         </label>
         <div class="title-input-wrapper">
@@ -44,10 +72,30 @@
             v-model="bugData.title"
             @input="enforceTitleLength"
             type="text"
-            :placeholder="generatingTitle ? ($t('bugReport.generatingTitle') || 'Generating title with AI...') : ($t('bugReport.titleAutoPlaceholder') || 'Title will be generated automatically from description')"
+            :placeholder="
+              generatingTitle
+                ? $t('bugReport.generatingTitle') ||
+                  'Generating title with AI...'
+                : $t('bugReport.titleAutoPlaceholder') ||
+                  'Title will be generated automatically from description'
+            "
             class="text-input"
-            :class="{ 'input-valid': bugData.title.trim() !== '', 'input-invalid': bugData.title.trim() === '' && touchedFields.description, 'input-generating': generatingTitle, 'input-readonly': !generatingTitle && !titleEditable && bugData.title.trim() !== '' && bugData.description.trim().length >= 10 }"
-            :readonly="!generatingTitle && !titleEditable && bugData.description.trim().length >= 10"
+            :class="{
+              'input-valid': bugData.title.trim() !== '',
+              'input-invalid':
+                bugData.title.trim() === '' && touchedFields.description,
+              'input-generating': generatingTitle,
+              'input-readonly':
+                !generatingTitle &&
+                !titleEditable &&
+                bugData.title.trim() !== '' &&
+                bugData.description.trim().length >= 10,
+            }"
+            :readonly="
+              !generatingTitle &&
+              !titleEditable &&
+              bugData.description.trim().length >= 10
+            "
             required
           />
           <button
@@ -60,49 +108,83 @@
             ✏️
           </button>
         </div>
-        <small v-if="titleGenerated && bugData.title.trim() !== ''" class="form-hint">
+        <small
+          v-if="titleGenerated && bugData.title.trim() !== ''"
+          class="form-hint"
+        >
           <span class="hint-icon">✨</span>
-          {{ $t('bugReport.titleAutoGenerated') || 'Title generated automatically with AI' }}
-          <button 
-            v-if="titleOptions.length >= 2 && !showTitleSelection" 
+          {{
+            $t("bugReport.titleAutoGenerated") ||
+            "Title generated automatically with AI"
+          }}
+          <button
+            v-if="titleOptions.length >= 2 && !showTitleSelection"
             @click="showTitleSelection = true"
             class="change-title-btn"
             type="button"
           >
-            {{ $t('bugReport.selectTitle') || 'Change title' }}
+            {{ $t("bugReport.selectTitle") || "Change title" }}
           </button>
         </small>
-        <small v-else-if="bugData.description.trim().length < 10" class="form-hint">
+        <small
+          v-else-if="bugData.description.trim().length < 10"
+          class="form-hint"
+        >
           <span class="hint-icon">💡</span>
-          {{ $t('bugReport.titleHint') || 'Start typing the bug description to generate the title automatically' }}
+          {{
+            $t("bugReport.titleHint") ||
+            "Start typing the bug description to generate the title automatically"
+          }}
         </small>
-        
+
         <!-- Title Selection Modal -->
         <Teleport to="body">
           <transition name="fade">
-            <div v-if="showTitleSelection && titleOptions.length >= 2" class="title-selection-overlay" @click.self="showTitleSelection = false">
+            <div
+              v-if="showTitleSelection && titleOptions.length >= 2"
+              class="title-selection-overlay"
+              @click.self="showTitleSelection = false"
+            >
               <div class="title-selection-modal" @click.stop>
                 <div class="title-selection-header">
-                  <h3>{{ $t('bugReport.selectTitle') || 'Select Bug Title' }}</h3>
-                  <button @click="showTitleSelection = false" class="close-btn" :aria-label="$t('common.close') || 'Close'">
+                  <h3>
+                    {{ $t("bugReport.selectTitle") || "Select Bug Title" }}
+                  </h3>
+                  <button
+                    @click="showTitleSelection = false"
+                    class="close-btn"
+                    :aria-label="$t('common.close') || 'Close'"
+                  >
                     ×
                   </button>
                 </div>
                 <div class="title-selection-body">
-                  <p class="selection-hint">{{ $t('bugReport.selectTitleHint') || 'Choose the best title for your bug report:' }}</p>
+                  <p class="selection-hint">
+                    {{
+                      $t("bugReport.selectTitleHint") ||
+                      "Choose the best title for your bug report:"
+                    }}
+                  </p>
                   <div class="title-options">
                     <button
                       v-for="option in titleOptions"
                       :key="option.id"
                       @click="selectTitle(option)"
                       class="title-option-btn"
-                      :class="{ 'selected': bugData.title === option.text }"
+                      :class="{ selected: bugData.title === option.text }"
                     >
                       <div class="title-option-content">
                         <div class="title-option-text">{{ option.text }}</div>
-                        <div class="title-option-source">{{ option.source }}</div>
+                        <div class="title-option-source">
+                          {{ option.source }}
+                        </div>
                       </div>
-                      <div v-if="bugData.title === option.text" class="title-option-check">✓</div>
+                      <div
+                        v-if="bugData.title === option.text"
+                        class="title-option-check"
+                      >
+                        ✓
+                      </div>
                     </button>
                   </div>
                 </div>
@@ -110,15 +192,26 @@
             </div>
           </transition>
         </Teleport>
-        <div v-if="bugData.title.trim() === '' && touchedFields.description && bugData.description.trim().length >= 10" class="error-message">
-          {{ $t('bugReport.titleGenerating') || 'Generating title...' }}
+        <div
+          v-if="
+            bugData.title.trim() === '' &&
+            touchedFields.description &&
+            bugData.description.trim().length >= 10
+          "
+          class="error-message"
+        >
+          {{ $t("bugReport.titleGenerating") || "Generating title..." }}
         </div>
       </div>
 
       <div class="form-group full-width">
         <label for="description" class="label-with-indicator">
-          {{ $t('bugReport.description') }} *
-          <span v-if="bugData.description.trim() !== ''" class="field-indicator valid">✓</span>
+          {{ $t("bugReport.description") }} *
+          <span
+            v-if="bugData.description.trim() !== ''"
+            class="field-indicator valid"
+            >✓</span
+          >
           <span v-else class="field-indicator invalid">!</span>
         </label>
         <textarea
@@ -127,64 +220,111 @@
           :placeholder="$t('bugReport.descriptionPlaceholder')"
           rows="6"
           class="textarea-input"
-          :class="{ 'input-valid': bugData.description.trim() !== '', 'input-invalid': bugData.description.trim() === '' && touchedFields.description }"
+          :class="{
+            'input-valid': bugData.description.trim() !== '',
+            'input-invalid':
+              bugData.description.trim() === '' && touchedFields.description,
+          }"
           @blur="touchedFields.description = true"
           @input="onDescriptionChange"
           required
         ></textarea>
         <small class="form-hint">
           <span class="hint-icon">💡</span>
-          {{ $t('bugReport.descriptionHint') }}
+          {{ $t("bugReport.descriptionHint") }}
         </small>
-        <div v-if="bugData.description.trim() === '' && touchedFields.description" class="error-message">
-          {{ $t('bugReport.descriptionRequired') || 'Description is required' }}
+        <div
+          v-if="bugData.description.trim() === '' && touchedFields.description"
+          class="error-message"
+        >
+          {{ $t("bugReport.descriptionRequired") || "Description is required" }}
         </div>
         <div class="char-counter">
-          {{ bugData.description.length }} {{ $t('bugReport.characters') || 'characters' }}
+          {{ bugData.description.length }}
+          {{ $t("bugReport.characters") || "characters" }}
         </div>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label for="priority">{{ $t('bugReport.priority') }}</label>
+          <label for="priority">{{ $t("bugReport.priority") }}</label>
           <div class="select-wrapper">
-            <select id="priority" v-model="bugData.priority" class="select-input">
-              <option value="Critical">{{ $t('bugReport.priorityCritical') }}</option>
-              <option value="High">{{ $t('bugReport.priorityHigh') }}</option>
-              <option value="Medium">{{ $t('bugReport.priorityMedium') }}</option>
-              <option value="Low">{{ $t('bugReport.priorityLow') }}</option>
+            <select
+              id="priority"
+              v-model="bugData.priority"
+              class="select-input"
+            >
+              <option value="Critical">
+                {{ $t("bugReport.priorityCritical") }}
+              </option>
+              <option value="High">{{ $t("bugReport.priorityHigh") }}</option>
+              <option value="Medium">
+                {{ $t("bugReport.priorityMedium") }}
+              </option>
+              <option value="Low">{{ $t("bugReport.priorityLow") }}</option>
             </select>
-            <span class="priority-badge" :class="bugData.priority.toLowerCase()">{{ bugData.priority }}</span>
+            <span
+              class="priority-badge"
+              :class="bugData.priority.toLowerCase()"
+              >{{ bugData.priority }}</span
+            >
           </div>
         </div>
         <div class="form-group">
-          <label for="severity">{{ $t('bugReport.severity') }}</label>
+          <label for="severity">{{ $t("bugReport.severity") }}</label>
           <div class="select-wrapper">
-            <select id="severity" v-model="bugData.severity" class="select-input">
-              <option value="Blocker">{{ $t('bugReport.severityBlocker') }}</option>
-              <option value="Critical">{{ $t('bugReport.severityCritical') }}</option>
-              <option value="Major">{{ $t('bugReport.severityMajor') }}</option>
-              <option value="Minor">{{ $t('bugReport.severityMinor') }}</option>
-              <option value="Trivial">{{ $t('bugReport.severityTrivial') }}</option>
+            <select
+              id="severity"
+              v-model="bugData.severity"
+              class="select-input"
+            >
+              <option value="Blocker">
+                {{ $t("bugReport.severityBlocker") }}
+              </option>
+              <option value="Critical">
+                {{ $t("bugReport.severityCritical") }}
+              </option>
+              <option value="Major">{{ $t("bugReport.severityMajor") }}</option>
+              <option value="Minor">{{ $t("bugReport.severityMinor") }}</option>
+              <option value="Trivial">
+                {{ $t("bugReport.severityTrivial") }}
+              </option>
             </select>
-            <span class="severity-badge" :class="bugData.severity.toLowerCase()">{{ bugData.severity }}</span>
+            <span
+              class="severity-badge"
+              :class="bugData.severity.toLowerCase()"
+              >{{ bugData.severity }}</span
+            >
           </div>
         </div>
       </div>
 
       <!-- Collapsible Optional Information -->
       <div class="collapsible-section">
-        <button @click="showOptionalInfo = !showOptionalInfo" class="collapsible-header" type="button">
-          <span class="collapsible-icon" :class="{ rotated: showOptionalInfo }">▼</span>
-          <span>{{ $t('bugReport.optionalInfo') || 'Optional Information' }}</span>
-          <span class="collapsible-badge">{{ $t('bugReport.autoDetected') || 'Auto-detected' }}</span>
+        <button
+          @click="showOptionalInfo = !showOptionalInfo"
+          class="collapsible-header"
+          type="button"
+        >
+          <span class="collapsible-icon" :class="{ rotated: showOptionalInfo }"
+            >▼</span
+          >
+          <span>{{
+            $t("bugReport.optionalInfo") || "Optional Information"
+          }}</span>
+          <span class="collapsible-badge">{{
+            $t("bugReport.autoDetected") || "Auto-detected"
+          }}</span>
         </button>
-        <div class="collapsible-content" :class="{ expanded: showOptionalInfo }">
+        <div
+          class="collapsible-content"
+          :class="{ expanded: showOptionalInfo }"
+        >
           <div class="form-row">
             <div class="form-group">
               <label for="environment">
                 <span class="label-icon">🌍</span>
-                {{ $t('bugReport.environment') }}
+                {{ $t("bugReport.environment") }}
               </label>
               <input
                 id="environment"
@@ -197,7 +337,7 @@
             <div class="form-group">
               <label for="browser">
                 <span class="label-icon">🌐</span>
-                {{ $t('bugReport.browser') }}
+                {{ $t("bugReport.browser") }}
               </label>
               <input
                 id="browser"
@@ -213,7 +353,7 @@
             <div class="form-group">
               <label for="os">
                 <span class="label-icon">💻</span>
-                {{ $t('bugReport.operatingSystem') }}
+                {{ $t("bugReport.operatingSystem") }}
               </label>
               <input
                 id="os"
@@ -226,7 +366,7 @@
             <div class="form-group">
               <label for="version">
                 <span class="label-icon">🔢</span>
-                {{ $t('bugReport.version') }}
+                {{ $t("bugReport.version") }}
               </label>
               <input
                 id="version"
@@ -244,14 +384,17 @@
       <div class="form-group full-width">
         <label class="label-with-count">
           <span class="label-icon">📎</span>
-          {{ $t('bugReport.evidence') }}
-          <span v-if="evidenceFiles.length > 0" class="file-count">{{ evidenceFiles.length }} {{ $t('bugReport.files') || 'files' }}</span>
+          {{ $t("bugReport.evidence") }}
+          <span v-if="evidenceFiles.length > 0" class="file-count"
+            >{{ evidenceFiles.length }}
+            {{ $t("bugReport.files") || "files" }}</span
+          >
         </label>
         <div class="evidence-section">
-          <div 
-            class="file-upload-area" 
+          <div
+            class="file-upload-area"
             :class="{ 'drag-over': isDragging }"
-            @click="triggerFileInput" 
+            @click="triggerFileInput"
             @dragover.prevent="isDragging = true"
             @dragleave.prevent="isDragging = false"
             @drop.prevent="handleDrop"
@@ -266,13 +409,21 @@
             />
             <div class="upload-content">
               <span class="upload-icon">📎</span>
-              <p class="upload-text">{{ $t('bugReport.uploadText') }}</p>
-              <p class="upload-hint">{{ $t('bugReport.uploadHint') }}</p>
+              <p class="upload-text">{{ $t("bugReport.uploadText") }}</p>
+              <p class="upload-hint">{{ $t("bugReport.uploadHint") }}</p>
             </div>
           </div>
           <div v-if="evidenceFiles.length > 0" class="evidence-list">
-            <transition-group name="evidence-fade" tag="div" class="evidence-grid">
-              <div v-for="(file, index) in evidenceFiles" :key="index" class="evidence-item">
+            <transition-group
+              name="evidence-fade"
+              tag="div"
+              class="evidence-grid"
+            >
+              <div
+                v-for="(file, index) in evidenceFiles"
+                :key="index"
+                class="evidence-item"
+              >
                 <div class="evidence-preview">
                   <img
                     v-if="file.type.startsWith('image/')"
@@ -282,13 +433,19 @@
                   />
                   <div v-else class="evidence-icon">📄</div>
                   <div class="evidence-overlay">
-                    <button @click.stop="removeEvidence(index)" class="btn-remove" :title="$t('bugReport.remove')">
+                    <button
+                      @click.stop="removeEvidence(index)"
+                      class="btn-remove"
+                      :title="$t('bugReport.remove')"
+                    >
                       ✕
                     </button>
                   </div>
                 </div>
                 <div class="evidence-info">
-                  <p class="evidence-name" :title="file.name">{{ file.name }}</p>
+                  <p class="evidence-name" :title="file.name">
+                    {{ file.name }}
+                  </p>
                   <p class="evidence-size">{{ formatFileSize(file.size) }}</p>
                 </div>
               </div>
@@ -303,27 +460,39 @@
           <input type="checkbox" v-model="useAI" class="ai-toggle" />
           <span class="checkbox-text">
             <span class="ai-icon">🤖</span>
-            {{ $t('bugReport.useAI') || 'Use AI to generate bug report' }}
-            <span class="ai-badge" v-if="useAI">{{ $t('bugReport.enabled') || 'Enabled' }}</span>
+            {{ $t("bugReport.useAI") || "Use AI to generate bug report" }}
+            <span class="ai-badge" v-if="useAI">{{
+              $t("bugReport.enabled") || "Enabled"
+            }}</span>
           </span>
         </label>
       </div>
 
       <!-- Action Buttons -->
       <div class="button-group">
-        <button 
-          @click="generateReport" 
-          :disabled="!bugData.description || bugData.description.trim() === '' || generating" 
+        <button
+          @click="generateReport"
+          :disabled="
+            !bugData.description ||
+            bugData.description.trim() === '' ||
+            generating
+          "
           class="btn btn-primary generate-btn"
           :class="{ 'btn-loading': generating }"
         >
           <span v-if="generating" class="spinner"></span>
           <span v-else class="btn-icon">🚀</span>
-          <span>{{ generating ? $t('bugReport.generating') : $t('bugReport.generate') }}</span>
+          <span>{{
+            generating ? $t("bugReport.generating") : $t("bugReport.generate")
+          }}</span>
         </button>
-        <button @click="clearForm" class="btn btn-secondary" :disabled="generating">
+        <button
+          @click="clearForm"
+          class="btn btn-secondary"
+          :disabled="generating"
+        >
           <span class="btn-icon">🗑️</span>
-          <span>{{ $t('bugReport.clear') }}</span>
+          <span>{{ $t("bugReport.clear") }}</span>
         </button>
       </div>
     </div>
@@ -335,19 +504,30 @@
           <div class="report-header-left">
             <h2>
               <span class="report-icon">✅</span>
-              {{ $t('bugReport.generatedReport') }}
+              {{ $t("bugReport.generatedReport") }}
             </h2>
-            <p class="report-subtitle">{{ $t('bugReport.reportReady') || 'Your bug report is ready to copy' }}</p>
+            <p class="report-subtitle">
+              {{
+                $t("bugReport.reportReady") ||
+                "Your bug report is ready to copy"
+              }}
+            </p>
           </div>
           <div class="report-actions">
             <button @click="copyReport" class="btn btn-primary copy-btn">
               <span class="btn-icon">📋</span>
-              <span>{{ $t('bugReport.copy') }}</span>
+              <span>{{ $t("bugReport.copy") }}</span>
             </button>
-            <select v-model="reportFormat" @change="regenerateReport" class="format-select">
-              <option value="jira">{{ $t('bugReport.formatJira') }}</option>
-              <option value="markdown">{{ $t('bugReport.formatMarkdown') }}</option>
-              <option value="plain">{{ $t('bugReport.formatPlain') }}</option>
+            <select
+              v-model="reportFormat"
+              @change="regenerateReport"
+              class="format-select"
+            >
+              <option value="jira">{{ $t("bugReport.formatJira") }}</option>
+              <option value="markdown">
+                {{ $t("bugReport.formatMarkdown") }}
+              </option>
+              <option value="plain">{{ $t("bugReport.formatPlain") }}</option>
             </select>
           </div>
         </div>
@@ -360,187 +540,207 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useNotification } from '@shared/composables/useNotification.js'
-import { formatBugReport } from '@features/bug-reports/utils/bugReportFormatter.js'
-import { generateBugReportWithAI, generateIntelligentTitle } from '@core/ai/aiService.js'
-import { useAIConfig } from '@shared/composables/useAIConfig.js'
-import { initAIService } from '@core/ai/aiService.js'
+import { ref, computed, onMounted, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import { useNotification } from "@shared/composables/useNotification.js";
+import { formatBugReport } from "@features/bug-reports/utils/bugReportFormatter.js";
+import {
+  generateBugReportWithAI,
+  generateIntelligentTitle,
+} from "@core/ai/aiService.js";
+import { useAIConfig } from "@shared/composables/useAIConfig.js";
+import { initAIService } from "@core/ai/aiService.js";
 
 export default {
-  name: 'BugReport',
+  name: "BugReport",
   setup() {
-    const { t, locale } = useI18n()
-    const { showNotification } = useNotification()
-    const { config: aiConfig, getApiKey } = useAIConfig()
-    const fileInput = ref(null)
+    const { t, locale } = useI18n();
+    const { showNotification } = useNotification();
+    const { config: aiConfig, getApiKey } = useAIConfig();
+    const fileInput = ref(null);
 
     const bugData = ref({
-      title: '',
-      priority: 'Medium',
-      severity: 'Major',
-      description: '',
-      environment: '',
-      browser: '',
-      operatingSystem: '',
-      version: '',
-      additionalInfo: ''
-    })
+      title: "",
+      priority: "Medium",
+      severity: "Major",
+      description: "",
+      environment: "",
+      browser: "",
+      operatingSystem: "",
+      version: "",
+      additionalInfo: "",
+    });
 
     const aiGeneratedData = ref({
-      stepsToReproduce: '',
-      expectedResult: '',
-      actualResult: '',
-      additionalInfo: ''
-    })
+      stepsToReproduce: "",
+      expectedResult: "",
+      actualResult: "",
+      additionalInfo: "",
+    });
 
-    const evidenceFiles = ref([])
-    const generatedReport = ref('')
-    const reportFormat = ref('jira')
-    const generating = ref(false)
-    const useAI = ref(true)
-    const showOptionalInfo = ref(false)
-    const isDragging = ref(false)
+    const evidenceFiles = ref([]);
+    const generatedReport = ref("");
+    const reportFormat = ref("jira");
+    const generating = ref(false);
+    const useAI = ref(true);
+    const showOptionalInfo = ref(false);
+    const isDragging = ref(false);
     const touchedFields = ref({
       title: false,
-      description: false
-    })
-    
-    const titleGenerated = ref(false)
-    const generatingTitle = ref(false)
-    const titleEditable = ref(false)
-    const titleOptions = ref([]) // Array of 2 title options
-    const showTitleSelection = ref(false)
-    let descriptionDebounceTimer = null
+      description: false,
+    });
+
+    const titleGenerated = ref(false);
+    const generatingTitle = ref(false);
+    const titleEditable = ref(false);
+    const titleOptions = ref([]); // Array of 2 title options
+    const showTitleSelection = ref(false);
+    let descriptionDebounceTimer = null;
 
     const isFormValid = computed(() => {
-      return bugData.value.title.trim() !== '' && bugData.value.description.trim() !== ''
-    })
+      return (
+        bugData.value.title.trim() !== "" &&
+        bugData.value.description.trim() !== ""
+      );
+    });
 
     onMounted(() => {
       // Auto-detect environment info
-      detectEnvironment()
-    })
+      detectEnvironment();
+    });
 
     function detectEnvironment() {
-      if (typeof navigator !== 'undefined') {
+      if (typeof navigator !== "undefined") {
         // Detect browser
-        const userAgent = navigator.userAgent
-        if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) {
-          bugData.value.browser = 'Chrome ' + (userAgent.match(/Chrome\/(\d+)/)?.[1] || '')
-        } else if (userAgent.includes('Firefox')) {
-          bugData.value.browser = 'Firefox ' + (userAgent.match(/Firefox\/(\d+)/)?.[1] || '')
-        } else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
-          bugData.value.browser = 'Safari ' + (userAgent.match(/Version\/(\d+)/)?.[1] || '')
-        } else if (userAgent.includes('Edg')) {
-          bugData.value.browser = 'Edge ' + (userAgent.match(/Edg\/(\d+)/)?.[1] || '')
+        const userAgent = navigator.userAgent;
+        if (userAgent.includes("Chrome") && !userAgent.includes("Edg")) {
+          bugData.value.browser =
+            "Chrome " + (userAgent.match(/Chrome\/(\d+)/)?.[1] || "");
+        } else if (userAgent.includes("Firefox")) {
+          bugData.value.browser =
+            "Firefox " + (userAgent.match(/Firefox\/(\d+)/)?.[1] || "");
+        } else if (
+          userAgent.includes("Safari") &&
+          !userAgent.includes("Chrome")
+        ) {
+          bugData.value.browser =
+            "Safari " + (userAgent.match(/Version\/(\d+)/)?.[1] || "");
+        } else if (userAgent.includes("Edg")) {
+          bugData.value.browser =
+            "Edge " + (userAgent.match(/Edg\/(\d+)/)?.[1] || "");
         }
 
         // Detect OS
-        if (userAgent.includes('Windows')) {
-          bugData.value.operatingSystem = 'Windows'
-        } else if (userAgent.includes('Mac')) {
-          bugData.value.operatingSystem = 'macOS'
-        } else if (userAgent.includes('Linux')) {
-          bugData.value.operatingSystem = 'Linux'
-        } else if (userAgent.includes('Android')) {
-          bugData.value.operatingSystem = 'Android'
-        } else if (userAgent.includes('iOS')) {
-          bugData.value.operatingSystem = 'iOS'
+        if (userAgent.includes("Windows")) {
+          bugData.value.operatingSystem = "Windows";
+        } else if (userAgent.includes("Mac")) {
+          bugData.value.operatingSystem = "macOS";
+        } else if (userAgent.includes("Linux")) {
+          bugData.value.operatingSystem = "Linux";
+        } else if (userAgent.includes("Android")) {
+          bugData.value.operatingSystem = "Android";
+        } else if (userAgent.includes("iOS")) {
+          bugData.value.operatingSystem = "iOS";
         }
       }
     }
 
     function triggerFileInput() {
-      fileInput.value?.click()
+      fileInput.value?.click();
     }
 
     function handleFileSelect(event) {
-      const files = Array.from(event.target.files)
-      addFiles(files)
+      const files = Array.from(event.target.files);
+      addFiles(files);
     }
 
     function handleDrop(event) {
-      isDragging.value = false
-      const files = Array.from(event.dataTransfer.files)
-      addFiles(files)
+      isDragging.value = false;
+      const files = Array.from(event.dataTransfer.files);
+      addFiles(files);
     }
 
     function addFiles(files) {
-      files.forEach(file => {
-        if (file.type.startsWith('image/')) {
-          const reader = new FileReader()
-          reader.onload = e => {
+      files.forEach((file) => {
+        if (file.type.startsWith("image/")) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
             evidenceFiles.value.push({
               file: file,
               name: file.name,
               size: file.size,
               type: file.type,
-              preview: e.target.result
-            })
-          }
-          reader.readAsDataURL(file)
+              preview: e.target.result,
+            });
+          };
+          reader.readAsDataURL(file);
         } else {
           evidenceFiles.value.push({
             file: file,
             name: file.name,
             size: file.size,
             type: file.type,
-            preview: null
-          })
+            preview: null,
+          });
         }
-      })
+      });
     }
 
     function removeEvidence(index) {
-      evidenceFiles.value.splice(index, 1)
+      evidenceFiles.value.splice(index, 1);
     }
 
     function formatFileSize(bytes) {
-      if (bytes === 0) return '0 Bytes'
-      const k = 1024
-      const sizes = ['Bytes', 'KB', 'MB', 'GB']
-      const i = Math.floor(Math.log(bytes) / Math.log(k))
-      return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
+      if (bytes === 0) return "0 Bytes";
+      const k = 1024;
+      const sizes = ["Bytes", "KB", "MB", "GB"];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
     }
 
     async function generateTitleFromDescription() {
-      if (!bugData.value.description || bugData.value.description.trim().length < 10) {
+      if (
+        !bugData.value.description ||
+        bugData.value.description.trim().length < 10
+      ) {
         // Clear title if description is too short
         if (titleGenerated.value) {
-          bugData.value.title = ''
-          titleGenerated.value = false
+          bugData.value.title = "";
+          titleGenerated.value = false;
         }
-        return
+        return;
       }
 
       // Don't generate if title was manually edited and user wants to keep it
-      if (!titleGenerated.value && !titleEditable.value && bugData.value.title.trim() !== '') {
-        return
+      if (
+        !titleGenerated.value &&
+        !titleEditable.value &&
+        bugData.value.title.trim() !== ""
+      ) {
+        return;
       }
 
-      generatingTitle.value = true
+      generatingTitle.value = true;
 
       try {
         // Initialize AI service with saved config
-        const savedProvider = aiConfig.value.provider || 'online'
-        const savedApiKey = getApiKey(savedProvider)
-        const savedModel = aiConfig.value.model || ''
-        const savedCustomEndpoint = aiConfig.value.customEndpoint || ''
+        const savedProvider = aiConfig.value.provider || "online";
+        const savedApiKey = getApiKey(savedProvider);
+        const savedModel = aiConfig.value.model || "";
+        const savedCustomEndpoint = aiConfig.value.customEndpoint || "";
 
         initAIService(savedProvider, {
           apiKey: savedApiKey,
           model: savedModel,
-          customEndpoint: savedCustomEndpoint
-        })
+          customEndpoint: savedCustomEndpoint,
+        });
 
         // Generate title using AI - returns array of 2 titles for bug reports
         const generatedTitles = await generateIntelligentTitle(
           bugData.value.description,
           locale.value,
-          'bugReport'
-        )
+          "bugReport",
+        );
 
         // Check if we got an array of titles (bug reports) or single title
         if (Array.isArray(generatedTitles) && generatedTitles.length >= 2) {
@@ -548,302 +748,387 @@ export default {
           titleOptions.value = generatedTitles.map((title, index) => ({
             id: index,
             text: title.trim().substring(0, 30),
-            source: index === 0 ? 'Primary AI' : 'Groq AI'
-          }))
-          
+            source: index === 0 ? "Primary AI" : "Groq AI",
+          }));
+
           // Auto-select first title but show selection UI
-          if (bugData.value.title.trim() === '' || titleGenerated.value) {
-            bugData.value.title = titleOptions.value[0].text
-            titleGenerated.value = true
-            titleEditable.value = false
+          if (bugData.value.title.trim() === "" || titleGenerated.value) {
+            bugData.value.title = titleOptions.value[0].text;
+            titleGenerated.value = true;
+            titleEditable.value = false;
             // Show selection UI for user to choose
-            showTitleSelection.value = true
-            console.log('Two titles generated, showing selection:', titleOptions.value)
+            showTitleSelection.value = true;
+            console.log(
+              "Two titles generated, showing selection:",
+              titleOptions.value,
+            );
           }
-        } else if (generatedTitles && typeof generatedTitles === 'string' && generatedTitles.trim() !== '') {
+        } else if (
+          generatedTitles &&
+          typeof generatedTitles === "string" &&
+          generatedTitles.trim() !== ""
+        ) {
           // Single title (fallback or non-bug-report)
-          if (bugData.value.title.trim() === '' || titleGenerated.value) {
-            let finalTitle = generatedTitles.trim()
-            finalTitle = finalTitle.replace(/\s+/g, ' ').trim()
+          if (bugData.value.title.trim() === "" || titleGenerated.value) {
+            let finalTitle = generatedTitles.trim();
+            finalTitle = finalTitle.replace(/\s+/g, " ").trim();
             if (finalTitle.length > 30) {
-              const words = finalTitle.split(' ')
-              let shortened = ''
+              const words = finalTitle.split(" ");
+              let shortened = "";
               for (const word of words) {
-                if ((shortened + ' ' + word).length <= 27) {
-                  shortened += (shortened ? ' ' : '') + word
+                if ((shortened + " " + word).length <= 27) {
+                  shortened += (shortened ? " " : "") + word;
                 } else {
-                  break
+                  break;
                 }
               }
-              finalTitle = shortened || finalTitle.substring(0, 27)
-              if (finalTitle.length < finalTitle.split(' ').join('').length) {
-                finalTitle = finalTitle.trim() + '...'
+              finalTitle = shortened || finalTitle.substring(0, 27);
+              if (finalTitle.length < finalTitle.split(" ").join("").length) {
+                finalTitle = finalTitle.trim() + "...";
               }
             }
-            finalTitle = finalTitle.substring(0, 30).trim()
-            bugData.value.title = finalTitle
-            titleGenerated.value = true
-            titleEditable.value = false
-            console.log('Single title generated:', finalTitle)
+            finalTitle = finalTitle.substring(0, 30).trim();
+            bugData.value.title = finalTitle;
+            titleGenerated.value = true;
+            titleEditable.value = false;
+            console.log("Single title generated:", finalTitle);
           }
         }
       } catch (error) {
-        console.warn('Failed to generate title with AI:', error)
+        console.warn("Failed to generate title with AI:", error);
         // Fallback: generate intelligent title from description (max 20 chars)
-        if (bugData.value.title.trim() === '' || titleGenerated.value) {
-          const desc = bugData.value.description.trim().toLowerCase()
-          let fallbackTitle = 'Bug Report'
-          
+        if (bugData.value.title.trim() === "" || titleGenerated.value) {
+          const desc = bugData.value.description.trim().toLowerCase();
+          let fallbackTitle = "Bug Report";
+
           // Analyze issue type for better title
-          if (desc.includes('failing') || desc.includes('fails')) {
-            if (desc.includes('reload') || desc.includes('refresh')) {
-              fallbackTitle = 'App fails on reload'
+          if (desc.includes("failing") || desc.includes("fails")) {
+            if (desc.includes("reload") || desc.includes("refresh")) {
+              fallbackTitle = "App fails on reload";
             } else {
-              fallbackTitle = 'App failing'
+              fallbackTitle = "App failing";
             }
-          } else if (desc.includes('not loading') || desc.includes('doesn\'t load')) {
-            fallbackTitle = 'Page not loading'
-          } else if (desc.includes('not working') || desc.includes('doesn\'t work')) {
-            fallbackTitle = 'Feature not working'
-          } else if (desc.includes('error') || desc.includes('exception')) {
-            const errorMatch = bugData.value.description.match(/(?:error|exception)[:\s]+([^.!?\n]{0,10})/i)
-            fallbackTitle = errorMatch ? `Error: ${errorMatch[1].trim()}` : 'Error occurred'
-          } else if (desc.includes('broken')) {
-            fallbackTitle = 'Feature broken'
-          } else if (desc.includes('missing') || desc.includes('not showing')) {
-            fallbackTitle = 'Content missing'
-          } else if (desc.includes('reload') || desc.includes('refresh')) {
-            fallbackTitle = 'Issue on reload'
-          } else if (desc.includes('display') || desc.includes('not displayed')) {
-            fallbackTitle = 'Display issue'
+          } else if (
+            desc.includes("not loading") ||
+            desc.includes("doesn't load")
+          ) {
+            fallbackTitle = "Page not loading";
+          } else if (
+            desc.includes("not working") ||
+            desc.includes("doesn't work")
+          ) {
+            fallbackTitle = "Feature not working";
+          } else if (desc.includes("error") || desc.includes("exception")) {
+            const errorMatch = bugData.value.description.match(
+              /(?:error|exception)[:\s]+([^.!?\n]{0,10})/i,
+            );
+            fallbackTitle = errorMatch
+              ? `Error: ${errorMatch[1].trim()}`
+              : "Error occurred";
+          } else if (desc.includes("broken")) {
+            fallbackTitle = "Feature broken";
+          } else if (desc.includes("missing") || desc.includes("not showing")) {
+            fallbackTitle = "Content missing";
+          } else if (desc.includes("reload") || desc.includes("refresh")) {
+            fallbackTitle = "Issue on reload";
+          } else if (
+            desc.includes("display") ||
+            desc.includes("not displayed")
+          ) {
+            fallbackTitle = "Display issue";
           } else {
             // Extract first meaningful phrase, limit to 20 chars
-            const firstSentence = bugData.value.description.split(/[.!?]/)[0]?.trim()
+            const firstSentence = bugData.value.description
+              .split(/[.!?]/)[0]
+              ?.trim();
             if (firstSentence && firstSentence.length > 0) {
-              fallbackTitle = firstSentence.length > 30 
-                ? firstSentence.substring(0, 27) + '...' 
-                : firstSentence
+              fallbackTitle =
+                firstSentence.length > 30
+                  ? firstSentence.substring(0, 27) + "..."
+                  : firstSentence;
             }
           }
-          
+
           // Ensure max 20 characters
-          bugData.value.title = fallbackTitle.substring(0, 30).trim()
-          titleGenerated.value = true
-          titleEditable.value = false
+          bugData.value.title = fallbackTitle.substring(0, 30).trim();
+          titleGenerated.value = true;
+          titleEditable.value = false;
         }
       } finally {
-        generatingTitle.value = false
+        generatingTitle.value = false;
       }
     }
 
     function enableTitleEdit() {
-      titleEditable.value = true
-      titleGenerated.value = false
-      showTitleSelection.value = false
+      titleEditable.value = true;
+      titleGenerated.value = false;
+      showTitleSelection.value = false;
     }
-    
+
     function selectTitle(option) {
-      bugData.value.title = option.text
-      showTitleSelection.value = false
-      titleGenerated.value = true
-      titleEditable.value = false
-      console.log('Title selected:', option.text)
+      bugData.value.title = option.text;
+      showTitleSelection.value = false;
+      titleGenerated.value = true;
+      titleEditable.value = false;
+      console.log("Title selected:", option.text);
     }
 
     function onDescriptionChange() {
       // Clear previous timer
       if (descriptionDebounceTimer) {
-        clearTimeout(descriptionDebounceTimer)
+        clearTimeout(descriptionDebounceTimer);
       }
 
       // Set new timer - wait 1.5 seconds after user stops typing
       descriptionDebounceTimer = setTimeout(() => {
         if (bugData.value.description.trim().length >= 10) {
-          generateTitleFromDescription()
+          generateTitleFromDescription();
         }
-      }, 1500)
+      }, 1500);
     }
 
-
     async function generateReport(silent = false) {
-      console.log('generateReport called', { 
-        hasDescription: !!bugData.value.description, 
+      console.log("generateReport called", {
+        hasDescription: !!bugData.value.description,
         descriptionLength: bugData.value.description?.trim().length,
-        generating: generating.value 
-      })
-      
+        generating: generating.value,
+      });
+
       // Validate description first (required)
-      if (!bugData.value.description || bugData.value.description.trim() === '') {
+      if (
+        !bugData.value.description ||
+        bugData.value.description.trim() === ""
+      ) {
         if (!silent) {
-          showNotification('error', t('bugReport.descriptionRequired') || 'Description is required')
+          showNotification(
+            "error",
+            t("bugReport.descriptionRequired") || "Description is required",
+          );
         }
-        return
+        return;
       }
 
       // If title is empty but description exists, generate title first
-      if ((!bugData.value.title || bugData.value.title.trim() === '') && bugData.value.description.trim().length >= 10) {
+      if (
+        (!bugData.value.title || bugData.value.title.trim() === "") &&
+        bugData.value.description.trim().length >= 10
+      ) {
         if (!silent) {
-          showNotification('info', t('bugReport.generatingTitle') || 'Generating title...')
+          showNotification(
+            "info",
+            t("bugReport.generatingTitle") || "Generating title...",
+          );
         }
-        await generateTitleFromDescription()
-        
+        await generateTitleFromDescription();
+
         // If title is still empty after generation attempt, use fallback
-        if (!bugData.value.title || bugData.value.title.trim() === '') {
+        if (!bugData.value.title || bugData.value.title.trim() === "") {
           // Use intelligent fallback that analyzes the issue
-          const desc = bugData.value.description.trim().toLowerCase()
-          let fallbackTitle = 'Bug Report'
-          
+          const desc = bugData.value.description.trim().toLowerCase();
+          let fallbackTitle = "Bug Report";
+
           // Analyze issue type - prioritize "failing" patterns
-          if (desc.includes('failing') || desc.includes('fails')) {
-            if (desc.includes('reload') || desc.includes('refresh')) {
-              fallbackTitle = 'App fails on reload'
-            } else if (desc.includes('after')) {
-              const afterMatch = desc.match(/failing\s+after\s+([^.!?\n]{0,10})/i)
+          if (desc.includes("failing") || desc.includes("fails")) {
+            if (desc.includes("reload") || desc.includes("refresh")) {
+              fallbackTitle = "App fails on reload";
+            } else if (desc.includes("after")) {
+              const afterMatch = desc.match(
+                /failing\s+after\s+([^.!?\n]{0,10})/i,
+              );
               if (afterMatch) {
-                const action = afterMatch[1].trim()
-                fallbackTitle = action.length > 10 ? 'App fails after action' : `Fails after ${action}`
+                const action = afterMatch[1].trim();
+                fallbackTitle =
+                  action.length > 10
+                    ? "App fails after action"
+                    : `Fails after ${action}`;
               } else {
-                fallbackTitle = 'App failing'
+                fallbackTitle = "App failing";
               }
             } else {
-              fallbackTitle = 'App failing'
+              fallbackTitle = "App failing";
             }
-          } else if (desc.includes('not loading') || desc.includes('doesn\'t load')) {
-            fallbackTitle = 'Page not loading'
-          } else if (desc.includes('not working') || desc.includes('doesn\'t work')) {
-            fallbackTitle = 'Feature not working'
-          } else if (desc.includes('error') || desc.includes('exception')) {
-            const errorMatch = bugData.value.description.match(/(?:error|exception)[:\s]+([^.!?\n]{0,10})/i)
-            fallbackTitle = errorMatch ? `Error: ${errorMatch[1].trim()}` : 'Error occurred'
-          } else if (desc.includes('broken')) {
-            fallbackTitle = 'Feature broken'
-          } else if (desc.includes('missing') || desc.includes('not showing')) {
-            fallbackTitle = 'Content missing'
-          } else if (desc.includes('reload') || desc.includes('refresh')) {
-            fallbackTitle = 'Issue on reload'
-          } else if (desc.includes('display') || desc.includes('not displayed')) {
-            fallbackTitle = 'Display issue'
+          } else if (
+            desc.includes("not loading") ||
+            desc.includes("doesn't load")
+          ) {
+            fallbackTitle = "Page not loading";
+          } else if (
+            desc.includes("not working") ||
+            desc.includes("doesn't work")
+          ) {
+            fallbackTitle = "Feature not working";
+          } else if (desc.includes("error") || desc.includes("exception")) {
+            const errorMatch = bugData.value.description.match(
+              /(?:error|exception)[:\s]+([^.!?\n]{0,10})/i,
+            );
+            fallbackTitle = errorMatch
+              ? `Error: ${errorMatch[1].trim()}`
+              : "Error occurred";
+          } else if (desc.includes("broken")) {
+            fallbackTitle = "Feature broken";
+          } else if (desc.includes("missing") || desc.includes("not showing")) {
+            fallbackTitle = "Content missing";
+          } else if (desc.includes("reload") || desc.includes("refresh")) {
+            fallbackTitle = "Issue on reload";
+          } else if (
+            desc.includes("display") ||
+            desc.includes("not displayed")
+          ) {
+            fallbackTitle = "Display issue";
           } else {
             // Extract first meaningful phrase, limit to 20 chars
-            const firstSentence = bugData.value.description.split(/[.!?]/)[0]?.trim()
+            const firstSentence = bugData.value.description
+              .split(/[.!?]/)[0]
+              ?.trim();
             if (firstSentence && firstSentence.length > 0) {
-              fallbackTitle = firstSentence.length > 30 
-                ? firstSentence.substring(0, 27) + '...' 
-                : firstSentence
+              fallbackTitle =
+                firstSentence.length > 30
+                  ? firstSentence.substring(0, 27) + "..."
+                  : firstSentence;
             }
           }
-          
-          bugData.value.title = fallbackTitle.substring(0, 30).trim()
-          titleGenerated.value = true
+
+          bugData.value.title = fallbackTitle.substring(0, 30).trim();
+          titleGenerated.value = true;
         }
-        
+
         // FORCE title to max 30 characters - this is critical
         if (bugData.value.title && bugData.value.title.length > 30) {
-          bugData.value.title = bugData.value.title.substring(0, 27).trim() + '...'
+          bugData.value.title =
+            bugData.value.title.substring(0, 27).trim() + "...";
           // Ensure it's exactly 30 or less
-          bugData.value.title = bugData.value.title.substring(0, 30)
-          console.log('Title forced to 30 chars:', bugData.value.title)
+          bugData.value.title = bugData.value.title.substring(0, 30);
+          console.log("Title forced to 30 chars:", bugData.value.title);
         }
       }
 
       // Final validation
-      if (!bugData.value.title || bugData.value.title.trim() === '') {
+      if (!bugData.value.title || bugData.value.title.trim() === "") {
         if (!silent) {
-          showNotification('error', t('bugReport.titleRequired') || 'Title is required')
+          showNotification(
+            "error",
+            t("bugReport.titleRequired") || "Title is required",
+          );
         }
-        return
+        return;
       }
 
-      generating.value = true
+      generating.value = true;
 
       try {
-        let finalBugData = { ...bugData.value }
+        let finalBugData = { ...bugData.value };
 
         // Use AI to generate steps, expected result, and actual result
         if (useAI.value) {
           try {
             // Initialize AI service with saved config
-            const savedProvider = aiConfig.value.provider || 'online'
-            const savedApiKey = getApiKey(savedProvider)
-            const savedModel = aiConfig.value.model || ''
-            const savedCustomEndpoint = aiConfig.value.customEndpoint || ''
+            const savedProvider = aiConfig.value.provider || "online";
+            const savedApiKey = getApiKey(savedProvider);
+            const savedModel = aiConfig.value.model || "";
+            const savedCustomEndpoint = aiConfig.value.customEndpoint || "";
 
             initAIService(savedProvider, {
               apiKey: savedApiKey,
               model: savedModel,
-              customEndpoint: savedCustomEndpoint
-            })
+              customEndpoint: savedCustomEndpoint,
+            });
 
-            const aiResult = await generateBugReportWithAI(bugData.value, locale.value)
-            
-            if (aiResult.stepsToReproduce && aiResult.expectedResult && aiResult.actualResult) {
-              aiGeneratedData.value = aiResult
+            const aiResult = await generateBugReportWithAI(
+              bugData.value,
+              locale.value,
+            );
+
+            if (
+              aiResult.stepsToReproduce &&
+              aiResult.expectedResult &&
+              aiResult.actualResult
+            ) {
+              aiGeneratedData.value = aiResult;
               finalBugData = {
                 ...bugData.value,
                 stepsToReproduce: aiResult.stepsToReproduce,
                 expectedResult: aiResult.expectedResult,
                 actualResult: aiResult.actualResult,
-                additionalInfo: aiResult.additionalInfo || bugData.value.additionalInfo
-              }
+                additionalInfo:
+                  aiResult.additionalInfo || bugData.value.additionalInfo,
+              };
             } else {
               // Fallback if AI doesn't generate complete data
               if (!silent) {
-                showNotification('warning', t('bugReport.aiPartialGeneration') || 'AI generated partial data, using fallback')
+                showNotification(
+                  "warning",
+                  t("bugReport.aiPartialGeneration") ||
+                    "AI generated partial data, using fallback",
+                );
               }
-              finalBugData = createFallbackBugData()
+              finalBugData = createFallbackBugData();
             }
           } catch (aiError) {
-            console.error('AI generation failed, using fallback:', aiError)
+            console.error("AI generation failed, using fallback:", aiError);
             if (!silent) {
-              showNotification('warning', t('bugReport.aiGenerationFailed') || 'AI generation failed, using fallback')
+              showNotification(
+                "warning",
+                t("bugReport.aiGenerationFailed") ||
+                  "AI generation failed, using fallback",
+              );
             }
-            finalBugData = createFallbackBugData()
+            finalBugData = createFallbackBugData();
           }
         } else {
           // Manual mode - use fallback generation
-          finalBugData = createFallbackBugData()
+          finalBugData = createFallbackBugData();
         }
 
-        console.log('Formatting report with:', { 
+        console.log("Formatting report with:", {
           finalBugData: {
             title: finalBugData.title,
             description: finalBugData.description?.substring(0, 50),
             hasSteps: !!finalBugData.stepsToReproduce,
             hasExpected: !!finalBugData.expectedResult,
-            hasActual: !!finalBugData.actualResult
-          }, 
-          evidenceFiles: evidenceFiles.value.length, 
-          format: reportFormat.value 
-        })
-        
+            hasActual: !!finalBugData.actualResult,
+          },
+          evidenceFiles: evidenceFiles.value.length,
+          format: reportFormat.value,
+        });
+
         try {
-          const report = formatBugReport(finalBugData, evidenceFiles.value, reportFormat.value)
-          console.log('Report formatted, length:', report?.length)
-          
-          if (!report || report.trim() === '') {
-            console.error('Report is empty!')
-            throw new Error('Report generation returned empty result')
+          const report = formatBugReport(
+            finalBugData,
+            evidenceFiles.value,
+            reportFormat.value,
+          );
+          console.log("Report formatted, length:", report?.length);
+
+          if (!report || report.trim() === "") {
+            console.error("Report is empty!");
+            throw new Error("Report generation returned empty result");
           }
-          
-          generatedReport.value = report
-          console.log('Report assigned to generatedReport, value length:', generatedReport.value.length)
-          
+
+          generatedReport.value = report;
+          console.log(
+            "Report assigned to generatedReport, value length:",
+            generatedReport.value.length,
+          );
+
           if (!silent) {
-            showNotification('success', t('bugReport.reportGenerated'))
+            showNotification("success", t("bugReport.reportGenerated"));
           }
         } catch (formatError) {
-          console.error('Error in formatBugReport:', formatError)
-          throw formatError
+          console.error("Error in formatBugReport:", formatError);
+          throw formatError;
         }
       } catch (error) {
-        console.error('Error generating report:', error)
-        console.error('Error stack:', error.stack)
+        console.error("Error generating report:", error);
+        console.error("Error stack:", error.stack);
         if (!silent) {
-          showNotification('error', t('bugReport.generationError') || 'Error generating bug report')
+          showNotification(
+            "error",
+            t("bugReport.generationError") || "Error generating bug report",
+          );
         }
       } finally {
-        generating.value = false
-        console.log('Generation completed, generating set to false')
+        generating.value = false;
+        console.log("Generation completed, generating set to false");
       }
     }
 
@@ -851,9 +1136,9 @@ export default {
      * Extract specific information from bug description for intelligent step generation
      */
     function extractBugDetails(description, title) {
-      const lowerDesc = description.toLowerCase()
-      const lowerTitle = title.toLowerCase()
-      
+      const lowerDesc = description.toLowerCase();
+      const lowerTitle = title.toLowerCase();
+
       // Extract URLs/routes (dynamic patterns to catch all variations)
       // IMPORTANT: All patterns used with matchAll MUST have the 'g' flag
       const urlPatterns = [
@@ -870,39 +1155,52 @@ export default {
         // Routes with IDs or dynamic segments (numbers, UUIDs, etc.)
         /([\/]?[a-z0-9\-_.]+\/[a-z0-9\-_.]+\/[0-9a-f\-]+)/gi,
         // Common route patterns (dashboard, login, users, etc.)
-        /(?:the\s+)?(dashboard|login|logout|signin|signout|signup|register|profile|settings|admin|users|posts|articles|pages|home|index)(?:\s+page|\s+route|\s+path)?/gi
-      ]
-      let extractedUrl = null
+        /(?:the\s+)?(dashboard|login|logout|signin|signout|signup|register|profile|settings|admin|users|posts|articles|pages|home|index)(?:\s+page|\s+route|\s+path)?/gi,
+      ];
+      let extractedUrl = null;
       for (const pattern of urlPatterns) {
-        const matches = [...description.matchAll(pattern)]
+        const matches = [...description.matchAll(pattern)];
         for (const match of matches) {
           // Get the captured group (could be match[0] for full match or match[1] for group)
-          const url = (match[1] || match[0]).trim()
+          const url = (match[1] || match[0]).trim();
           // Validate it looks like a route/URL
           if (url && url.length > 1 && url.length < 200) {
             // Skip if it's just a common word without context
-            const commonWords = ['the', 'page', 'route', 'path', 'url', 'link', 'button', 'field']
+            const commonWords = [
+              "the",
+              "page",
+              "route",
+              "path",
+              "url",
+              "link",
+              "button",
+              "field",
+            ];
             if (!commonWords.includes(url.toLowerCase())) {
-              extractedUrl = url
-              break
+              extractedUrl = url;
+              break;
             }
           }
         }
-        if (extractedUrl) break
+        if (extractedUrl) break;
       }
-      
+
       // Clean up extracted URL
       if (extractedUrl) {
         // Remove trailing punctuation
-        extractedUrl = extractedUrl.replace(/[.,;:!?]+$/, '')
+        extractedUrl = extractedUrl.replace(/[.,;:!?]+$/, "");
         // Ensure it starts with / if it's a relative path and doesn't have protocol
-        if (!extractedUrl.startsWith('http') && !extractedUrl.startsWith('/') && extractedUrl.includes('/')) {
-          extractedUrl = '/' + extractedUrl
+        if (
+          !extractedUrl.startsWith("http") &&
+          !extractedUrl.startsWith("/") &&
+          extractedUrl.includes("/")
+        ) {
+          extractedUrl = "/" + extractedUrl;
         }
       }
-      
+
       // Extract UI elements (buttons, fields, menus, etc.) - dynamic patterns
-      const uiElements = []
+      const uiElements = [];
       const uiPatterns = [
         // Elements in quotes
         /(?:click|press|select|choose|use|tap|hit)\s+(?:the\s+)?(?:on\s+)?['"]([^'"]+)['"]/gi,
@@ -917,27 +1215,27 @@ export default {
         // Generic element mentions
         /(?:the|a|an)\s+['"]([^'"]+)['"]\s+(?:button|link|field|menu|tab|input)/gi,
         // Elements after action verbs
-        /(?:clicking|pressing|selecting|choosing|using|tapping)\s+(?:on\s+)?(?:the\s+)?['"]?([^'",.\n\)]+)['"]?/gi
-      ]
+        /(?:clicking|pressing|selecting|choosing|using|tapping)\s+(?:on\s+)?(?:the\s+)?['"]?([^'",.\n\)]+)['"]?/gi,
+      ];
       for (const pattern of uiPatterns) {
-        const matches = [...description.matchAll(pattern)]
-        matches.forEach(match => {
-          const element = (match[1] || match[2] || match[0]).trim()
+        const matches = [...description.matchAll(pattern)];
+        matches.forEach((match) => {
+          const element = (match[1] || match[2] || match[0]).trim();
           if (element && element.length > 1 && element.length < 60) {
             // Clean up common prefixes/suffixes
             const cleaned = element
-              .replace(/^(the|a|an)\s+/i, '')
-              .replace(/\s+(button|link|field|menu|tab|input|dropdown)$/i, '')
-              .trim()
+              .replace(/^(the|a|an)\s+/i, "")
+              .replace(/\s+(button|link|field|menu|tab|input|dropdown)$/i, "")
+              .trim();
             if (cleaned && cleaned.length > 1) {
-              uiElements.push(cleaned)
+              uiElements.push(cleaned);
             }
           }
-        })
+        });
       }
-      
+
       // Extract specific actions - dynamic patterns
-      const actions = []
+      const actions = [];
       const actionPatterns = [
         // Click/press actions
         /(?:click|press|tap|hit)\s+(?:on\s+)?(?:the\s+)?['"]?([^'",.\n\)]+)['"]?/gi,
@@ -954,300 +1252,407 @@ export default {
         // Open/close actions
         /(?:open|close|expand|collapse)\s+(?:the\s+)?['"]?([^'",.\n\)]+)['"]?/gi,
         // Generic action verbs with objects
-        /(?:perform|execute|trigger|activate)\s+(?:the\s+)?['"]?([^'",.\n\)]+)['"]?/gi
-      ]
+        /(?:perform|execute|trigger|activate)\s+(?:the\s+)?['"]?([^'",.\n\)]+)['"]?/gi,
+      ];
       for (const pattern of actionPatterns) {
-        const matches = [...description.matchAll(pattern)]
-        matches.forEach(match => {
+        const matches = [...description.matchAll(pattern)];
+        matches.forEach((match) => {
           if (match[1]) {
-            const action = match[1].trim()
+            const action = match[1].trim();
             // More flexible length validation
             if (action && action.length > 1 && action.length < 80) {
               // Clean up common words
-              const cleaned = action
-                .replace(/^(the|a|an)\s+/i, '')
-                .trim()
+              const cleaned = action.replace(/^(the|a|an)\s+/i, "").trim();
               if (cleaned && cleaned.length > 1) {
-                actions.push(cleaned)
+                actions.push(cleaned);
               }
             }
           }
-        })
+        });
       }
-      
+
       // Extract data/inputs
-      const inputs = []
+      const inputs = [];
       const inputPatterns = [
         /(?:enter|type|input|fill|write)\s+['"]([^'"]+)['"]/gi,
         /(?:with|using)\s+['"]([^'"]+)['"]/gi,
-        /(?:value|data|text)[\s:]+['"]?([^'",.\n]+)['"]?/gi
-      ]
+        /(?:value|data|text)[\s:]+['"]?([^'",.\n]+)['"]?/gi,
+      ];
       for (const pattern of inputPatterns) {
-        const matches = [...description.matchAll(pattern)]
-        matches.forEach(match => {
+        const matches = [...description.matchAll(pattern)];
+        matches.forEach((match) => {
           if (match[1]) {
-            const input = match[1].trim()
+            const input = match[1].trim();
             if (input && input.length > 1 && input.length < 100) {
-              inputs.push(input)
+              inputs.push(input);
             }
           }
-        })
+        });
       }
-      
+
       // Extract error messages
       const errorPatterns = [
         /(?:error|exception|typeerror|referenceerror|syntaxerror)[\s:]+['"]?([^'",.\n]+)['"]?/i,
         /(?:shows?|displays?|shows?)\s+(?:an?\s+)?(?:error|message)[\s:]+['"]?([^'",.\n]+)['"]?/i,
-        /(?:message|error)[\s:]+['"]?([^'",.\n]+)['"]?/i
-      ]
-      let extractedError = null
+        /(?:message|error)[\s:]+['"]?([^'",.\n]+)['"]?/i,
+      ];
+      let extractedError = null;
       for (const pattern of errorPatterns) {
-        const match = description.match(pattern)
+        const match = description.match(pattern);
         if (match && match[1]) {
-          extractedError = match[1].trim()
-          break
+          extractedError = match[1].trim();
+          break;
         }
       }
-      
+
       // Extract page/feature names
       const pagePatterns = [
         /(?:on|in|at)\s+(?:the\s+)?(?:page|screen|view|section)[\s:]+['"]?([^'",.\n]+)['"]?/gi,
-        /(?:page|screen|view|section)[\s:]+['"]?([^'",.\n]+)['"]?/gi
-      ]
-      let extractedPage = null
+        /(?:page|screen|view|section)[\s:]+['"]?([^'",.\n]+)['"]?/gi,
+      ];
+      let extractedPage = null;
       for (const pattern of pagePatterns) {
-        const match = description.match(pattern)
+        const match = description.match(pattern);
         if (match && match[1]) {
-          extractedPage = match[1].trim()
-          break
+          extractedPage = match[1].trim();
+          break;
         }
       }
-      
+
       return {
         url: extractedUrl,
         uiElements: [...new Set(uiElements)], // Remove duplicates
         actions: [...new Set(actions)],
         inputs: [...new Set(inputs)],
         error: extractedError,
-        page: extractedPage
-      }
+        page: extractedPage,
+      };
     }
-    
+
     function createFallbackBugData() {
-      const description = bugData.value.description || ''
-      const title = bugData.value.title || ''
-      
+      const description = bugData.value.description || "";
+      const title = bugData.value.title || "";
+
       // Extract specific details from description
-      const details = extractBugDetails(description, title)
-      
+      const details = extractBugDetails(description, title);
+
       // Generate intelligent steps from title and description
-      let steps = ''
-      const lowerTitle = title.toLowerCase()
-      const lowerDesc = description.toLowerCase()
-      
+      let steps = "";
+      const lowerTitle = title.toLowerCase();
+      const lowerDesc = description.toLowerCase();
+
       // Generate specific steps based on bug type and extracted details
-      if (lowerTitle.includes('not loading') || lowerDesc.includes('not loading') || lowerDesc.includes('broken page')) {
+      if (
+        lowerTitle.includes("not loading") ||
+        lowerDesc.includes("not loading") ||
+        lowerDesc.includes("broken page")
+      ) {
         if (details.url) {
-          const url = details.url.startsWith('/') ? details.url : '/' + details.url
-          steps = `1. Open the application and navigate to ${url}\n2. Observe that the page does not load correctly\n3. Check the browser console (F12) for any errors or warnings`
+          const url = details.url.startsWith("/")
+            ? details.url
+            : "/" + details.url;
+          steps = `1. Open the application and navigate to ${url}\n2. Observe that the page does not load correctly\n3. Check the browser console (F12) for any errors or warnings`;
           if (details.error) {
-            steps += `\n4. Verify the error message "${details.error}" appears`
+            steps += `\n4. Verify the error message "${details.error}" appears`;
           }
         } else if (details.page) {
-          steps = `1. Open the application and navigate to the ${details.page} page\n2. Observe that the page does not load correctly\n3. Check the browser console (F12) for any errors or warnings`
+          steps = `1. Open the application and navigate to the ${details.page} page\n2. Observe that the page does not load correctly\n3. Check the browser console (F12) for any errors or warnings`;
         } else {
-          steps = `1. Open the application\n2. Attempt to access the page or feature mentioned in the description\n3. Observe that the page/feature does not load\n4. Check the browser console (F12) for any errors`
+          steps = `1. Open the application\n2. Attempt to access the page or feature mentioned in the description\n3. Observe that the page/feature does not load\n4. Check the browser console (F12) for any errors`;
         }
-      } else if (lowerTitle.includes('reload') || lowerDesc.includes('reload') || lowerDesc.includes('after reloading') || lowerTitle.includes('refresh') || lowerDesc.includes('refresh') || lowerDesc.includes('after refreshing')) {
+      } else if (
+        lowerTitle.includes("reload") ||
+        lowerDesc.includes("reload") ||
+        lowerDesc.includes("after reloading") ||
+        lowerTitle.includes("refresh") ||
+        lowerDesc.includes("refresh") ||
+        lowerDesc.includes("after refreshing")
+      ) {
         if (details.url) {
-          const url = details.url.startsWith('/') ? details.url : '/' + details.url
-          steps = `1. Open the application and navigate to ${url}\n2. Reload/refresh the page (press F5, Ctrl+R, or Cmd+R)\n3. Observe that the page is not properly displayed after reloading/refreshing\n4. Check the browser console (F12) for any errors`
+          const url = details.url.startsWith("/")
+            ? details.url
+            : "/" + details.url;
+          steps = `1. Open the application and navigate to ${url}\n2. Reload/refresh the page (press F5, Ctrl+R, or Cmd+R)\n3. Observe that the page is not properly displayed after reloading/refreshing\n4. Check the browser console (F12) for any errors`;
         } else if (details.page) {
-          steps = `1. Open the application and navigate to the ${details.page} page\n2. Reload/refresh the page (press F5, Ctrl+R, or Cmd+R)\n3. Observe that the page is not properly displayed after reloading/refreshing\n4. Check the browser console (F12) for any errors`
+          steps = `1. Open the application and navigate to the ${details.page} page\n2. Reload/refresh the page (press F5, Ctrl+R, or Cmd+R)\n3. Observe that the page is not properly displayed after reloading/refreshing\n4. Check the browser console (F12) for any errors`;
         } else {
-          steps = `1. Open the application\n2. Navigate to the main page or feature\n3. Reload/refresh the page (press F5, Ctrl+R, or Cmd+R)\n4. Observe that the page is not properly displayed after reloading/refreshing\n5. Check the browser console (F12) for any errors`
+          steps = `1. Open the application\n2. Navigate to the main page or feature\n3. Reload/refresh the page (press F5, Ctrl+R, or Cmd+R)\n4. Observe that the page is not properly displayed after reloading/refreshing\n5. Check the browser console (F12) for any errors`;
         }
-      } else if (lowerTitle.includes('display') || lowerDesc.includes('display') || lowerDesc.includes('not properly displayed') || lowerDesc.includes('not displayed')) {
+      } else if (
+        lowerTitle.includes("display") ||
+        lowerDesc.includes("display") ||
+        lowerDesc.includes("not properly displayed") ||
+        lowerDesc.includes("not displayed")
+      ) {
         if (details.url) {
-          const url = details.url.startsWith('/') ? details.url : '/' + details.url
-          steps = `1. Open the application and navigate to ${url}\n2. Observe the page display\n3. Verify that the content is not properly displayed as expected`
+          const url = details.url.startsWith("/")
+            ? details.url
+            : "/" + details.url;
+          steps = `1. Open the application and navigate to ${url}\n2. Observe the page display\n3. Verify that the content is not properly displayed as expected`;
           if (details.error) {
-            steps += `\n4. Check for error message: "${details.error}"`
+            steps += `\n4. Check for error message: "${details.error}"`;
           }
         } else if (details.page) {
-          steps = `1. Open the application and navigate to the ${details.page} page\n2. Observe the page display\n3. Verify that the content is not properly displayed as expected\n4. Check the browser console (F12) for any errors`
+          steps = `1. Open the application and navigate to the ${details.page} page\n2. Observe the page display\n3. Verify that the content is not properly displayed as expected\n4. Check the browser console (F12) for any errors`;
         } else {
-          steps = `1. Open the application\n2. Navigate to the page or feature mentioned in the description\n3. Observe the page display\n4. Verify that the content is not properly displayed as expected\n5. Check the browser console (F12) for any errors`
+          steps = `1. Open the application\n2. Navigate to the page or feature mentioned in the description\n3. Observe the page display\n4. Verify that the content is not properly displayed as expected\n5. Check the browser console (F12) for any errors`;
         }
-      } else if (lowerTitle.includes('error') || lowerDesc.includes('error') || lowerDesc.includes('typeerror') || lowerDesc.includes('cannot read') || lowerDesc.includes('referenceerror')) {
+      } else if (
+        lowerTitle.includes("error") ||
+        lowerDesc.includes("error") ||
+        lowerDesc.includes("typeerror") ||
+        lowerDesc.includes("cannot read") ||
+        lowerDesc.includes("referenceerror")
+      ) {
         if (details.url && details.error) {
-          const url = details.url.startsWith('/') ? details.url : '/' + details.url
-          steps = `1. Open the application and navigate to ${url}\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Perform the action that triggers the error'}\n3. Observe the error in the browser console (F12): "${details.error}"\n4. Verify the page displays incorrectly or becomes unresponsive`
+          const url = details.url.startsWith("/")
+            ? details.url
+            : "/" + details.url;
+          steps = `1. Open the application and navigate to ${url}\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : "Perform the action that triggers the error"}\n3. Observe the error in the browser console (F12): "${details.error}"\n4. Verify the page displays incorrectly or becomes unresponsive`;
         } else if (details.url) {
-          const url = details.url.startsWith('/') ? details.url : '/' + details.url
-          steps = `1. Open the application and navigate to ${url}\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Perform the action described'}\n3. Observe the error message or broken behavior\n4. Check the browser console (F12) for error details`
+          const url = details.url.startsWith("/")
+            ? details.url
+            : "/" + details.url;
+          steps = `1. Open the application and navigate to ${url}\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : "Perform the action described"}\n3. Observe the error message or broken behavior\n4. Check the browser console (F12) for error details`;
         } else if (details.error) {
-          steps = `1. Open the application\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Perform the action that triggers the error'}\n3. Observe the error in the browser console (F12): "${details.error}"\n4. Verify the issue occurs as described`
+          steps = `1. Open the application\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : "Perform the action that triggers the error"}\n3. Observe the error in the browser console (F12): "${details.error}"\n4. Verify the issue occurs as described`;
         } else {
-          steps = `1. Open the application\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Perform the action that triggers the error'}\n3. Observe the error message or behavior\n4. Check the browser console (F12) for error details`
+          steps = `1. Open the application\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : "Perform the action that triggers the error"}\n3. Observe the error message or behavior\n4. Check the browser console (F12) for error details`;
         }
-      } else if (lowerDesc.includes('visit') || lowerDesc.includes('navigate') || lowerDesc.includes('go to')) {
+      } else if (
+        lowerDesc.includes("visit") ||
+        lowerDesc.includes("navigate") ||
+        lowerDesc.includes("go to")
+      ) {
         if (details.url) {
-          const url = details.url.startsWith('/') ? details.url : '/' + details.url
-          steps = `1. Open the application and navigate to ${url}\n2. ${details.uiElements.length > 0 ? `Interact with "${details.uiElements[0]}"` : 'Perform the action described'}\n3. Observe the issue or unexpected behavior\n4. Verify the problem occurs consistently`
+          const url = details.url.startsWith("/")
+            ? details.url
+            : "/" + details.url;
+          steps = `1. Open the application and navigate to ${url}\n2. ${details.uiElements.length > 0 ? `Interact with "${details.uiElements[0]}"` : "Perform the action described"}\n3. Observe the issue or unexpected behavior\n4. Verify the problem occurs consistently`;
         } else {
-          steps = `1. Open the application\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Navigate to the page or feature mentioned in the description'}\n3. Observe the issue or unexpected behavior\n4. Verify the problem occurs as described`
+          steps = `1. Open the application\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : "Navigate to the page or feature mentioned in the description"}\n3. Observe the issue or unexpected behavior\n4. Verify the problem occurs as described`;
         }
-      } else if (lowerTitle.includes('broken') || lowerDesc.includes('broken')) {
+      } else if (
+        lowerTitle.includes("broken") ||
+        lowerDesc.includes("broken")
+      ) {
         if (details.url) {
-          const url = details.url.startsWith('/') ? details.url : '/' + details.url
-          steps = `1. Open the application and navigate to ${url}\n2. ${details.uiElements.length > 0 ? `Interact with "${details.uiElements[0]}"` : 'Perform the expected action'}\n3. Observe the broken behavior or display issue\n4. Check the browser console (F12) for any errors`
+          const url = details.url.startsWith("/")
+            ? details.url
+            : "/" + details.url;
+          steps = `1. Open the application and navigate to ${url}\n2. ${details.uiElements.length > 0 ? `Interact with "${details.uiElements[0]}"` : "Perform the expected action"}\n3. Observe the broken behavior or display issue\n4. Check the browser console (F12) for any errors`;
         } else if (details.page) {
-          steps = `1. Open the application and navigate to the ${details.page} page\n2. ${details.uiElements.length > 0 ? `Interact with "${details.uiElements[0]}"` : 'Perform the expected action'}\n3. Observe the broken behavior or display issue\n4. Check the browser console (F12) for any errors`
+          steps = `1. Open the application and navigate to the ${details.page} page\n2. ${details.uiElements.length > 0 ? `Interact with "${details.uiElements[0]}"` : "Perform the expected action"}\n3. Observe the broken behavior or display issue\n4. Check the browser console (F12) for any errors`;
         } else {
-          steps = `1. Open the application\n2. Navigate to the affected feature or page\n3. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Perform the expected action'}\n4. Observe the broken behavior`
+          steps = `1. Open the application\n2. Navigate to the affected feature or page\n3. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : "Perform the expected action"}\n4. Observe the broken behavior`;
         }
-      } else if (lowerTitle.includes('not working') || lowerDesc.includes('not working') || (lowerTitle.includes('working') && lowerDesc.includes('not'))) {
+      } else if (
+        lowerTitle.includes("not working") ||
+        lowerDesc.includes("not working") ||
+        (lowerTitle.includes("working") && lowerDesc.includes("not"))
+      ) {
         if (details.url) {
-          const url = details.url.startsWith('/') ? details.url : '/' + details.url
-          steps = `1. Open the application and navigate to ${url}\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Perform the action that should work'}\n3. ${details.inputs.length > 0 ? `Enter "${details.inputs[0]}" if required` : ''}\n4. Observe that the feature is not working as expected\n5. Check the browser console (F12) for any errors`
+          const url = details.url.startsWith("/")
+            ? details.url
+            : "/" + details.url;
+          steps = `1. Open the application and navigate to ${url}\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : "Perform the action that should work"}\n3. ${details.inputs.length > 0 ? `Enter "${details.inputs[0]}" if required` : ""}\n4. Observe that the feature is not working as expected\n5. Check the browser console (F12) for any errors`;
         } else if (details.page) {
-          steps = `1. Open the application and navigate to the ${details.page} page\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Perform the action that should work'}\n3. Observe that the feature is not working as expected\n4. Check the browser console (F12) for any errors`
+          steps = `1. Open the application and navigate to the ${details.page} page\n2. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : "Perform the action that should work"}\n3. Observe that the feature is not working as expected\n4. Check the browser console (F12) for any errors`;
         } else {
-          steps = `1. Open the application\n2. Navigate to the main page or feature\n3. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : 'Perform the action that should work'}\n4. Observe that the feature is not working as expected\n5. Check the browser console (F12) for any errors`
+          steps = `1. Open the application\n2. Navigate to the main page or feature\n3. ${details.uiElements.length > 0 ? `Click on "${details.uiElements[0]}"` : "Perform the action that should work"}\n4. Observe that the feature is not working as expected\n5. Check the browser console (F12) for any errors`;
         }
       } else {
         // Try to extract specific information from description
         // Filter out sentences that are descriptions of the problem (not actions)
-        const problemIndicators = ['not', 'is not', 'does not', 'fails', 'broken', 'error', 'issue', 'problem']
-        const sentences = description.split(/[.!?]/)
-          .filter(s => {
-            const trimmed = s.trim()
+        const problemIndicators = [
+          "not",
+          "is not",
+          "does not",
+          "fails",
+          "broken",
+          "error",
+          "issue",
+          "problem",
+        ];
+        const sentences = description
+          .split(/[.!?]/)
+          .filter((s) => {
+            const trimmed = s.trim();
             // Filter out very short sentences
-            if (trimmed.length < 10) return false
+            if (trimmed.length < 10) return false;
             // Filter out sentences that are just describing the problem
-            const lower = trimmed.toLowerCase()
-            const isProblemDescription = problemIndicators.some(indicator => 
-              lower.includes(indicator) && (lower.includes('display') || lower.includes('work') || lower.includes('load'))
-            )
+            const lower = trimmed.toLowerCase();
+            const isProblemDescription = problemIndicators.some(
+              (indicator) =>
+                lower.includes(indicator) &&
+                (lower.includes("display") ||
+                  lower.includes("work") ||
+                  lower.includes("load")),
+            );
             // Keep action-oriented sentences, not problem descriptions
-            return !isProblemDescription && (
-              lower.includes('navigate') || 
-              lower.includes('access') || 
-              lower.includes('click') || 
-              lower.includes('enter') || 
-              lower.includes('select') ||
-              lower.includes('reload') ||
-              lower.includes('refresh') ||
-              lower.includes('open') ||
-              lower.includes('visit')
-            )
+            return (
+              !isProblemDescription &&
+              (lower.includes("navigate") ||
+                lower.includes("access") ||
+                lower.includes("click") ||
+                lower.includes("enter") ||
+                lower.includes("select") ||
+                lower.includes("reload") ||
+                lower.includes("refresh") ||
+                lower.includes("open") ||
+                lower.includes("visit"))
+            );
           })
-          .map(s => s.trim())
-          .filter(s => s.length > 0)
-        
+          .map((s) => s.trim())
+          .filter((s) => s.length > 0);
+
         if (sentences.length > 0 && details.url) {
-          const url = details.url.startsWith('/') ? details.url : '/' + details.url
-          steps = `1. Open the application and navigate to ${url}\n2. ${sentences[0]}\n3. Observe the issue or unexpected behavior`
+          const url = details.url.startsWith("/")
+            ? details.url
+            : "/" + details.url;
+          steps = `1. Open the application and navigate to ${url}\n2. ${sentences[0]}\n3. Observe the issue or unexpected behavior`;
         } else if (sentences.length > 0) {
           // Use action-oriented sentences as steps
-          const actionSteps = sentences.slice(0, 3).map((sentence, index) => {
-            const cleaned = sentence.trim()
-            // Ensure first step is navigation if not already present
-            if (index === 0 && !cleaned.toLowerCase().includes('navigate') && !cleaned.toLowerCase().includes('access')) {
-              return `1. Navigate to the application\n2. ${cleaned}`
-            }
-            return `${index + 1}. ${cleaned}`
-          }).join('\n')
-          
+          const actionSteps = sentences
+            .slice(0, 3)
+            .map((sentence, index) => {
+              const cleaned = sentence.trim();
+              // Ensure first step is navigation if not already present
+              if (
+                index === 0 &&
+                !cleaned.toLowerCase().includes("navigate") &&
+                !cleaned.toLowerCase().includes("access")
+              ) {
+                return `1. Navigate to the application\n2. ${cleaned}`;
+              }
+              return `${index + 1}. ${cleaned}`;
+            })
+            .join("\n");
+
           // Add observation step
-          steps = `${actionSteps}\n${sentences.length + 1}. Observe the issue or unexpected behavior`
+          steps = `${actionSteps}\n${sentences.length + 1}. Observe the issue or unexpected behavior`;
         } else {
           // Intelligent fallback using extracted details
-          const stepParts = []
-          
+          const stepParts = [];
+
           // Step 1: Navigation
           if (details.url) {
-            if (details.url.startsWith('http')) {
-              stepParts.push(`1. Open the application and navigate to ${details.url}`)
-            } else if (details.url.startsWith('/')) {
-              stepParts.push(`1. Open the application and navigate to ${details.url}`)
+            if (details.url.startsWith("http")) {
+              stepParts.push(
+                `1. Open the application and navigate to ${details.url}`,
+              );
+            } else if (details.url.startsWith("/")) {
+              stepParts.push(
+                `1. Open the application and navigate to ${details.url}`,
+              );
             } else {
-              stepParts.push(`1. Open the application and navigate to /${details.url}`)
+              stepParts.push(
+                `1. Open the application and navigate to /${details.url}`,
+              );
             }
           } else if (details.page) {
-            stepParts.push(`1. Open the application and navigate to the ${details.page} page`)
+            stepParts.push(
+              `1. Open the application and navigate to the ${details.page} page`,
+            );
           } else {
-            stepParts.push(`1. Open the application`)
+            stepParts.push(`1. Open the application`);
           }
-          
+
           // Step 2: UI interactions
-          let stepNum = 2
+          let stepNum = 2;
           if (details.uiElements.length > 0) {
             details.uiElements.slice(0, 2).forEach((element, idx) => {
-              stepParts.push(`${stepNum}. Click on the "${element}" ${details.actions[idx] ? details.actions[idx] : 'element'}`)
-              stepNum++
-            })
+              stepParts.push(
+                `${stepNum}. Click on the "${element}" ${details.actions[idx] ? details.actions[idx] : "element"}`,
+              );
+              stepNum++;
+            });
           } else if (details.actions.length > 0) {
             details.actions.slice(0, 2).forEach((action) => {
-              stepParts.push(`${stepNum}. ${action.charAt(0).toUpperCase() + action.slice(1)}`)
-              stepNum++
-            })
+              stepParts.push(
+                `${stepNum}. ${action.charAt(0).toUpperCase() + action.slice(1)}`,
+              );
+              stepNum++;
+            });
           }
-          
+
           // Step 3: Input data
           if (details.inputs.length > 0) {
             details.inputs.slice(0, 1).forEach((input) => {
-              stepParts.push(`${stepNum}. Enter "${input}" in the appropriate field`)
-              stepNum++
-            })
+              stepParts.push(
+                `${stepNum}. Enter "${input}" in the appropriate field`,
+              );
+              stepNum++;
+            });
           }
-          
+
           // Step 4: Specific action or observation
           if (details.error) {
-            stepParts.push(`${stepNum}. Observe that the error "${details.error}" appears`)
-            stepNum++
+            stepParts.push(
+              `${stepNum}. Observe that the error "${details.error}" appears`,
+            );
+            stepNum++;
           } else {
             // Try to extract a specific action from description
-            const actionSentences = description.split(/[.!?]/)
-              .filter(s => {
-                const trimmed = s.trim().toLowerCase()
-                return trimmed.length > 15 && trimmed.length < 100 &&
-                  (trimmed.includes('click') || trimmed.includes('type') || trimmed.includes('select') ||
-                   trimmed.includes('navigate') || trimmed.includes('open') || trimmed.includes('access'))
+            const actionSentences = description
+              .split(/[.!?]/)
+              .filter((s) => {
+                const trimmed = s.trim().toLowerCase();
+                return (
+                  trimmed.length > 15 &&
+                  trimmed.length < 100 &&
+                  (trimmed.includes("click") ||
+                    trimmed.includes("type") ||
+                    trimmed.includes("select") ||
+                    trimmed.includes("navigate") ||
+                    trimmed.includes("open") ||
+                    trimmed.includes("access"))
+                );
               })
-              .slice(0, 1)
-            
+              .slice(0, 1);
+
             if (actionSentences.length > 0) {
-              const action = actionSentences[0].trim()
-              stepParts.push(`${stepNum}. ${action.charAt(0).toUpperCase() + action.slice(1)}`)
-              stepNum++
+              const action = actionSentences[0].trim();
+              stepParts.push(
+                `${stepNum}. ${action.charAt(0).toUpperCase() + action.slice(1)}`,
+              );
+              stepNum++;
             } else {
-              stepParts.push(`${stepNum}. Perform the action described in the bug report`)
-              stepNum++
+              stepParts.push(
+                `${stepNum}. Perform the action described in the bug report`,
+              );
+              stepNum++;
             }
           }
-          
+
           // Final step: Observation
           if (details.error) {
-            stepParts.push(`${stepNum}. Check the browser console for error details`)
+            stepParts.push(
+              `${stepNum}. Check the browser console for error details`,
+            );
           } else {
-            stepParts.push(`${stepNum}. Observe the issue or unexpected behavior described in the bug report`)
+            stepParts.push(
+              `${stepNum}. Observe the issue or unexpected behavior described in the bug report`,
+            );
           }
-          
-          steps = stepParts.join('\n')
-          
+
+          steps = stepParts.join("\n");
+
           // Fallback to generic if we couldn't extract enough details
           if (stepParts.length < 3) {
             if (details.url) {
-              steps = `1. Open the application and navigate to ${details.url.startsWith('/') ? details.url : '/' + details.url}\n2. Perform the specific action mentioned in the bug description\n3. Observe the issue: ${description.substring(0, 100)}${description.length > 100 ? '...' : ''}\n4. Check the browser console (F12) for any error messages`
+              steps = `1. Open the application and navigate to ${details.url.startsWith("/") ? details.url : "/" + details.url}\n2. Perform the specific action mentioned in the bug description\n3. Observe the issue: ${description.substring(0, 100)}${description.length > 100 ? "..." : ""}\n4. Check the browser console (F12) for any error messages`;
             } else {
               // Try to use first sentence of description as a step
-              const firstSentence = description.split(/[.!?]/)[0].trim()
-              if (firstSentence && firstSentence.length > 20 && firstSentence.length < 150) {
-                steps = `1. Open the application\n2. ${firstSentence.charAt(0).toUpperCase() + firstSentence.slice(1)}\n3. Observe the issue or unexpected behavior\n4. Check the browser console (F12) for any error messages or warnings`
+              const firstSentence = description.split(/[.!?]/)[0].trim();
+              if (
+                firstSentence &&
+                firstSentence.length > 20 &&
+                firstSentence.length < 150
+              ) {
+                steps = `1. Open the application\n2. ${firstSentence.charAt(0).toUpperCase() + firstSentence.slice(1)}\n3. Observe the issue or unexpected behavior\n4. Check the browser console (F12) for any error messages or warnings`;
               } else {
-                steps = `1. Open the application\n2. Follow the scenario described in the bug report\n3. Observe the issue: ${description.substring(0, 80)}${description.length > 80 ? '...' : ''}\n4. Check the browser console (F12) for any error messages`
+                steps = `1. Open the application\n2. Follow the scenario described in the bug report\n3. Observe the issue: ${description.substring(0, 80)}${description.length > 80 ? "..." : ""}\n4. Check the browser console (F12) for any error messages`;
               }
             }
           }
@@ -1255,45 +1660,89 @@ export default {
       }
 
       // Generate expected result based on title
-      let expectedResult = 'The feature should work as expected without errors'
-      if (lowerTitle.includes('loading') || lowerDesc.includes('loading')) {
-        expectedResult = 'The page/feature should load correctly and display the expected content'
-      } else if (lowerTitle.includes('display') || lowerDesc.includes('display') || lowerDesc.includes('not properly displayed')) {
-        expectedResult = 'The content should be displayed correctly as designed after reloading or accessing the page'
-      } else if (lowerTitle.includes('reload') || lowerDesc.includes('reload') || lowerDesc.includes('after reloading') || lowerTitle.includes('refresh') || lowerDesc.includes('refresh') || lowerDesc.includes('after refreshing')) {
-        expectedResult = 'The page should reload/refresh successfully and display all content correctly'
-      } else if (lowerTitle.includes('not working') || lowerDesc.includes('not working') || (lowerTitle.includes('working') && lowerDesc.includes('not'))) {
-        expectedResult = 'The feature should work correctly and perform the expected functionality'
-      } else if (lowerTitle.includes('click') || lowerDesc.includes('click')) {
-        expectedResult = 'The action should execute successfully when clicked'
+      let expectedResult = "The feature should work as expected without errors";
+      if (lowerTitle.includes("loading") || lowerDesc.includes("loading")) {
+        expectedResult =
+          "The page/feature should load correctly and display the expected content";
+      } else if (
+        lowerTitle.includes("display") ||
+        lowerDesc.includes("display") ||
+        lowerDesc.includes("not properly displayed")
+      ) {
+        expectedResult =
+          "The content should be displayed correctly as designed after reloading or accessing the page";
+      } else if (
+        lowerTitle.includes("reload") ||
+        lowerDesc.includes("reload") ||
+        lowerDesc.includes("after reloading") ||
+        lowerTitle.includes("refresh") ||
+        lowerDesc.includes("refresh") ||
+        lowerDesc.includes("after refreshing")
+      ) {
+        expectedResult =
+          "The page should reload/refresh successfully and display all content correctly";
+      } else if (
+        lowerTitle.includes("not working") ||
+        lowerDesc.includes("not working") ||
+        (lowerTitle.includes("working") && lowerDesc.includes("not"))
+      ) {
+        expectedResult =
+          "The feature should work correctly and perform the expected functionality";
+      } else if (lowerTitle.includes("click") || lowerDesc.includes("click")) {
+        expectedResult = "The action should execute successfully when clicked";
       }
 
       // Generate actual result - make it specific based on the issue
-      let actualResult = ''
-      if (lowerTitle.includes('reload') || lowerDesc.includes('reload') || lowerDesc.includes('after reloading') || lowerTitle.includes('refresh') || lowerDesc.includes('refresh') || lowerDesc.includes('after refreshing')) {
-        actualResult = 'After reloading/refreshing the page, the content is not properly displayed. The page may show a blank screen, partial content, or layout issues.'
-      } else if (lowerTitle.includes('display') || lowerDesc.includes('display') || lowerDesc.includes('not properly displayed')) {
-        actualResult = 'The page content is not properly displayed. Elements may be missing, misaligned, or not rendering correctly.'
-      } else if (lowerTitle.includes('not loading')) {
-        actualResult = 'The page/feature does not load. The user sees a blank page, error message, or the application becomes unresponsive.'
-      } else if (lowerTitle.includes('not working') || lowerDesc.includes('not working') || (lowerTitle.includes('working') && lowerDesc.includes('not'))) {
-        actualResult = 'The feature does not work as expected. The functionality fails, behaves incorrectly, or does not perform the intended action.'
-      } else if (lowerTitle.includes('error') || lowerDesc.includes('error')) {
-        actualResult = 'An error occurs. The user sees an error message, the application crashes, or unexpected behavior is observed.'
+      let actualResult = "";
+      if (
+        lowerTitle.includes("reload") ||
+        lowerDesc.includes("reload") ||
+        lowerDesc.includes("after reloading") ||
+        lowerTitle.includes("refresh") ||
+        lowerDesc.includes("refresh") ||
+        lowerDesc.includes("after refreshing")
+      ) {
+        actualResult =
+          "After reloading/refreshing the page, the content is not properly displayed. The page may show a blank screen, partial content, or layout issues.";
+      } else if (
+        lowerTitle.includes("display") ||
+        lowerDesc.includes("display") ||
+        lowerDesc.includes("not properly displayed")
+      ) {
+        actualResult =
+          "The page content is not properly displayed. Elements may be missing, misaligned, or not rendering correctly.";
+      } else if (lowerTitle.includes("not loading")) {
+        actualResult =
+          "The page/feature does not load. The user sees a blank page, error message, or the application becomes unresponsive.";
+      } else if (
+        lowerTitle.includes("not working") ||
+        lowerDesc.includes("not working") ||
+        (lowerTitle.includes("working") && lowerDesc.includes("not"))
+      ) {
+        actualResult =
+          "The feature does not work as expected. The functionality fails, behaves incorrectly, or does not perform the intended action.";
+      } else if (lowerTitle.includes("error") || lowerDesc.includes("error")) {
+        actualResult =
+          "An error occurs. The user sees an error message, the application crashes, or unexpected behavior is observed.";
       } else {
         // Use description but make it more specific and concise
-        const desc = description.trim()
+        const desc = description.trim();
         // Check if description is generic text (like Lorem Ipsum) or actual bug description
-        const isGenericText = /lorem|ipsum|dummy|text|printing|typesetting|industry|standard|ever since|1500s|unknown printer|galley|scrambled|specimen|book/i.test(desc)
-        
+        const isGenericText =
+          /lorem|ipsum|dummy|text|printing|typesetting|industry|standard|ever since|1500s|unknown printer|galley|scrambled|specimen|book/i.test(
+            desc,
+          );
+
         if (isGenericText || desc.length > 150) {
           // For generic or very long descriptions, generate a specific result
-          actualResult = 'The issue occurs as described. The expected behavior does not happen and the user experiences the problem.'
+          actualResult =
+            "The issue occurs as described. The expected behavior does not happen and the user experiences the problem.";
         } else if (desc.length > 0 && desc.length <= 150) {
           // Use short descriptions as-is
-          actualResult = desc
+          actualResult = desc;
         } else {
-          actualResult = 'The issue occurs as described. The expected behavior does not happen and the user experiences the problem.'
+          actualResult =
+            "The issue occurs as described. The expected behavior does not happen and the user experiences the problem.";
         }
       }
 
@@ -1302,78 +1751,78 @@ export default {
         stepsToReproduce: steps,
         expectedResult: expectedResult,
         actualResult: actualResult,
-        additionalInfo: bugData.value.additionalInfo || ''
-      }
+        additionalInfo: bugData.value.additionalInfo || "",
+      };
     }
 
     function enforceTitleLength() {
       // Force title to max 30 characters whenever it changes
       if (bugData.value.title && bugData.value.title.length > 30) {
-        const limited = bugData.value.title.substring(0, 27).trim() + '...'
-        bugData.value.title = limited.substring(0, 30)
-        console.log('Title enforced to 30 chars:', bugData.value.title)
+        const limited = bugData.value.title.substring(0, 27).trim() + "...";
+        bugData.value.title = limited.substring(0, 30);
+        console.log("Title enforced to 30 chars:", bugData.value.title);
       }
     }
-    
+
     function regenerateReport() {
       if (generatedReport.value) {
-        generateReport(true) // Silent mode - don't show notification when regenerating
+        generateReport(true); // Silent mode - don't show notification when regenerating
       }
     }
 
     async function copyReport() {
       if (!generatedReport.value) {
-        showNotification('warning', t('bugReport.noReportToCopy'))
-        return
+        showNotification("warning", t("bugReport.noReportToCopy"));
+        return;
       }
 
       try {
-        await navigator.clipboard.writeText(generatedReport.value)
-        showNotification('success', t('bugReport.copied'))
+        await navigator.clipboard.writeText(generatedReport.value);
+        showNotification("success", t("bugReport.copied"));
       } catch (error) {
-        console.error('Error copying report:', error)
+        console.error("Error copying report:", error);
         // Fallback
-        const textArea = document.createElement('textarea')
-        textArea.value = generatedReport.value
-        textArea.style.position = 'fixed'
-        textArea.style.left = '-999999px'
-        document.body.appendChild(textArea)
-        textArea.select()
-        document.execCommand('copy')
-        document.body.removeChild(textArea)
-        showNotification('success', t('bugReport.copied'))
+        const textArea = document.createElement("textarea");
+        textArea.value = generatedReport.value;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-999999px";
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        showNotification("success", t("bugReport.copied"));
       }
     }
 
     function clearForm() {
       bugData.value = {
-        title: '',
-        priority: 'Medium',
-        severity: 'Major',
-        description: '',
-        environment: '',
-        browser: '',
-        operatingSystem: '',
-        version: '',
-        additionalInfo: ''
-      }
+        title: "",
+        priority: "Medium",
+        severity: "Major",
+        description: "",
+        environment: "",
+        browser: "",
+        operatingSystem: "",
+        version: "",
+        additionalInfo: "",
+      };
       aiGeneratedData.value = {
-        stepsToReproduce: '',
-        expectedResult: '',
-        actualResult: '',
-        additionalInfo: ''
-      }
-      evidenceFiles.value = []
-      generatedReport.value = ''
+        stepsToReproduce: "",
+        expectedResult: "",
+        actualResult: "",
+        additionalInfo: "",
+      };
+      evidenceFiles.value = [];
+      generatedReport.value = "";
       touchedFields.value = {
         title: false,
-        description: false
-      }
-      titleGenerated.value = false
-      titleEditable.value = false
-      showOptionalInfo.value = false
-      detectEnvironment()
-      showNotification('success', t('bugReport.formCleared'))
+        description: false,
+      };
+      titleGenerated.value = false;
+      titleEditable.value = false;
+      showOptionalInfo.value = false;
+      detectEnvironment();
+      showNotification("success", t("bugReport.formCleared"));
     }
 
     return {
@@ -1405,10 +1854,10 @@ export default {
       enforceTitleLength,
       titleOptions,
       showTitleSelection,
-      selectTitle
-    }
-  }
-}
+      selectTitle,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -1435,8 +1884,13 @@ export default {
 }
 
 @keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .header h1 {
@@ -1504,7 +1958,7 @@ export default {
 }
 
 .progress-step.completed .step-number::after {
-  content: '✓';
+  content: "✓";
   font-size: 1.2rem;
 }
 
@@ -1640,7 +2094,8 @@ export default {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
@@ -1742,7 +2197,12 @@ export default {
 
 .input-generating {
   border-color: var(--primary-color) !important;
-  background: linear-gradient(90deg, var(--input-bg) 0%, rgba(102, 126, 234, 0.05) 50%, var(--input-bg) 100%);
+  background: linear-gradient(
+    90deg,
+    var(--input-bg) 0%,
+    rgba(102, 126, 234, 0.05) 50%,
+    var(--input-bg) 100%
+  );
   background-size: 200% 100%;
   animation: shimmer 2s ease-in-out infinite;
 }
@@ -1851,88 +2311,88 @@ export default {
 }
 
 /* Dark mode styles for select */
-[data-theme='dark'] .select-input {
+[data-theme="dark"] .select-input {
   background: #1a1a1a !important;
   color: #ffffff !important;
   border-color: #3a3a3a !important;
 }
 
-[data-theme='dark'] .select-input option {
+[data-theme="dark"] .select-input option {
   background: #1a1a1a !important;
   color: #ffffff !important;
   padding: 0.5rem;
   list-style: none;
 }
 
-[data-theme='dark'] .select-input option:hover,
-[data-theme='dark'] .select-input option:checked {
+[data-theme="dark"] .select-input option:hover,
+[data-theme="dark"] .select-input option:checked {
   background: #2a2a2a !important;
   color: #ffffff !important;
 }
 
-[data-theme='dark'] .select-input:hover {
+[data-theme="dark"] .select-input:hover {
   border-color: var(--primary-color) !important;
   background: #1a1a1a !important;
   color: #ffffff !important;
 }
 
-[data-theme='dark'] .select-input:focus {
+[data-theme="dark"] .select-input:focus {
   border-color: var(--primary-color) !important;
   background: #1a1a1a !important;
   color: #ffffff !important;
 }
 
-[data-theme='dark'] .select-input:focus option {
+[data-theme="dark"] .select-input:focus option {
   background: #1a1a1a !important;
   color: #ffffff !important;
 }
 
 /* Light mode styles for select */
-[data-theme='light'] .select-input {
+[data-theme="light"] .select-input {
   background: #f5f5f5 !important;
   color: #000000 !important;
   border-color: #e0e0e0 !important;
 }
 
-[data-theme='light'] .select-input option {
+[data-theme="light"] .select-input option {
   background: #ffffff !important;
   color: #000000 !important;
   padding: 0.5rem;
 }
 
-[data-theme='light'] .select-input option:hover,
-[data-theme='light'] .select-input option:checked {
+[data-theme="light"] .select-input option:hover,
+[data-theme="light"] .select-input option:checked {
   background: #f0f0f0 !important;
   color: #000000 !important;
 }
 
-[data-theme='light'] .select-input:hover {
+[data-theme="light"] .select-input:hover {
   border-color: var(--primary-color) !important;
   background: #ffffff !important;
   color: #000000 !important;
 }
 
 /* Format select styles */
-[data-theme='dark'] .format-select {
+[data-theme="dark"] .format-select {
   background: #1a1a1a !important;
   color: #ffffff !important;
   border-color: #3a3a3a !important;
   list-style: none !important;
 }
 
-[data-theme='dark'] .format-select option {
+[data-theme="dark"] .format-select option {
   background: #1a1a1a !important;
   color: #ffffff !important;
   list-style: none !important;
 }
 
-[data-theme='light'] .format-select {
+[data-theme="light"] .format-select {
   background: #f5f5f5 !important;
   color: #000000 !important;
   border-color: #e0e0e0 !important;
 }
 
-[data-theme='light'] .format-select option {
+[data-theme="light"] .format-select option {
   background: #ffffff !important;
   color: #000000 !important;
   list-style: none;
@@ -1967,7 +2427,11 @@ export default {
 
 .ai-toggle-section {
   padding: 1.5rem;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(139, 154, 255, 0.05));
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.05),
+    rgba(139, 154, 255, 0.05)
+  );
   border-radius: 12px;
   border: 2px solid rgba(102, 126, 234, 0.2);
 }
@@ -2006,7 +2470,8 @@ export default {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
@@ -2040,13 +2505,18 @@ export default {
 }
 
 .file-upload-area::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(102, 126, 234, 0.1),
+    transparent
+  );
   transition: left 0.5s ease;
 }
 
@@ -2361,7 +2831,9 @@ export default {
 .collapsible-content {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.3s ease, padding 0.3s ease;
+  transition:
+    max-height 0.3s ease,
+    padding 0.3s ease;
   padding: 0 1.5rem;
 }
 
@@ -2383,7 +2855,7 @@ export default {
 }
 
 .report-section::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -2452,7 +2924,7 @@ export default {
 }
 
 .report-content::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -2464,7 +2936,7 @@ export default {
 
 .report-text {
   margin: 0;
-  font-family: 'Courier New', 'Monaco', monospace;
+  font-family: "Courier New", "Monaco", monospace;
   font-size: 0.9rem;
   line-height: 1.8;
   color: var(--text-primary);
@@ -2660,15 +3132,15 @@ export default {
     max-width: 95%;
     margin: 1rem;
   }
-  
+
   .title-selection-header {
     padding: 1rem;
   }
-  
+
   .title-selection-body {
     padding: 1rem;
   }
-  
+
   .title-option-btn {
     padding: 0.875rem 1rem;
   }
@@ -2818,4 +3290,3 @@ export default {
   }
 }
 </style>
-

@@ -22,23 +22,23 @@
 </template>
 
 <script>
-import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useNotification } from '@shared/composables/useNotification.js'
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+import { useNotification } from "@shared/composables/useNotification.js";
 
 export default {
-  name: 'NotificationToast',
+  name: "NotificationToast",
   setup() {
-    const { t } = useI18n()
-    const { notifications, removeNotification } = useNotification()
+    const { t } = useI18n();
+    const { notifications, removeNotification } = useNotification();
 
     return {
       notifications,
       removeNotification,
-      t
-    }
-  }
-}
+      t,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -96,13 +96,13 @@ export default {
   background: var(--bg-secondary);
 }
 
-[data-theme='light'] .toast {
+[data-theme="light"] .toast {
   background: #ffffff;
   border-color: #e0e0e0;
   color: #000000;
 }
 
-[data-theme='dark'] .toast {
+[data-theme="dark"] .toast {
   background: #1a1a1a;
   border-color: #3a3a3a;
   color: #ffffff;
@@ -127,11 +127,11 @@ export default {
   word-wrap: break-word;
 }
 
-[data-theme='light'] .toast-message {
+[data-theme="light"] .toast-message {
   color: #000000;
 }
 
-[data-theme='dark'] .toast-message {
+[data-theme="dark"] .toast-message {
   color: #ffffff;
 }
 

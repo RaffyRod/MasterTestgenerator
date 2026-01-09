@@ -1,14 +1,14 @@
 <template>
   <div class="test-plans-view">
     <div class="header">
-      <h1>{{ $t('testPlan.title') }}</h1>
-      <p class="subtitle">{{ $t('testPlan.subtitle') }}</p>
+      <h1>{{ $t("testPlan.title") }}</h1>
+      <p class="subtitle">{{ $t("testPlan.subtitle") }}</p>
     </div>
 
     <div class="content-grid">
       <div class="input-section">
         <div class="form-group">
-          <label for="project-info">{{ $t('testPlan.projectInfo') }}</label>
+          <label for="project-info">{{ $t("testPlan.projectInfo") }}</label>
           <textarea
             id="project-info"
             v-model="projectInfo"
@@ -24,11 +24,13 @@
             class="btn btn-primary"
           >
             <span v-if="loading" class="spinner"></span>
-            <span>{{ loading ? $t('testPlan.loading') : $t('testPlan.generate') }}</span>
+            <span>{{
+              loading ? $t("testPlan.loading") : $t("testPlan.generate")
+            }}</span>
           </button>
           <button @click="clearPlan" class="btn btn-secondary">
             <span>🗑️</span>
-            <span>{{ $t('testPlan.clear') }}</span>
+            <span>{{ $t("testPlan.clear") }}</span>
           </button>
         </div>
       </div>
@@ -38,27 +40,33 @@
           <h2>{{ testPlan.title }}</h2>
           <button @click="showExportModal = true" class="btn btn-export">
             <span>📥</span>
-            <span>{{ $t('testPlan.export') }}</span>
+            <span>{{ $t("testPlan.export") }}</span>
           </button>
         </div>
 
         <div class="plan-content">
           <section class="plan-section">
-            <h3>{{ $t('testPlan.objectives') }}</h3>
+            <h3>{{ $t("testPlan.objectives") }}</h3>
             <ul>
-              <li v-for="(objective, index) in testPlan.objectives" :key="index">
+              <li
+                v-for="(objective, index) in testPlan.objectives"
+                :key="index"
+              >
                 {{ objective }}
               </li>
             </ul>
           </section>
 
           <section class="plan-section">
-            <h3>{{ $t('testPlan.scope') }}</h3>
+            <h3>{{ $t("testPlan.scope") }}</h3>
             <div class="scope-content">
               <div>
                 <h4>In Scope:</h4>
                 <ul>
-                  <li v-for="(item, index) in testPlan.scope.inScope" :key="index">
+                  <li
+                    v-for="(item, index) in testPlan.scope.inScope"
+                    :key="index"
+                  >
                     {{ item }}
                   </li>
                 </ul>
@@ -66,7 +74,10 @@
               <div>
                 <h4>Out of Scope:</h4>
                 <ul>
-                  <li v-for="(item, index) in testPlan.scope.outOfScope" :key="index">
+                  <li
+                    v-for="(item, index) in testPlan.scope.outOfScope"
+                    :key="index"
+                  >
                     {{ item }}
                   </li>
                 </ul>
@@ -75,7 +86,7 @@
           </section>
 
           <section class="plan-section">
-            <h3>{{ $t('testPlan.testStrategy') }}</h3>
+            <h3>{{ $t("testPlan.testStrategy") }}</h3>
             <div
               v-for="(strategy, index) in testPlan.testStrategy"
               :key="index"
@@ -87,9 +98,13 @@
           </section>
 
           <section class="plan-section">
-            <h3>{{ $t('testPlan.testItems') }}</h3>
+            <h3>{{ $t("testPlan.testItems") }}</h3>
             <div class="test-items">
-              <div v-for="item in testPlan.testItems" :key="item.id" class="test-item">
+              <div
+                v-for="item in testPlan.testItems"
+                :key="item.id"
+                class="test-item"
+              >
                 <strong>{{ item.id }}:</strong>
                 {{ item.name }}
               </div>
@@ -97,20 +112,31 @@
           </section>
 
           <section class="plan-section">
-            <h3>{{ $t('testPlan.resources') }}</h3>
-            <div v-for="(resource, index) in testPlan.resources" :key="index" class="resource-item">
+            <h3>{{ $t("testPlan.resources") }}</h3>
+            <div
+              v-for="(resource, index) in testPlan.resources"
+              :key="index"
+              class="resource-item"
+            >
               <strong>{{ resource.role }}:</strong>
               {{ resource.responsibility }}
             </div>
           </section>
 
           <section class="plan-section">
-            <h3>{{ $t('testPlan.schedule') }}</h3>
-            <div v-for="(phase, index) in testPlan.schedule.phases" :key="index" class="phase-item">
+            <h3>{{ $t("testPlan.schedule") }}</h3>
+            <div
+              v-for="(phase, index) in testPlan.schedule.phases"
+              :key="index"
+              class="phase-item"
+            >
               <strong>{{ phase.phase }}</strong>
               ({{ phase.duration }})
               <ul>
-                <li v-for="(activity, actIndex) in phase.activities" :key="actIndex">
+                <li
+                  v-for="(activity, actIndex) in phase.activities"
+                  :key="actIndex"
+                >
                   {{ activity }}
                 </li>
               </ul>
@@ -118,11 +144,18 @@
           </section>
 
           <section class="plan-section">
-            <h3>{{ $t('testPlan.risks') }}</h3>
-            <div v-for="(risk, index) in testPlan.risks" :key="index" class="risk-item">
+            <h3>{{ $t("testPlan.risks") }}</h3>
+            <div
+              v-for="(risk, index) in testPlan.risks"
+              :key="index"
+              class="risk-item"
+            >
               <div class="risk-header">
                 <strong>{{ risk.risk }}</strong>
-                <span class="impact-badge" :class="`impact-${risk.impact.toLowerCase()}`">
+                <span
+                  class="impact-badge"
+                  :class="`impact-${risk.impact.toLowerCase()}`"
+                >
                   {{ risk.impact }}
                 </span>
               </div>
@@ -131,7 +164,9 @@
           </section>
 
           <section
-            v-if="testPlan.recommendations && testPlan.recommendations.length > 0"
+            v-if="
+              testPlan.recommendations && testPlan.recommendations.length > 0
+            "
             class="plan-section recommendations-section"
           >
             <h3>💡 Recommendations</h3>
@@ -142,15 +177,24 @@
               :class="`rec-${rec.type}`"
             >
               <div class="rec-header">
-                <strong>{{ rec.type === 'warning' ? '⚠️' : '💡' }} {{ rec.message }}</strong>
-                <span class="priority-badge" :class="`priority-${rec.priority.toLowerCase()}`">
+                <strong
+                  >{{ rec.type === "warning" ? "⚠️" : "💡" }}
+                  {{ rec.message }}</strong
+                >
+                <span
+                  class="priority-badge"
+                  :class="`priority-${rec.priority.toLowerCase()}`"
+                >
                   {{ rec.priority }}
                 </span>
               </div>
             </div>
           </section>
 
-          <section v-if="testPlan.analysis" class="plan-section analysis-section">
+          <section
+            v-if="testPlan.analysis"
+            class="plan-section analysis-section"
+          >
             <h3>📊 Analysis Summary</h3>
             <div class="analysis-grid">
               <div class="analysis-item">
@@ -200,10 +244,14 @@
     />
 
     <!-- Modal for export format selection -->
-    <div v-if="showExportModal" class="export-modal" @click.self="showExportModal = false">
+    <div
+      v-if="showExportModal"
+      class="export-modal"
+      @click.self="showExportModal = false"
+    >
       <div class="export-modal-content">
         <div class="export-modal-header">
-          <h3>{{ $t('testPlan.exportFormat') || 'Select Export Format' }}</h3>
+          <h3>{{ $t("testPlan.exportFormat") || "Select Export Format" }}</h3>
           <button @click="showExportModal = false" class="close-btn">×</button>
         </div>
         <div class="export-modal-body">
@@ -230,143 +278,155 @@
 </template>
 
 <script>
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { generateTestPlan } from '@features/test-plans/generators/testPlanGenerator.js'
-import PlanTypeModal from '@features/test-plans/components/PlanTypeModal.vue'
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
+import { generateTestPlan } from "@features/test-plans/generators/testPlanGenerator.js";
+import PlanTypeModal from "@features/test-plans/components/PlanTypeModal.vue";
 import {
   exportTestPlanToMarkdown,
   exportTestPlanToDoc,
   exportTestPlanToPDF,
-  downloadFile
-} from '@features/test-plans/utils/testPlanExport.js'
-import { useNotification } from '@shared/composables/useNotification.js'
+  downloadFile,
+} from "@features/test-plans/utils/testPlanExport.js";
+import { useNotification } from "@shared/composables/useNotification.js";
 
 export default {
-  name: 'TestPlans',
+  name: "TestPlans",
   components: {
-    PlanTypeModal
+    PlanTypeModal,
   },
   setup() {
-    const { t } = useI18n()
-    const { showNotification } = useNotification()
-    const projectInfo = ref('')
-    const testPlan = ref(null)
-    const loading = ref(false)
-    const showPlanTypeModal = ref(false)
-    const selectedPlanType = ref(null)
-    const showExportModal = ref(false)
+    const { t } = useI18n();
+    const { showNotification } = useNotification();
+    const projectInfo = ref("");
+    const testPlan = ref(null);
+    const loading = ref(false);
+    const showPlanTypeModal = ref(false);
+    const selectedPlanType = ref(null);
+    const showExportModal = ref(false);
 
-    const selectPlanType = typeId => {
-      selectedPlanType.value = typeId
-    }
+    const selectPlanType = (typeId) => {
+      selectedPlanType.value = typeId;
+    };
 
-    const confirmPlanType = typeId => {
-      if (!typeId || !projectInfo.value.trim()) return
-      closePlanTypeModal()
-      generatePlan(typeId)
-    }
+    const confirmPlanType = (typeId) => {
+      if (!typeId || !projectInfo.value.trim()) return;
+      closePlanTypeModal();
+      generatePlan(typeId);
+    };
 
-    const generatePlan = async (planType = 'comprehensive') => {
+    const generatePlan = async (planType = "comprehensive") => {
       if (!projectInfo.value.trim()) {
-        showNotification(t('notifications.invalidInput'), 'warning', 3000)
-        return
+        showNotification(t("notifications.invalidInput"), "warning", 3000);
+        return;
       }
 
-      loading.value = true
+      loading.value = true;
       try {
         // For now, we don't have a UI toggle for AI in test plans, but we can enable it in the future
-        const useAIForTitle = false // Can be made configurable later
-        testPlan.value = await generateTestPlan(projectInfo.value, planType, useAIForTitle)
-        console.log('Test plan generated:', testPlan.value)
+        const useAIForTitle = false; // Can be made configurable later
+        testPlan.value = await generateTestPlan(
+          projectInfo.value,
+          planType,
+          useAIForTitle,
+        );
+        console.log("Test plan generated:", testPlan.value);
         if (testPlan.value) {
-          showNotification(t('notifications.testPlanGenerated'), 'success', 4000)
+          showNotification(
+            t("notifications.testPlanGenerated"),
+            "success",
+            4000,
+          );
         } else {
-          showNotification(t('notifications.noTestPlan'), 'warning', 4000)
+          showNotification(t("notifications.noTestPlan"), "warning", 4000);
         }
       } catch (error) {
-        console.error('Error generating test plan:', error)
-        showNotification(t('notifications.testPlanError'), 'error', 5000)
+        console.error("Error generating test plan:", error);
+        showNotification(t("notifications.testPlanError"), "error", 5000);
       } finally {
-        loading.value = false
+        loading.value = false;
       }
-    }
+    };
 
     const clearPlan = () => {
-      projectInfo.value = ''
-      testPlan.value = null
-      selectedPlanType.value = null
-      showNotification(t('notifications.clearSuccess'), 'success', 2000)
-    }
+      projectInfo.value = "";
+      testPlan.value = null;
+      selectedPlanType.value = null;
+      showNotification(t("notifications.clearSuccess"), "success", 2000);
+    };
 
     const openPlanTypeModal = () => {
-      selectedPlanType.value = null
-      showPlanTypeModal.value = true
-    }
+      selectedPlanType.value = null;
+      showPlanTypeModal.value = true;
+    };
 
     const closePlanTypeModal = () => {
-      showPlanTypeModal.value = false
-    }
+      showPlanTypeModal.value = false;
+    };
 
-    const exportPlan = async format => {
+    const exportPlan = async (format) => {
       if (!testPlan.value) {
-        showNotification(t('notifications.exportError'), 'error', 3000)
-        return
+        showNotification(t("notifications.exportError"), "error", 3000);
+        return;
       }
 
-      showExportModal.value = false
+      showExportModal.value = false;
 
       try {
-        let content
-        let filename
-        let mimeType
+        let content;
+        let filename;
+        let mimeType;
 
         switch (format) {
-          case 'markdown':
-            content = exportTestPlanToMarkdown(testPlan.value)
-            filename = 'test-plan.md'
-            mimeType = 'text/markdown'
-            downloadFile(content, filename, mimeType)
-            showNotification(t('notifications.exportSuccess'), 'success', 3000)
-            break
+          case "markdown":
+            content = exportTestPlanToMarkdown(testPlan.value);
+            filename = "test-plan.md";
+            mimeType = "text/markdown";
+            downloadFile(content, filename, mimeType);
+            showNotification(t("notifications.exportSuccess"), "success", 3000);
+            break;
 
-          case 'doc':
-            const blob = await exportTestPlanToDoc(testPlan.value)
-            const url = URL.createObjectURL(blob)
-            const link = document.createElement('a')
-            link.href = url
-            link.download = 'test-plan.docx'
-            document.body.appendChild(link)
-            link.click()
-            document.body.removeChild(link)
-            URL.revokeObjectURL(url)
-            showNotification(t('notifications.exportSuccess'), 'success', 3000)
-            break
+          case "doc":
+            const blob = await exportTestPlanToDoc(testPlan.value);
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "test-plan.docx";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showNotification(t("notifications.exportSuccess"), "success", 3000);
+            break;
 
-          case 'pdf':
-            const pdfDoc = exportTestPlanToPDF(testPlan.value)
+          case "pdf":
+            const pdfDoc = exportTestPlanToPDF(testPlan.value);
             if (pdfDoc) {
-              pdfDoc.save('test-plan.pdf')
-              showNotification(t('notifications.exportSuccess'), 'success', 3000)
+              pdfDoc.save("test-plan.pdf");
+              showNotification(
+                t("notifications.exportSuccess"),
+                "success",
+                3000,
+              );
             } else {
-              showNotification(t('notifications.exportError'), 'error', 4000)
+              showNotification(t("notifications.exportError"), "error", 4000);
             }
-            break
+            break;
 
-          case 'json':
+          case "json":
           default:
-            content = JSON.stringify(testPlan.value, null, 2)
-            filename = 'test-plan.json'
-            mimeType = 'application/json'
-            downloadFile(content, filename, mimeType)
-            showNotification(t('notifications.exportSuccess'), 'success', 3000)
-            break
+            content = JSON.stringify(testPlan.value, null, 2);
+            filename = "test-plan.json";
+            mimeType = "application/json";
+            downloadFile(content, filename, mimeType);
+            showNotification(t("notifications.exportSuccess"), "success", 3000);
+            break;
         }
       } catch (error) {
-        console.error('Error exporting test plan:', error)
-        showNotification(t('notifications.exportError'), 'error', 4000)
+        console.error("Error exporting test plan:", error);
+        showNotification(t("notifications.exportError"), "error", 4000);
       }
-    }
+    };
 
     return {
       projectInfo,
@@ -381,10 +441,10 @@ export default {
       closePlanTypeModal,
       generatePlan,
       clearPlan,
-      exportPlan
-    }
-  }
-}
+      exportPlan,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -413,12 +473,12 @@ export default {
   background-clip: text;
 }
 
-[data-theme='light'] .header h1 {
+[data-theme="light"] .header h1 {
   color: #000000 !important;
   -webkit-text-fill-color: #000000 !important;
 }
 
-[data-theme='dark'] .header h1 {
+[data-theme="dark"] .header h1 {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
@@ -458,12 +518,12 @@ export default {
   transition: var(--transition);
 }
 
-[data-theme='light'] .input-section {
+[data-theme="light"] .input-section {
   background: #ffffff !important;
   border-color: #e0e0e0 !important;
 }
 
-[data-theme='dark'] .input-section {
+[data-theme="dark"] .input-section {
   background: var(--bg-primary) !important;
   border-color: var(--border-color) !important;
 }
@@ -485,12 +545,12 @@ export default {
   top: 100px;
 }
 
-[data-theme='light'] .output-section {
+[data-theme="light"] .output-section {
   background: #ffffff !important;
   border-color: #e0e0e0 !important;
 }
 
-[data-theme='dark'] .output-section {
+[data-theme="dark"] .output-section {
   background: var(--bg-primary) !important;
   border-color: var(--border-color) !important;
 }
@@ -533,11 +593,11 @@ export default {
   align-self: flex-start;
 }
 
-[data-theme='light'] .form-group label {
+[data-theme="light"] .form-group label {
   color: #000000 !important;
 }
 
-[data-theme='dark'] .form-group label {
+[data-theme="dark"] .form-group label {
   color: #ffffff !important;
 }
 
@@ -546,7 +606,7 @@ export default {
   padding: 1rem;
   border: 1px solid var(--border-color);
   border-radius: 12px;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   font-size: 0.95rem;
   resize: vertical;
   transition: var(--transition);
@@ -565,7 +625,7 @@ export default {
   color: var(--text-tertiary);
 }
 
-[data-theme='light'] .textarea-input {
+[data-theme="light"] .textarea-input {
   font-family: inherit;
   background: var(--bg-secondary);
 }
@@ -625,13 +685,13 @@ export default {
   opacity: 1 !important;
 }
 
-[data-theme='light'] .btn-secondary {
+[data-theme="light"] .btn-secondary {
   background: #e8e8e8 !important;
   color: #000000 !important;
   border-color: #d0d0d0 !important;
 }
 
-[data-theme='dark'] .btn-secondary {
+[data-theme="dark"] .btn-secondary {
   background: #2a2a2a !important;
   color: #ffffff !important;
   border-color: #3a3a3a !important;
@@ -642,12 +702,12 @@ export default {
   transform: translateY(-1px);
 }
 
-[data-theme='light'] .btn-secondary:hover {
+[data-theme="light"] .btn-secondary:hover {
   background: #d8d8d8 !important;
   color: #000000 !important;
 }
 
-[data-theme='dark'] .btn-secondary:hover {
+[data-theme="dark"] .btn-secondary:hover {
   background: #3a3a3a !important;
   color: #ffffff !important;
 }
@@ -694,12 +754,12 @@ export default {
   border: 1px solid var(--border-color);
 }
 
-[data-theme='light'] .export-modal-content {
+[data-theme="light"] .export-modal-content {
   background: #ffffff !important;
   border-color: #e0e0e0 !important;
 }
 
-[data-theme='dark'] .export-modal-content {
+[data-theme="dark"] .export-modal-content {
   background: var(--bg-primary) !important;
   border-color: var(--border-color) !important;
 }
@@ -776,13 +836,13 @@ export default {
   outline-offset: 2px;
 }
 
-[data-theme='light'] .export-format-btn {
+[data-theme="light"] .export-format-btn {
   background: #f5f5f5 !important;
   border-color: #e0e0e0 !important;
   color: #000000 !important;
 }
 
-[data-theme='dark'] .export-format-btn {
+[data-theme="dark"] .export-format-btn {
   background: #1a1a1a !important;
   border-color: #3a3a3a !important;
   color: #ffffff !important;
@@ -860,16 +920,16 @@ export default {
   gap: 0.5rem;
 }
 
-[data-theme='light'] .plan-section h3 {
+[data-theme="light"] .plan-section h3 {
   color: #000000 !important;
 }
 
-[data-theme='dark'] .plan-section h3 {
+[data-theme="dark"] .plan-section h3 {
   color: #ffffff !important;
 }
 
 .plan-section h3::before {
-  content: '▸';
+  content: "▸";
   color: var(--primary-color);
 }
 
@@ -1038,7 +1098,11 @@ export default {
 }
 
 .analysis-section {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.1) 0%,
+    rgba(118, 75, 162, 0.1) 100%
+  );
   border: 1px solid var(--primary-color);
 }
 

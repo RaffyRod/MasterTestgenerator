@@ -1,14 +1,19 @@
 <template>
   <div class="ai-config-view">
     <div class="header">
-      <h1>{{ $t('aiConfig.title') }}</h1>
-      <p class="subtitle">{{ $t('aiConfig.subtitle') }}</p>
+      <h1>{{ $t("aiConfig.title") }}</h1>
+      <p class="subtitle">{{ $t("aiConfig.subtitle") }}</p>
     </div>
 
     <div class="config-section">
       <div class="form-group">
-        <label for="provider-select">{{ $t('aiConfig.selectProvider') }}</label>
-        <select id="provider-select" v-model="selectedProvider" @change="onProviderChange" class="select-input">
+        <label for="provider-select">{{ $t("aiConfig.selectProvider") }}</label>
+        <select
+          id="provider-select"
+          v-model="selectedProvider"
+          @change="onProviderChange"
+          class="select-input"
+        >
           <option
             v-for="(config, providerId) in availableProviders"
             :key="providerId"
@@ -24,7 +29,7 @@
 
       <div v-if="currentProviderConfig?.requiresApiKey" class="form-group">
         <label for="api-key">
-          {{ $t('aiConfig.apiKey') }}
+          {{ $t("aiConfig.apiKey") }}
           <a
             v-if="currentProviderConfig.apiKeyHelpUrl"
             :href="currentProviderConfig.apiKeyHelpUrl"
@@ -32,7 +37,7 @@
             rel="noopener noreferrer"
             class="help-link"
           >
-            {{ $t('aiConfig.getApiKey') }}
+            {{ $t("aiConfig.getApiKey") }}
           </a>
         </label>
         <div class="input-with-button">
@@ -40,37 +45,56 @@
             id="api-key"
             v-model="apiKey"
             :type="showApiKey ? 'text' : 'password'"
-            :placeholder="currentProviderConfig.apiKeyPlaceholder || $t('aiConfig.apiKeyPlaceholder')"
+            :placeholder="
+              currentProviderConfig.apiKeyPlaceholder ||
+              $t('aiConfig.apiKeyPlaceholder')
+            "
             class="text-input"
           />
           <button
             @click="showApiKey = !showApiKey"
             type="button"
             class="btn-icon"
-            :title="showApiKey ? $t('aiConfig.hideApiKey') : $t('aiConfig.showApiKey')"
+            :title="
+              showApiKey ? $t('aiConfig.hideApiKey') : $t('aiConfig.showApiKey')
+            "
           >
-            {{ showApiKey ? '👁️' : '👁️‍🗨️' }}
+            {{ showApiKey ? "👁️" : "👁️‍🗨️" }}
           </button>
         </div>
-        <div v-if="apiKeyValidation.message" class="validation-message" :class="apiKeyValidation.valid ? 'valid' : 'invalid'">
+        <div
+          v-if="apiKeyValidation.message"
+          class="validation-message"
+          :class="apiKeyValidation.valid ? 'valid' : 'invalid'"
+        >
           {{ apiKeyValidation.message }}
         </div>
       </div>
 
-      <div v-if="currentProviderConfig?.models && currentProviderConfig.models.length > 0" class="form-group">
-        <label for="model-select">{{ $t('aiConfig.selectModel') }}</label>
+      <div
+        v-if="
+          currentProviderConfig?.models &&
+          currentProviderConfig.models.length > 0
+        "
+        class="form-group"
+      >
+        <label for="model-select">{{ $t("aiConfig.selectModel") }}</label>
         <select id="model-select" v-model="selectedModel" class="select-input">
-          <option v-for="model in currentProviderConfig.models" :key="model" :value="model">
+          <option
+            v-for="model in currentProviderConfig.models"
+            :key="model"
+            :value="model"
+          >
             {{ model }}
           </option>
         </select>
         <small class="form-hint">
-          {{ $t('aiConfig.modelHint') }}
+          {{ $t("aiConfig.modelHint") }}
         </small>
       </div>
 
       <div v-if="selectedProvider === 'custom'" class="form-group">
-        <label for="custom-endpoint">{{ $t('aiConfig.customEndpoint') }}</label>
+        <label for="custom-endpoint">{{ $t("aiConfig.customEndpoint") }}</label>
         <input
           id="custom-endpoint"
           v-model="customEndpoint"
@@ -79,12 +103,12 @@
           class="text-input"
         />
         <small class="form-hint">
-          {{ $t('aiConfig.customEndpointHint') }}
+          {{ $t("aiConfig.customEndpointHint") }}
         </small>
       </div>
 
       <div v-if="selectedProvider === 'local'" class="form-group">
-        <label for="ollama-url">{{ $t('aiConfig.ollamaUrl') }}</label>
+        <label for="ollama-url">{{ $t("aiConfig.ollamaUrl") }}</label>
         <input
           id="ollama-url"
           v-model="ollamaUrl"
@@ -93,7 +117,7 @@
           class="text-input"
         />
         <small class="form-hint">
-          {{ $t('aiConfig.ollamaUrlHint') }}
+          {{ $t("aiConfig.ollamaUrlHint") }}
         </small>
       </div>
 
@@ -105,39 +129,51 @@
         >
           <span v-if="testingApiKey" class="spinner"></span>
           <span v-else>🔍</span>
-          <span>{{ testingApiKey ? $t('aiConfig.testing') : $t('aiConfig.testApiKey') }}</span>
+          <span>{{
+            testingApiKey ? $t("aiConfig.testing") : $t("aiConfig.testApiKey")
+          }}</span>
         </button>
         <button @click="saveConfig" :disabled="saving" class="btn btn-primary">
           <span v-if="saving" class="spinner"></span>
           <span v-else>💾</span>
-          <span>{{ saving ? $t('aiConfig.saving') : $t('aiConfig.save') }}</span>
+          <span>{{
+            saving ? $t("aiConfig.saving") : $t("aiConfig.save")
+          }}</span>
         </button>
         <button @click="resetConfig" class="btn btn-secondary">
           <span>🔄</span>
-          <span>{{ $t('aiConfig.reset') }}</span>
+          <span>{{ $t("aiConfig.reset") }}</span>
         </button>
       </div>
 
-      <div v-if="saveStatus.message" class="status-message" :class="saveStatus.type">
+      <div
+        v-if="saveStatus.message"
+        class="status-message"
+        :class="saveStatus.type"
+      >
         {{ saveStatus.message }}
       </div>
     </div>
 
     <div class="info-section">
-      <h2>{{ $t('aiConfig.currentConfig') }}</h2>
+      <h2>{{ $t("aiConfig.currentConfig") }}</h2>
       <div class="config-display">
         <div class="config-item">
-          <span class="config-label">{{ $t('aiConfig.provider') }}:</span>
+          <span class="config-label">{{ $t("aiConfig.provider") }}:</span>
           <span class="config-value">
-            {{ currentProviderConfig?.icon }} {{ currentProviderConfig?.name || selectedProvider }}
+            {{ currentProviderConfig?.icon }}
+            {{ currentProviderConfig?.name || selectedProvider }}
           </span>
         </div>
         <div v-if="selectedModel" class="config-item">
-          <span class="config-label">{{ $t('aiConfig.model') }}:</span>
+          <span class="config-label">{{ $t("aiConfig.model") }}:</span>
           <span class="config-value">{{ selectedModel }}</span>
         </div>
-        <div v-if="apiKey && currentProviderConfig?.requiresApiKey" class="config-item">
-          <span class="config-label">{{ $t('aiConfig.apiKey') }}:</span>
+        <div
+          v-if="apiKey && currentProviderConfig?.requiresApiKey"
+          class="config-item"
+        >
+          <span class="config-label">{{ $t("aiConfig.apiKey") }}:</span>
           <span class="config-value">{{ maskApiKey(apiKey) }}</span>
         </div>
       </div>
@@ -146,18 +182,21 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { useAIConfig } from '@shared/composables/useAIConfig.js'
-import { AI_PROVIDERS, AI_PROVIDER_CONFIG } from '@core/constants/aiProviders.js'
-import { initAIService } from '@core/ai/aiService.js'
-import { useNotification } from '@shared/composables/useNotification.js'
+import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
+import { useAIConfig } from "@shared/composables/useAIConfig.js";
+import {
+  AI_PROVIDERS,
+  AI_PROVIDER_CONFIG,
+} from "@core/constants/aiProviders.js";
+import { initAIService } from "@core/ai/aiService.js";
+import { useNotification } from "@shared/composables/useNotification.js";
 
 export default {
-  name: 'AIConfig',
+  name: "AIConfig",
   setup() {
-    const { t } = useI18n()
-    const { showNotification } = useNotification()
+    const { t } = useI18n();
+    const { showNotification } = useNotification();
     const {
       config,
       saveConfig: saveAIConfig,
@@ -167,114 +206,134 @@ export default {
       getProviderConfig,
       validateApiKey,
       testApiKey: testApiKeyService,
-      loadConfig
-    } = useAIConfig()
+      loadConfig,
+    } = useAIConfig();
 
-    const selectedProvider = ref(AI_PROVIDERS.ONLINE)
-    const apiKey = ref('')
-    const selectedModel = ref('')
-    const customEndpoint = ref('')
-    const ollamaUrl = ref('http://localhost:11434')
-    const showApiKey = ref(false)
-    const testingApiKey = ref(false)
-    const saving = ref(false)
-    const apiKeyValidation = ref({ valid: false, message: '' })
-    const saveStatus = ref({ type: '', message: '' })
+    const selectedProvider = ref(AI_PROVIDERS.ONLINE);
+    const apiKey = ref("");
+    const selectedModel = ref("");
+    const customEndpoint = ref("");
+    const ollamaUrl = ref("http://localhost:11434");
+    const showApiKey = ref(false);
+    const testingApiKey = ref(false);
+    const saving = ref(false);
+    const apiKeyValidation = ref({ valid: false, message: "" });
+    const saveStatus = ref({ type: "", message: "" });
 
-    const availableProviders = computed(() => AI_PROVIDER_CONFIG)
-    const currentProviderConfig = computed(() => getProviderConfig(selectedProvider.value))
+    const availableProviders = computed(() => AI_PROVIDER_CONFIG);
+    const currentProviderConfig = computed(() =>
+      getProviderConfig(selectedProvider.value),
+    );
 
     const canTestApiKey = computed(() => {
-      if (!currentProviderConfig.value?.requiresApiKey) return false
-      if (!apiKey.value || apiKey.value.trim().length === 0) return false
-      return true
-    })
+      if (!currentProviderConfig.value?.requiresApiKey) return false;
+      if (!apiKey.value || apiKey.value.trim().length === 0) return false;
+      return true;
+    });
 
     onMounted(() => {
-      loadSavedConfig()
-    })
+      loadSavedConfig();
+    });
 
     function loadSavedConfig() {
-      const savedConfig = loadConfig()
-      selectedProvider.value = savedConfig.provider || AI_PROVIDERS.ONLINE
-      selectedModel.value = savedConfig.model || getDefaultModel(selectedProvider.value)
-      customEndpoint.value = savedConfig.customEndpoint || ''
-      ollamaUrl.value = savedConfig.ollamaUrl || 'http://localhost:11434'
-      
+      const savedConfig = loadConfig();
+      selectedProvider.value = savedConfig.provider || AI_PROVIDERS.ONLINE;
+      selectedModel.value =
+        savedConfig.model || getDefaultModel(selectedProvider.value);
+      customEndpoint.value = savedConfig.customEndpoint || "";
+      ollamaUrl.value = savedConfig.ollamaUrl || "http://localhost:11434";
+
       // Load API key from secure storage
-      const savedApiKey = getApiKey(selectedProvider.value)
+      const savedApiKey = getApiKey(selectedProvider.value);
       if (savedApiKey) {
-        apiKey.value = savedApiKey
+        apiKey.value = savedApiKey;
       }
     }
 
     function onProviderChange() {
       // Reset API key when provider changes
-      apiKey.value = getApiKey(selectedProvider.value) || ''
-      selectedModel.value = getDefaultModel(selectedProvider.value)
-      customEndpoint.value = ''
-      apiKeyValidation.value = { valid: false, message: '' }
-      saveStatus.value = { type: '', message: '' }
+      apiKey.value = getApiKey(selectedProvider.value) || "";
+      selectedModel.value = getDefaultModel(selectedProvider.value);
+      customEndpoint.value = "";
+      apiKeyValidation.value = { valid: false, message: "" };
+      saveStatus.value = { type: "", message: "" };
     }
 
     function maskApiKey(key) {
-      if (!key || key.length < 8) return '••••••••'
-      return key.substring(0, 4) + '••••••••' + key.substring(key.length - 4)
+      if (!key || key.length < 8) return "••••••••";
+      return key.substring(0, 4) + "••••••••" + key.substring(key.length - 4);
     }
 
     async function testApiKey() {
-      if (!canTestApiKey.value) return
+      if (!canTestApiKey.value) return;
 
-      testingApiKey.value = true
-      apiKeyValidation.value = { valid: false, message: '' }
+      testingApiKey.value = true;
+      apiKeyValidation.value = { valid: false, message: "" };
 
       try {
         // First validate format
-        const formatValidation = validateApiKey(selectedProvider.value, apiKey.value)
+        const formatValidation = validateApiKey(
+          selectedProvider.value,
+          apiKey.value,
+        );
         if (!formatValidation.valid) {
-          apiKeyValidation.value = formatValidation
-          testingApiKey.value = false
-          return
+          apiKeyValidation.value = formatValidation;
+          testingApiKey.value = false;
+          return;
         }
 
         // Then test the API key
-        const result = await testApiKeyService(selectedProvider.value, apiKey.value, selectedModel.value)
+        const result = await testApiKeyService(
+          selectedProvider.value,
+          apiKey.value,
+          selectedModel.value,
+        );
         apiKeyValidation.value = {
           valid: result.success,
-          message: result.message || (result.success ? t('aiConfig.apiKeyValid') : t('aiConfig.apiKeyInvalid'))
-        }
+          message:
+            result.message ||
+            (result.success
+              ? t("aiConfig.apiKeyValid")
+              : t("aiConfig.apiKeyInvalid")),
+        };
 
         if (result.success) {
-          showNotification('success', t('aiConfig.apiKeyValid'))
+          showNotification("success", t("aiConfig.apiKeyValid"));
         } else {
-          showNotification('error', result.message || t('aiConfig.apiKeyInvalid'))
+          showNotification(
+            "error",
+            result.message || t("aiConfig.apiKeyInvalid"),
+          );
         }
       } catch (error) {
         apiKeyValidation.value = {
           valid: false,
-          message: error.message || t('aiConfig.testError')
-        }
-        showNotification('error', error.message || t('aiConfig.testError'))
+          message: error.message || t("aiConfig.testError"),
+        };
+        showNotification("error", error.message || t("aiConfig.testError"));
       } finally {
-        testingApiKey.value = false
+        testingApiKey.value = false;
       }
     }
 
     async function saveConfig() {
-      saving.value = true
-      saveStatus.value = { type: '', message: '' }
+      saving.value = true;
+      saveStatus.value = { type: "", message: "" };
 
       try {
         // Validate API key format if required
         if (currentProviderConfig.value?.requiresApiKey && apiKey.value) {
-          const validation = validateApiKey(selectedProvider.value, apiKey.value)
+          const validation = validateApiKey(
+            selectedProvider.value,
+            apiKey.value,
+          );
           if (!validation.valid) {
             saveStatus.value = {
-              type: 'error',
-              message: validation.message
-            }
-            saving.value = false
-            return
+              type: "error",
+              message: validation.message,
+            };
+            saving.value = false;
+            return;
           }
         }
 
@@ -283,14 +342,14 @@ export default {
           provider: selectedProvider.value,
           model: selectedModel.value || getDefaultModel(selectedProvider.value),
           customEndpoint: customEndpoint.value,
-          ollamaUrl: ollamaUrl.value
-        }
+          ollamaUrl: ollamaUrl.value,
+        };
 
-        const saved = saveAIConfig(configToSave)
+        const saved = saveAIConfig(configToSave);
 
         // Save API key to secure storage
         if (apiKey.value && currentProviderConfig.value?.requiresApiKey) {
-          saveApiKey(selectedProvider.value, apiKey.value)
+          saveApiKey(selectedProvider.value, apiKey.value);
         }
 
         // Initialize AI service with new config
@@ -298,38 +357,38 @@ export default {
           apiKey: apiKey.value,
           model: selectedModel.value || getDefaultModel(selectedProvider.value),
           customEndpoint: customEndpoint.value,
-          ollamaUrl: ollamaUrl.value
-        })
+          ollamaUrl: ollamaUrl.value,
+        });
 
         if (saved) {
           saveStatus.value = {
-            type: 'success',
-            message: t('aiConfig.saveSuccess')
-          }
-          showNotification('success', t('aiConfig.saveSuccess'))
+            type: "success",
+            message: t("aiConfig.saveSuccess"),
+          };
+          showNotification("success", t("aiConfig.saveSuccess"));
         } else {
-          throw new Error(t('aiConfig.saveError'))
+          throw new Error(t("aiConfig.saveError"));
         }
       } catch (error) {
         saveStatus.value = {
-          type: 'error',
-          message: error.message || t('aiConfig.saveError')
-        }
-        showNotification('error', error.message || t('aiConfig.saveError'))
+          type: "error",
+          message: error.message || t("aiConfig.saveError"),
+        };
+        showNotification("error", error.message || t("aiConfig.saveError"));
       } finally {
-        saving.value = false
+        saving.value = false;
       }
     }
 
     function resetConfig() {
-      selectedProvider.value = AI_PROVIDERS.ONLINE
-      apiKey.value = ''
-      selectedModel.value = getDefaultModel(AI_PROVIDERS.ONLINE)
-      customEndpoint.value = ''
-      ollamaUrl.value = 'http://localhost:11434'
-      showApiKey.value = false
-      apiKeyValidation.value = { valid: false, message: '' }
-      saveStatus.value = { type: '', message: '' }
+      selectedProvider.value = AI_PROVIDERS.ONLINE;
+      apiKey.value = "";
+      selectedModel.value = getDefaultModel(AI_PROVIDERS.ONLINE);
+      customEndpoint.value = "";
+      ollamaUrl.value = "http://localhost:11434";
+      showApiKey.value = false;
+      apiKeyValidation.value = { valid: false, message: "" };
+      saveStatus.value = { type: "", message: "" };
     }
 
     return {
@@ -351,10 +410,10 @@ export default {
       maskApiKey,
       testApiKey,
       saveConfig,
-      resetConfig
-    }
-  }
-}
+      resetConfig,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -442,61 +501,61 @@ export default {
 }
 
 /* Dark mode styles for select */
-[data-theme='dark'] .select-input {
+[data-theme="dark"] .select-input {
   background: #1a1a1a !important;
   color: #ffffff !important;
   border-color: #3a3a3a !important;
 }
 
-[data-theme='dark'] .select-input option {
+[data-theme="dark"] .select-input option {
   background: #1a1a1a !important;
   color: #ffffff !important;
   padding: 0.5rem;
 }
 
-[data-theme='dark'] .select-input option:hover,
-[data-theme='dark'] .select-input option:checked {
+[data-theme="dark"] .select-input option:hover,
+[data-theme="dark"] .select-input option:checked {
   background: #2a2a2a !important;
   color: #ffffff !important;
 }
 
-[data-theme='dark'] .select-input:hover {
+[data-theme="dark"] .select-input:hover {
   border-color: var(--primary-color) !important;
   background: #1a1a1a !important;
   color: #ffffff !important;
 }
 
-[data-theme='dark'] .select-input:focus {
+[data-theme="dark"] .select-input:focus {
   border-color: var(--primary-color) !important;
   background: #1a1a1a !important;
   color: #ffffff !important;
 }
 
-[data-theme='dark'] .select-input:focus option {
+[data-theme="dark"] .select-input:focus option {
   background: #1a1a1a !important;
   color: #ffffff !important;
 }
 
 /* Light mode styles for select */
-[data-theme='light'] .select-input {
+[data-theme="light"] .select-input {
   background: #f5f5f5 !important;
   color: #000000 !important;
   border-color: #e0e0e0 !important;
 }
 
-[data-theme='light'] .select-input option {
+[data-theme="light"] .select-input option {
   background: #ffffff !important;
   color: #000000 !important;
   padding: 0.5rem;
 }
 
-[data-theme='light'] .select-input option:hover,
-[data-theme='light'] .select-input option:checked {
+[data-theme="light"] .select-input option:hover,
+[data-theme="light"] .select-input option:checked {
   background: #f0f0f0 !important;
   color: #000000 !important;
 }
 
-[data-theme='light'] .select-input:hover {
+[data-theme="light"] .select-input:hover {
   border-color: var(--primary-color) !important;
   background: #ffffff !important;
   color: #000000 !important;
@@ -697,4 +756,3 @@ export default {
   }
 }
 </style>
-

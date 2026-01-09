@@ -6,7 +6,7 @@
         <div class="nav-header">
           <div class="logo-wrapper">
             <span class="logo-icon">🧪</span>
-            <h1 class="logo">{{ $t('app.title') }}</h1>
+            <h1 class="logo">{{ $t("app.title") }}</h1>
           </div>
           <div class="nav-header-right">
             <div class="config-menu-wrapper">
@@ -24,9 +24,9 @@
                 <span>⚙️</span>
               </button>
               <Transition name="menu-fade">
-                <div 
-                  v-if="configMenuOpen" 
-                  class="config-menu" 
+                <div
+                  v-if="configMenuOpen"
+                  class="config-menu"
                   @click.stop
                   role="menu"
                   :aria-label="t('nav.configurationMenu')"
@@ -40,7 +40,9 @@
                     @keydown.enter="closeConfigMenu"
                   >
                     <span class="config-menu-icon">🤖</span>
-                    <span class="config-menu-text">{{ $t('nav.aiConfig') }}</span>
+                    <span class="config-menu-text">{{
+                      $t("nav.aiConfig")
+                    }}</span>
                   </router-link>
                   <button
                     @click="toggleThemeAndClose"
@@ -54,13 +56,21 @@
                       <span v-else>☀️</span>
                     </span>
                     <span class="config-menu-text">
-                      {{ currentTheme === 'light' ? $t('nav.darkMode') : $t('nav.lightMode') }}
+                      {{
+                        currentTheme === "light"
+                          ? $t("nav.darkMode")
+                          : $t("nav.lightMode")
+                      }}
                     </span>
                   </button>
                 </div>
               </Transition>
             </div>
-            <div class="language-selector" role="group" :aria-label="t('nav.languageSelector')">
+            <div
+              class="language-selector"
+              role="group"
+              :aria-label="t('nav.languageSelector')"
+            >
               <button
                 @click="setLocale('en')"
                 :class="['lang-btn', { active: currentLocale === 'en' }]"
@@ -82,52 +92,54 @@
             </div>
           </div>
         </div>
-        
+
         <!-- Menu Section -->
         <div class="nav-menu">
-          <button 
-            @click.stop="toggleMobileMenu" 
-            class="mobile-menu-toggle" 
-            :aria-label="mobileMenuOpen ? t('nav.closeMenu') : t('nav.openMenu')"
+          <button
+            @click.stop="toggleMobileMenu"
+            class="mobile-menu-toggle"
+            :aria-label="
+              mobileMenuOpen ? t('nav.closeMenu') : t('nav.openMenu')
+            "
             :aria-expanded="mobileMenuOpen"
             aria-controls="nav-links"
           >
             <span v-if="!mobileMenuOpen" aria-hidden="true">☰</span>
             <span v-else aria-hidden="true">✕</span>
           </button>
-          <nav 
+          <nav
             id="nav-links"
-            class="nav-links" 
+            class="nav-links"
             :class="{ 'mobile-open': mobileMenuOpen }"
             role="navigation"
             :aria-label="t('nav.mainNavigation')"
           >
-            <router-link 
-              to="/test-plans" 
-              class="nav-link" 
+            <router-link
+              to="/test-plans"
+              class="nav-link"
               @click="closeMobileMenu"
               :aria-current="$route.path === '/test-plans' ? 'page' : undefined"
             >
               <span class="nav-icon" aria-hidden="true">📋</span>
-              <span>{{ $t('nav.testPlans') }}</span>
+              <span>{{ $t("nav.testPlans") }}</span>
             </router-link>
-            <router-link 
-              to="/test-cases" 
-              class="nav-link" 
+            <router-link
+              to="/test-cases"
+              class="nav-link"
               @click="closeMobileMenu"
               :aria-current="$route.path === '/test-cases' ? 'page' : undefined"
             >
               <span class="nav-icon" aria-hidden="true">✅</span>
-              <span>{{ $t('nav.testCases') }}</span>
+              <span>{{ $t("nav.testCases") }}</span>
             </router-link>
-            <router-link 
-              to="/bug-report" 
-              class="nav-link" 
+            <router-link
+              to="/bug-report"
+              class="nav-link"
               @click="closeMobileMenu"
               :aria-current="$route.path === '/bug-report' ? 'page' : undefined"
             >
               <span class="nav-icon" aria-hidden="true">🐛</span>
-              <span>{{ $t('nav.bugReport') }}</span>
+              <span>{{ $t("nav.bugReport") }}</span>
             </router-link>
           </nav>
         </div>
@@ -141,83 +153,87 @@
 </template>
 
 <script>
-import { useI18n } from 'vue-i18n'
-import { useRoute } from 'vue-router'
-import { useTheme } from '@shared/composables/useTheme.js'
-import { onMounted, onUnmounted, ref } from 'vue'
-import NotificationToast from '@shared/components/NotificationToast.vue'
+import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";
+import { useTheme } from "@shared/composables/useTheme.js";
+import { onMounted, onUnmounted, ref } from "vue";
+import NotificationToast from "@shared/components/NotificationToast.vue";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
-    NotificationToast
+    NotificationToast,
   },
   setup() {
-    const { locale, t } = useI18n()
-    const route = useRoute()
-    const { currentTheme, toggleTheme, initTheme } = useTheme()
-    const mobileMenuOpen = ref(false)
-    const configMenuOpen = ref(false)
+    const { locale, t } = useI18n();
+    const route = useRoute();
+    const { currentTheme, toggleTheme, initTheme } = useTheme();
+    const mobileMenuOpen = ref(false);
+    const configMenuOpen = ref(false);
 
     const handleClickOutside = (event) => {
-      const configMenu = document.querySelector('.config-menu-wrapper')
+      const configMenu = document.querySelector(".config-menu-wrapper");
       if (configMenu && !configMenu.contains(event.target)) {
-        configMenuOpen.value = false
+        configMenuOpen.value = false;
       }
-      
+
       // Close mobile menu when clicking outside (but not on the toggle button or menu itself)
       if (mobileMenuOpen.value) {
-        const navMenu = document.querySelector('.nav-menu')
-        const mobileToggle = document.querySelector('.mobile-menu-toggle')
-        const navLinks = document.querySelector('.nav-links')
-        
-        if (navMenu && mobileToggle && navLinks &&
-            !navMenu.contains(event.target) && 
-            !mobileToggle.contains(event.target) &&
-            !navLinks.contains(event.target)) {
-          mobileMenuOpen.value = false
+        const navMenu = document.querySelector(".nav-menu");
+        const mobileToggle = document.querySelector(".mobile-menu-toggle");
+        const navLinks = document.querySelector(".nav-links");
+
+        if (
+          navMenu &&
+          mobileToggle &&
+          navLinks &&
+          !navMenu.contains(event.target) &&
+          !mobileToggle.contains(event.target) &&
+          !navLinks.contains(event.target)
+        ) {
+          mobileMenuOpen.value = false;
         }
       }
-    }
+    };
 
     onMounted(() => {
       try {
-        initTheme()
-        const savedLocale = localStorage.getItem('locale')
+        initTheme();
+        const savedLocale = localStorage.getItem("locale");
         if (savedLocale) {
-          locale.value = savedLocale
+          locale.value = savedLocale;
         }
         // Close config menu when clicking outside
-        document.addEventListener('click', handleClickOutside)
+        document.addEventListener("click", handleClickOutside);
       } catch (error) {
-        console.error('Error initializing app:', error)
+        console.error("Error initializing app:", error);
       }
-    })
+    });
 
     onUnmounted(() => {
-      document.removeEventListener('click', handleClickOutside)
-    })
+      document.removeEventListener("click", handleClickOutside);
+    });
 
     const toggleMobileMenu = () => {
-      mobileMenuOpen.value = !mobileMenuOpen.value
-    }
+      mobileMenuOpen.value = !mobileMenuOpen.value;
+    };
 
     const closeMobileMenu = () => {
-      mobileMenuOpen.value = false
-    }
+      mobileMenuOpen.value = false;
+    };
 
     const toggleConfigMenu = () => {
-      configMenuOpen.value = !configMenuOpen.value
-    }
+      configMenuOpen.value = !configMenuOpen.value;
+    };
 
     const closeConfigMenu = () => {
-      configMenuOpen.value = false
-    }
+      configMenuOpen.value = false;
+    };
 
     const toggleThemeAndClose = () => {
-      toggleTheme()
-      closeConfigMenu()
-    }
+      toggleTheme();
+      closeConfigMenu();
+    };
 
     return {
       route,
@@ -226,12 +242,12 @@ export default {
       currentTheme,
       mobileMenuOpen,
       configMenuOpen,
-      setLocale: lang => {
+      setLocale: (lang) => {
         try {
-          locale.value = lang
-          localStorage.setItem('locale', lang)
+          locale.value = lang;
+          localStorage.setItem("locale", lang);
         } catch (error) {
-          console.error('Error setting locale:', error)
+          console.error("Error setting locale:", error);
         }
       },
       toggleTheme,
@@ -239,10 +255,10 @@ export default {
       closeMobileMenu,
       toggleConfigMenu,
       closeConfigMenu,
-      toggleThemeAndClose
-    }
-  }
-}
+      toggleThemeAndClose,
+    };
+  },
+};
 </script>
 
 <style>
@@ -273,7 +289,7 @@ export default {
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-[data-theme='light'] {
+[data-theme="light"] {
   --bg-primary: #ffffff;
   --bg-secondary: #f5f5f5;
   --bg-tertiary: #fafafa;
@@ -301,10 +317,10 @@ export default {
 
 body {
   font-family:
-    'Inter',
+    "Inter",
     -apple-system,
     BlinkMacSystemFont,
-    'Segoe UI',
+    "Segoe UI",
     Roboto,
     Oxygen,
     Ubuntu,
@@ -321,12 +337,12 @@ body {
   overflow-x: hidden;
 }
 
-[data-theme='light'] body {
+[data-theme="light"] body {
   background: var(--bg-secondary) !important;
   color: #000000 !important;
 }
 
-[data-theme='dark'] body {
+[data-theme="dark"] body {
   background: #000000 !important;
   color: #ffffff !important;
 }
@@ -357,7 +373,7 @@ body {
   opacity: 1 !important;
 }
 
-[data-theme='light'] .navbar {
+[data-theme="light"] .navbar {
   background: var(--primary-gradient);
   color: white;
   border: none;
@@ -381,7 +397,7 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-[data-theme='light'] .nav-header {
+[data-theme="light"] .nav-header {
   border-bottom-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -420,7 +436,7 @@ body {
   background-clip: text;
 }
 
-[data-theme='light'] .logo {
+[data-theme="light"] .logo {
   color: white;
   -webkit-text-fill-color: white;
 }
@@ -460,7 +476,7 @@ body {
   border: 1px solid var(--border-color);
 }
 
-[data-theme='light'] .nav-links {
+[data-theme="light"] .nav-links {
   background: transparent;
   border: none;
   padding: 0;
@@ -485,7 +501,7 @@ body {
 }
 
 .nav-link::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0;
   top: 50%;
@@ -524,15 +540,15 @@ body {
   background: white;
 }
 
-[data-theme='light'] .nav-link {
+[data-theme="light"] .nav-link {
   color: white;
 }
 
-[data-theme='light'] .nav-link:hover {
+[data-theme="light"] .nav-link:hover {
   background-color: rgba(255, 255, 255, 0.15);
 }
 
-[data-theme='light'] .nav-link.router-link-active {
+[data-theme="light"] .nav-link.router-link-active {
   background-color: rgba(255, 255, 255, 0.25);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
@@ -540,7 +556,6 @@ body {
 .nav-icon {
   font-size: 1.1rem;
 }
-
 
 .config-menu-wrapper {
   position: relative;
@@ -578,17 +593,17 @@ body {
   color: white !important;
 }
 
-[data-theme='light'] .config-toggle {
+[data-theme="light"] .config-toggle {
   background: rgba(255, 255, 255, 0.2) !important;
   border: 1px solid rgba(255, 255, 255, 0.3) !important;
   color: white !important;
 }
 
-[data-theme='light'] .config-toggle:hover {
+[data-theme="light"] .config-toggle:hover {
   background: rgba(255, 255, 255, 0.3) !important;
 }
 
-[data-theme='light'] .config-toggle.active {
+[data-theme="light"] .config-toggle.active {
   background: var(--primary-gradient) !important;
   color: white !important;
 }
@@ -626,12 +641,12 @@ body {
   animation: slideDown 0.15s ease-in reverse;
 }
 
-[data-theme='light'] .config-menu {
+[data-theme="light"] .config-menu {
   background: #ffffff;
   border-color: #e0e0e0;
 }
 
-[data-theme='dark'] .config-menu {
+[data-theme="dark"] .config-menu {
   background: #1a1a1a;
   border-color: #3a3a3a;
 }
@@ -670,7 +685,7 @@ body {
   .config-menu-item:hover {
     transform: translateX(2px);
   }
-  
+
   .config-menu-item:active {
     transform: scale(0.98);
     background: var(--bg-tertiary);
@@ -681,19 +696,19 @@ body {
   transform: translateX(2px) scale(0.98);
 }
 
-[data-theme='light'] .config-menu-item {
+[data-theme="light"] .config-menu-item {
   color: #000000;
 }
 
-[data-theme='light'] .config-menu-item:hover {
+[data-theme="light"] .config-menu-item:hover {
   background: #f5f5f5;
 }
 
-[data-theme='dark'] .config-menu-item {
+[data-theme="dark"] .config-menu-item {
   color: #ffffff;
 }
 
-[data-theme='dark'] .config-menu-item:hover {
+[data-theme="dark"] .config-menu-item:hover {
   background: #2a2a2a;
 }
 
@@ -732,13 +747,13 @@ body {
   transform: scale(1.1);
 }
 
-[data-theme='light'] .theme-toggle {
+[data-theme="light"] .theme-toggle {
   background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.3);
   color: white;
 }
 
-[data-theme='light'] .theme-toggle:hover {
+[data-theme="light"] .theme-toggle:hover {
   background: rgba(255, 255, 255, 0.3);
 }
 
@@ -753,7 +768,7 @@ body {
   height: 44px;
 }
 
-[data-theme='light'] .language-selector {
+[data-theme="light"] .language-selector {
   background: rgba(255, 255, 255, 0.1);
   border: none;
 }
@@ -787,15 +802,15 @@ body {
   box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-[data-theme='light'] .lang-btn {
+[data-theme="light"] .lang-btn {
   color: white;
 }
 
-[data-theme='light'] .lang-btn:hover {
+[data-theme="light"] .lang-btn:hover {
   background: rgba(255, 255, 255, 0.15);
 }
 
-[data-theme='light'] .lang-btn.active {
+[data-theme="light"] .lang-btn.active {
   background: white;
   color: var(--primary-color);
 }
@@ -866,7 +881,6 @@ body {
   .logo {
     font-size: 1.75rem;
   }
-
 
   .nav-links {
     flex-wrap: wrap;
@@ -985,12 +999,12 @@ body {
     height: 100%;
   }
 
-  [data-theme='light'] .nav-links {
+  [data-theme="light"] .nav-links {
     background: #ffffff;
     border-color: #e0e0e0;
   }
 
-  [data-theme='dark'] .nav-links {
+  [data-theme="dark"] .nav-links {
     background: #1a1a1a;
     border-color: #3a3a3a;
   }
