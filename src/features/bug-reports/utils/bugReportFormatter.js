@@ -201,25 +201,27 @@ function formatJira(bugData, evidenceList) {
   report += `*Description:*\n`
   report += `${formatCodeBlock(cleanDescription)}\n\n`
   
-  // Steps to Reproduce - must be numbered list, not heading
+  // Steps to Reproduce - must be numbered list (1., 2., 3., etc.)
   if (cleanSteps && cleanSteps.trim()) {
     report += `*Steps to Reproduce:*\n`
     
-    // Always format steps as numbered list (Jira format: # at start of line)
+    // Always format steps as numbered list (1., 2., 3., etc.)
     const lines = cleanSteps.split('\n').filter(line => line.trim())
     if (lines.length > 0) {
-      const formattedSteps = lines.map(line => {
+      const formattedSteps = lines.map((line, index) => {
         // Remove existing numbering (1., 2., etc.) and clean the line
         let cleaned = line.replace(/^\d+\.\s*/, '').trim()
         // Remove any leading dashes or bullets
         cleaned = cleaned.replace(/^[-*•]\s*/, '').trim()
-        // Jira numbered list format: # at the start of line (must be at column 0)
-        return `# ${cleaned}`
+        // Remove # if present (from previous format)
+        cleaned = cleaned.replace(/^#\s*/, '').trim()
+        // Numbered list format: 1., 2., 3., etc.
+        return `${index + 1}. ${cleaned}`
       }).join('\n')
       report += `${formattedSteps}\n\n`
     } else {
       // Fallback if no steps found
-      report += `# Navigate to the application\n# Perform the action described\n# Observe the issue\n\n`
+      report += `1. Navigate to the application\n2. Perform the action described\n3. Observe the issue\n\n`
     }
   }
   
