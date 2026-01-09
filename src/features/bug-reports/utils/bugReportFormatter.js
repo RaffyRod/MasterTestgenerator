@@ -189,21 +189,21 @@ function formatJira(bugData, evidenceList) {
   if (operatingSystem) metadata.push(`Operating System: ${operatingSystem}`)
   if (version) metadata.push(`Version: ${version}`)
 
-  // Start building the report - title in bold
-  let report = `*${cleanTitle}*\n\n`
+  // Start building the report - title in bold (Markdown format: **text**)
+  let report = `**${cleanTitle}**\n\n`
   
   // Metadata section - plain text, no heading
-  report += `*Issue Details*\n`
+  report += `**Issue Details**\n`
   report += metadata.join('\n')
   report += `\n\n`
   
-  // Description section - using bold text (same size, just bold)
-  report += `*Description:*\n`
+  // Description section - using bold text (Markdown format: **text**)
+  report += `**Description:**\n`
   report += `${formatCodeBlock(cleanDescription)}\n\n`
   
   // Steps to Reproduce - must be numbered list (1., 2., 3., etc.)
   if (cleanSteps && cleanSteps.trim()) {
-    report += `*Steps to Reproduce:*\n`
+    report += `**Steps to Reproduce:**\n`
     
     // Always format steps as numbered list (1., 2., 3., etc.)
     const lines = cleanSteps.split('\n').filter(line => line.trim())
@@ -227,28 +227,28 @@ function formatJira(bugData, evidenceList) {
   
   // Expected vs Actual
   if (cleanExpected || cleanActual) {
-    report += `*Expected vs Actual Result:*\n`
+    report += `**Expected vs Actual Result:**\n`
     
     if (cleanExpected) {
-      report += `*Expected Result:*\n`
+      report += `**Expected Result:**\n`
       report += `${cleanExpected}\n\n`
     }
     
     if (cleanActual) {
-      report += `*Actual Result:*\n`
+      report += `**Actual Result:**\n`
       report += `${formatCodeBlock(cleanActual)}\n\n`
     }
   }
   
   // Evidence section
   if (evidenceList && evidenceList !== 'No evidence files attached') {
-    report += `*Evidence:*\n`
+    report += `**Evidence:**\n`
     report += `${evidenceList}\n\n`
   }
   
   // Additional Information
   if (cleanAdditional) {
-    report += `*Additional Information:*\n`
+    report += `**Additional Information:**\n`
     report += `${cleanAdditional}\n`
   }
   
