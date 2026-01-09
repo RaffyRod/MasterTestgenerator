@@ -1402,7 +1402,10 @@ export default {
       regenerateReport,
       copyReport,
       clearForm,
-      enforceTitleLength
+      enforceTitleLength,
+      titleOptions,
+      showTitleSelection,
+      selectTitle
     }
   }
 }
