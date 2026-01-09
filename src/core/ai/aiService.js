@@ -516,11 +516,11 @@ async function generateTestPlanWithOpenAI(projectInfo, planType, language) {
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-      headers: {
+        headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
+        },
+        body: JSON.stringify({
         model: model,
         messages: [
           {
@@ -1565,7 +1565,7 @@ Generate the title now:`;
         }
         return titles.slice(0, 2);
       }
-    } catch (error) {
+  } catch (error) {
       console.warn("Dual AI title generation failed, using fallback:", error);
     }
 
@@ -1620,15 +1620,23 @@ async function generateTitleWithGroq(prompt, type) {
             {
               role: "system",
               content:
-                "You are an expert QA engineer. Generate concise, professional titles. Return ONLY the title, nothing else.",
+                "You are an expert QA engineer. Generate concise, professional titles with VARIED wording. Use different phrasing than other AI models. Return ONLY the title, nothing else.",
             },
             {
               role: "user",
-              content: prompt,
+              content: type === "bugReport"
+                ? prompt.replace(
+                    "Create a title that describes the bug/problem",
+                    "Create a SHORT, ACTION-ORIENTED title focusing on USER IMPACT"
+                  ).replace(
+                    "Use action verbs: \"not loading\", \"fails to\", \"error in\", \"broken\", \"missing\", etc.",
+                    "Use DIFFERENT phrasing: \"won't load\", \"breaks when\", \"crashes on\", \"missing\", \"unresponsive\", etc. Be creative and concise."
+                  )
+                : prompt,
             },
           ],
           max_tokens: 50,
-          temperature: 0.3,
+          temperature: 0.5, // Higher temperature for more variation
         }),
       },
     );

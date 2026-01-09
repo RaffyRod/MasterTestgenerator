@@ -66,7 +66,7 @@
           >
           <span v-else class="field-indicator invalid">!</span>
         </label>
-        <div class="title-input-wrapper">
+        <div class="title-input-wrapper" ref="titleInputRef">
           <input
             id="bug-title"
             v-model="bugData.title"
@@ -137,57 +137,36 @@
           }}
         </small>
 
-        <!-- Title Selection Modal -->
+        <!-- Compact Title Selection Popover -->
         <Teleport to="body">
-          <transition name="fade">
+          <transition name="popover-fade">
             <div
-              v-if="showTitleSelection && titleOptions.length >= 2"
-              class="title-selection-overlay"
-              @click.self="showTitleSelection = false"
+              v-if="showTitleSelection && titleOptions.length >= 2 && hasDifferentTitles"
+              class="title-selection-popover"
+              :style="popoverStyle"
+              @click.stop
             >
-              <div class="title-selection-modal" @click.stop>
-                <div class="title-selection-header">
-                  <h3>
-                    {{ $t("bugReport.selectTitle") || "Select Bug Title" }}
-                  </h3>
-                  <button
-                    @click="showTitleSelection = false"
-                    class="close-btn"
-                    :aria-label="$t('common.close') || 'Close'"
-                  >
-                    ×
-                  </button>
-                </div>
-                <div class="title-selection-body">
-                  <p class="selection-hint">
-                    {{
-                      $t("bugReport.selectTitleHint") ||
-                      "Choose the best title for your bug report:"
-                    }}
-                  </p>
-                  <div class="title-options">
-                    <button
-                      v-for="option in titleOptions"
-                      :key="option.id"
-                      @click="selectTitle(option)"
-                      class="title-option-btn"
-                      :class="{ selected: bugData.title === option.text }"
-                    >
-                      <div class="title-option-content">
-                        <div class="title-option-text">{{ option.text }}</div>
-                        <div class="title-option-source">
-                          {{ option.source }}
-                        </div>
-                      </div>
-                      <div
-                        v-if="bugData.title === option.text"
-                        class="title-option-check"
-                      >
-                        ✓
-                      </div>
-                    </button>
-                  </div>
-                </div>
+              <div class="popover-header">
+                <span class="popover-title">{{ $t("bugReport.selectTitle") || "Choose title" }}</span>
+                <button
+                  @click="showTitleSelection = false"
+                  class="popover-close"
+                  :aria-label="$t('common.close') || 'Close'"
+                >
+                  ×
+                </button>
+              </div>
+              <div class="popover-options">
+                <button
+                  v-for="option in titleOptions"
+                  :key="option.id"
+                  @click="selectTitle(option)"
+                  class="popover-option"
+                  :class="{ selected: bugData.title === option.text }"
+                >
+                  <span class="option-text">{{ option.text }}</span>
+                  <span class="option-badge">{{ option.source === "Primary AI" ? "1" : "2" }}</span>
+                </button>
               </div>
             </div>
           </transition>
@@ -540,7 +519,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from "vue";
+import { ref, computed, onMounted, watch, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { useNotification } from "@shared/composables/useNotification.js";
 import { formatBugReport } from "@features/bug-reports/utils/bugReportFormatter.js";
@@ -595,7 +574,34 @@ export default {
     const titleEditable = ref(false);
     const titleOptions = ref([]); // Array of 2 title options
     const showTitleSelection = ref(false);
+    const titleInputRef = ref(null);
+    const popoverStyle = ref({});
     let descriptionDebounceTimer = null;
+
+    // Check if titles are different
+    const hasDifferentTitles = computed(() => {
+      if (titleOptions.value.length < 2) return false;
+      return titleOptions.value[0].text !== titleOptions.value[1].text;
+    });
+
+    // Calculate popover position
+    function updatePopoverPosition() {
+      if (!titleInputRef.value) return;
+      nextTick(() => {
+        const rect = titleInputRef.value.getBoundingClientRect();
+        popoverStyle.value = {
+          top: `${rect.bottom + 8}px`,
+          left: `${rect.left}px`,
+          width: `${Math.max(rect.width, 320)}px`,
+        };
+      });
+    }
+
+    watch(showTitleSelection, (newVal) => {
+      if (newVal && hasDifferentTitles.value) {
+        updatePopoverPosition();
+      }
+    });
 
     const isFormValid = computed(() => {
       return (
@@ -756,12 +762,18 @@ export default {
             bugData.value.title = titleOptions.value[0].text;
             titleGenerated.value = true;
             titleEditable.value = false;
-            // Show selection UI for user to choose
-            showTitleSelection.value = true;
-            console.log(
-              "Two titles generated, showing selection:",
-              titleOptions.value,
-            );
+            // Show selection UI only if titles are different
+            if (titleOptions.value[0].text !== titleOptions.value[1].text) {
+              showTitleSelection.value = true;
+              console.log(
+                "Two different titles generated, showing selection:",
+                titleOptions.value,
+              );
+            } else {
+              console.log(
+                "Both IAs generated the same title, skipping selection modal",
+              );
+            }
           }
         } else if (
           generatedTitles &&
@@ -1855,6 +1867,9 @@ export default {
       titleOptions,
       showTitleSelection,
       selectTitle,
+      titleInputRef,
+      popoverStyle,
+      hasDifferentTitles,
     };
   },
 };
@@ -2961,188 +2976,151 @@ export default {
 }
 
 /* Title Selection Modal */
-.title-selection-overlay {
+/* Compact Title Selection Popover */
+.title-selection-popover {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(10, 14, 39, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10000;
-  padding: 1rem;
-  animation: fadeIn 0.2s ease-out;
-}
-
-.title-selection-modal {
   background: var(--card-bg);
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  max-width: 600px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  animation: slideUp 0.3s ease-out;
-}
-
-.title-selection-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: 2px solid var(--border-color);
-}
-
-.title-selection-header h3 {
-  margin: 0;
-  font-size: 1.25rem;
-  color: var(--text-primary);
-}
-
-.title-selection-header .close-btn {
-  background: none;
-  border: none;
-  font-size: 2rem;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   border-radius: 8px;
-  transition: all 0.2s;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15), 0 0 0 1px var(--border-color);
+  z-index: 10000;
+  min-width: 320px;
+  max-width: 500px;
+  animation: popoverSlideDown 0.2s ease-out;
 }
 
-.title-selection-header .close-btn:hover {
-  background: var(--input-bg);
-  color: var(--text-primary);
-}
-
-.title-selection-body {
-  padding: 1.5rem;
-}
-
-.selection-hint {
-  margin: 0 0 1.5rem 0;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-}
-
-.title-options {
+.popover-header {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.title-option-btn {
-  display: flex;
-  align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.25rem;
-  background: var(--input-bg);
-  border: 2px solid var(--border-color);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-align: left;
-  width: 100%;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--border-color);
 }
 
-.title-option-btn:hover {
-  border-color: var(--primary-color);
-  background: var(--card-bg);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.title-option-btn.selected {
-  border-color: var(--primary-color);
-  background: var(--primary-color);
-  color: white;
-}
-
-.title-option-btn.selected .title-option-text {
-  color: white;
-}
-
-.title-option-btn.selected .title-option-source {
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.title-option-content {
-  flex: 1;
-}
-
-.title-option-text {
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--text-primary);
-  margin-bottom: 0.25rem;
-}
-
-.title-option-source {
+.popover-title {
   font-size: 0.75rem;
+  font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.title-option-check {
-  font-size: 1.5rem;
+.popover-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.popover-close:hover {
+  background: var(--input-bg);
+  color: var(--text-primary);
+}
+
+.popover-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem;
+}
+
+.popover-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.75rem;
+  background: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.popover-option:hover {
+  border-color: var(--primary-color);
+  background: var(--card-bg);
+  transform: translateX(2px);
+}
+
+.popover-option.selected {
+  border-color: var(--primary-color);
+  background: var(--primary-color);
   color: white;
-  margin-left: 1rem;
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s;
+.popover-option.selected .option-text {
+  color: white;
 }
 
-.fade-enter-from,
-.fade-leave-to {
+.popover-option.selected .option-badge {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.option-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.option-badge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: var(--input-bg);
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  min-width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.popover-fade-enter-active,
+.popover-fade-leave-active {
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.popover-fade-enter-from {
   opacity: 0;
+  transform: translateY(-4px);
 }
 
-@keyframes fadeIn {
+.popover-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+@keyframes popoverSlideDown {
   from {
     opacity: 0;
+    transform: translateY(-4px);
   }
   to {
     opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
     transform: translateY(0);
-    opacity: 1;
   }
 }
 
 @media (max-width: 768px) {
-  .title-selection-modal {
-    max-width: 95%;
-    margin: 1rem;
-  }
-
-  .title-selection-header {
-    padding: 1rem;
-  }
-
-  .title-selection-body {
-    padding: 1rem;
-  }
-
-  .title-option-btn {
-    padding: 0.875rem 1rem;
+  .title-selection-popover {
+    min-width: calc(100vw - 2rem);
+    max-width: calc(100vw - 2rem);
   }
 }
 
