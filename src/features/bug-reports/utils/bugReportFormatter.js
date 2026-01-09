@@ -21,14 +21,10 @@ export function formatBugReport(bugData, evidenceFiles = [], format = 'jira') {
     additionalInfo
   } = bugData
 
-  // Format evidence files - include image previews for Jira format
+  // Format evidence files - list file names only
+  // Note: Images cannot be copied via clipboard, they must be manually attached in Jira
   const evidenceList = evidenceFiles.length > 0
     ? evidenceFiles.map((file, index) => {
-        if (file.type && file.type.startsWith('image/') && file.preview) {
-          // For images, include Jira image format with base64 data URL
-          // Note: Jira may not support base64 directly, but we include it for reference
-          return `${index + 1}. ${file.name}\n   !${file.preview}|thumbnail!`
-        }
         return `${index + 1}. ${file.name}`
       }).join('\n')
     : 'No evidence files attached'
@@ -249,7 +245,14 @@ function formatJira(bugData, evidenceList) {
   // Evidence section
   if (evidenceList && evidenceList !== 'No evidence files attached') {
     report += `**Evidence:**\n`
-    report += `${evidenceList}\n\n`
+    report += `${evidenceList}\n`
+    // Check if there are any image files by looking for common image extensions
+    const imageExtensions = /\.(jpg|jpeg|png|gif|bmp|webp|svg)(\s|$)/i
+    const hasImages = imageExtensions.test(evidenceList)
+    if (hasImages) {
+      report += `\n_Note: Images cannot be copied via clipboard. Please attach them manually in Jira after pasting this report._\n`
+    }
+    report += `\n`
   }
   
   // Additional Information
