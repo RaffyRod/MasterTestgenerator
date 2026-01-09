@@ -52,7 +52,8 @@ Generate test documentation in **English** or **Spanish**
 ### 🐛 Bug Report Generator
 
 - **Comprehensive bug reporting** with detailed information fields
-- **AI-powered title generation** - Automatically generates bug title from description
+- **🤖 Dual AI Title Generation** - Automatically generates **2 title options** from different AI providers (Primary AI + Groq AI) for you to choose the best one
+- **🎯 Smart Title Selection** - Beautiful modal UI to select between AI-generated titles with source indicators
 - **AI-powered content generation** - Automatically generates steps to reproduce, expected/actual results
 - **Evidence attachment** - Upload images, logs, and text files with drag & drop support
 - **Multiple export formats** - Jira, Markdown, and Plain Text with HTML tag cleaning
@@ -60,6 +61,7 @@ Generate test documentation in **English** or **Spanish**
 - **Copy to clipboard** for easy pasting into issue trackers
 - **Beautiful UI/UX** - Progress indicators, real-time validation, visual badges, and collapsible sections
 - **Smart form validation** - Real-time feedback with visual indicators
+- **Title length limit** - Automatically enforces 30-character maximum for concise bug titles
 
 ---
 
@@ -83,8 +85,11 @@ This project is built with amazing open-source technologies. We're grateful to a
 ### Testing & Quality
 
 - **[Vitest](https://vitest.dev/)** - Fast unit test framework
+- **[@vitest/coverage-v8](https://vitest.dev/guide/coverage.html)** - Code coverage reporting
 - **[@vue/test-utils](https://test-utils.vuejs.org/)** - Utilities for testing Vue components
 - **[Testing Library](https://testing-library.com/)** - Simple and complete testing utilities
+- **GitHub Actions CI/CD** - Automated testing on every push and pull request
+- **Unit Tests** - Comprehensive test coverage for AI generation and core functionality
 
 ### Data Processing
 
@@ -96,10 +101,12 @@ This project is built with amazing open-source technologies. We're grateful to a
 
 - **[Ollama](https://ollama.com/)** - Run large language models locally
 - **[Hugging Face](https://huggingface.co/)** - AI community and platform
+- **[Groq API](https://groq.com/)** - Fast, free AI inference for dual title generation (bug reports)
 - **[OpenAI API](https://platform.openai.com/)** - GPT models for AI-powered generation (configurable via UI)
 - **[Anthropic Claude](https://www.anthropic.com/)** - Claude AI models (configurable via UI)
 - **[Google Gemini](https://ai.google.dev/)** - Google's AI models (configurable via UI)
 - **Custom API Providers** - Configure any AI provider with custom endpoints
+- **Dual AI System** - Bug report titles use two AI providers in parallel for better options
 
 ### Additional Tools
 
@@ -357,18 +364,22 @@ After running `pnpm setup`, Ollama is ready to use:
 ### Generating Bug Reports
 
 1. Navigate to the **🐛 Bug Report** section
-2. Enter the bug **Title** and **Description** (required)
-3. Select **Priority** and **Severity** from dropdowns
-4. **Optional**: Expand "Optional Information" to add environment details (auto-detected by default)
-5. **Upload evidence** - Drag & drop or click to upload images, logs, or text files
-6. **Enable AI** (default) to automatically generate:
+2. Enter the bug **Description** (required) - **Title is auto-generated!**
+3. **🤖 Dual AI Title Generation**: The app automatically generates **2 title options** from different AI providers:
+   - **Primary AI**: Uses your configured AI provider (Ollama, Hugging Face, etc.)
+   - **Groq AI**: Fast, free alternative for comparison
+   - A modal will appear to let you **select the best title**
+4. Select **Priority** and **Severity** from dropdowns
+5. **Optional**: Expand "Optional Information" to add environment details (auto-detected by default)
+6. **Upload evidence** - Drag & drop or click to upload images, logs, or text files
+7. **Enable AI** (default) to automatically generate:
    - Steps to Reproduce
    - Expected Result
    - Actual Result
    - Additional Information
-7. Click **🚀 Generate Report**
-8. Select export format (Jira, Markdown, or Plain Text)
-9. Click **📋 Copy** to copy the formatted report to clipboard
+8. Click **🚀 Generate Bug**
+9. Select export format (Jira, Markdown, or Plain Text)
+10. Click **📋 Copy** to copy the formatted report to clipboard
 
 ### Exporting to Test Management Tools
 
@@ -451,6 +462,19 @@ pnpm build
 
 This creates an optimized production build in the `dist/` folder.
 
+### Running Tests
+
+```bash
+# Run tests in watch mode
+pnpm test
+
+# Run tests once
+pnpm test:run
+
+# Run tests with coverage
+pnpm test:coverage
+```
+
 ### Code Formatting
 
 This project uses **Prettier** for consistent code style. Formatting runs **automatically** on every commit (thanks to Husky).
@@ -468,6 +492,21 @@ pnpm format:check
 ### Git Hooks
 
 **Prettier runs automatically** before each commit to ensure consistent code formatting. No need to run it manually!
+
+### CI/CD with GitHub Actions
+
+This project includes **automated CI/CD** that runs on every push and pull request:
+
+- ✅ **Automated Testing** - Runs all unit tests on Node.js 18.x and 20.x
+- ✅ **Code Formatting Check** - Validates code style consistency
+- ✅ **Build Verification** - Ensures the project builds successfully
+- ✅ **Coverage Reports** - Generates test coverage reports
+
+The CI pipeline is configured in `.github/workflows/ci.yml` and runs automatically for:
+- Every push to `main` branch
+- Every pull request targeting `main` branch
+
+**No action needed** - it runs automatically! 🎉
 
 ---
 
@@ -510,6 +549,22 @@ This project is licensed under the GNU General Public License Version 3 - see th
 ## 🙏 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+### Development Workflow
+
+1. **Fork the repository** and create a feature branch
+2. **Make your changes** following the code style (Prettier will format automatically)
+3. **Write or update tests** for new functionality
+4. **Run tests** to ensure everything passes: `pnpm test:run`
+5. **Commit your changes** (Prettier will format on commit)
+6. **Push to your fork** and create a Pull Request
+7. **CI/CD will automatically run** tests and validate your changes
+
+### Testing Requirements
+
+- All new features should include unit tests
+- Tests must pass before merging
+- Coverage reports are generated automatically in CI/CD
 
 ---
 
