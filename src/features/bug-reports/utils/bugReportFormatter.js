@@ -192,20 +192,20 @@ function formatJira(bugData, evidenceList) {
   // Start building the report
   let report = `${cleanTitle}\n\n`
   
-  // Metadata section - using heading format
-  report += `h3. Issue Details\n`
+  // Metadata section - plain text, no heading
+  report += `*Issue Details*\n`
   report += metadata.join('\n')
   report += `\n\n`
   
-  // Description section - using bold text instead of heading
-  report += `*Description:*\n\n`
+  // Description section - using bold text
+  report += `*Description:*\n`
   report += `${formatCodeBlock(cleanDescription)}\n\n`
   
-  // Steps to Reproduce
+  // Steps to Reproduce - must be numbered list, not heading
   if (cleanSteps && cleanSteps.trim()) {
-    report += `*Steps to Reproduce:*\n\n`
+    report += `*Steps to Reproduce:*\n`
     
-    // Always format steps as numbered list
+    // Always format steps as numbered list (Jira format: # at start of line)
     const lines = cleanSteps.split('\n').filter(line => line.trim())
     if (lines.length > 0) {
       const formattedSteps = lines.map(line => {
@@ -213,7 +213,7 @@ function formatJira(bugData, evidenceList) {
         let cleaned = line.replace(/^\d+\.\s*/, '').trim()
         // Remove any leading dashes or bullets
         cleaned = cleaned.replace(/^[-*•]\s*/, '').trim()
-        // Jira numbered list format: # at the start of line
+        // Jira numbered list format: # at the start of line (must be at column 0)
         return `# ${cleaned}`
       }).join('\n')
       report += `${formattedSteps}\n\n`
@@ -225,7 +225,7 @@ function formatJira(bugData, evidenceList) {
   
   // Expected vs Actual
   if (cleanExpected || cleanActual) {
-    report += `*Expected vs Actual Result:*\n\n`
+    report += `*Expected vs Actual Result:*\n`
     
     if (cleanExpected) {
       report += `*Expected Result:*\n`
@@ -240,13 +240,13 @@ function formatJira(bugData, evidenceList) {
   
   // Evidence section
   if (evidenceList && evidenceList !== 'No evidence files attached') {
-    report += `*Evidence:*\n\n`
+    report += `*Evidence:*\n`
     report += `${evidenceList}\n\n`
   }
   
   // Additional Information
   if (cleanAdditional) {
-    report += `*Additional Information:*\n\n`
+    report += `*Additional Information:*\n`
     report += `${cleanAdditional}\n`
   }
   
