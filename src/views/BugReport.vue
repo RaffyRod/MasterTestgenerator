@@ -500,24 +500,59 @@ export default {
         if (generatedTitle && generatedTitle.trim() !== '') {
           // Always update if title was auto-generated, or if it's empty
           if (bugData.value.title.trim() === '' || titleGenerated.value) {
-            bugData.value.title = generatedTitle.trim()
+            // Limit to 20 characters for bug reports
+            let finalTitle = generatedTitle.trim()
+            if (finalTitle.length > 20) {
+              finalTitle = finalTitle.substring(0, 17) + '...'
+            }
+            bugData.value.title = finalTitle
             titleGenerated.value = true
             titleEditable.value = false
           }
         }
       } catch (error) {
         console.warn('Failed to generate title with AI:', error)
-        // Fallback: generate simple title from description
+        // Fallback: generate intelligent title from description (max 20 chars)
         if (bugData.value.title.trim() === '' || titleGenerated.value) {
-          const desc = bugData.value.description.trim()
-          const firstSentence = desc.split(/[.!?]/)[0]?.trim()
-          if (firstSentence && firstSentence.length > 0) {
-            bugData.value.title = firstSentence.length > 60 
-              ? firstSentence.substring(0, 57) + '...' 
-              : firstSentence
-            titleGenerated.value = true
-            titleEditable.value = false
+          const desc = bugData.value.description.trim().toLowerCase()
+          let fallbackTitle = 'Bug Report'
+          
+          // Analyze issue type for better title
+          if (desc.includes('failing') || desc.includes('fails')) {
+            if (desc.includes('reload') || desc.includes('refresh')) {
+              fallbackTitle = 'App fails on reload'
+            } else {
+              fallbackTitle = 'App failing'
+            }
+          } else if (desc.includes('not loading') || desc.includes('doesn\'t load')) {
+            fallbackTitle = 'Page not loading'
+          } else if (desc.includes('not working') || desc.includes('doesn\'t work')) {
+            fallbackTitle = 'Feature not working'
+          } else if (desc.includes('error') || desc.includes('exception')) {
+            const errorMatch = bugData.value.description.match(/(?:error|exception)[:\s]+([^.!?\n]{0,10})/i)
+            fallbackTitle = errorMatch ? `Error: ${errorMatch[1].trim()}` : 'Error occurred'
+          } else if (desc.includes('broken')) {
+            fallbackTitle = 'Feature broken'
+          } else if (desc.includes('missing') || desc.includes('not showing')) {
+            fallbackTitle = 'Content missing'
+          } else if (desc.includes('reload') || desc.includes('refresh')) {
+            fallbackTitle = 'Issue on reload'
+          } else if (desc.includes('display') || desc.includes('not displayed')) {
+            fallbackTitle = 'Display issue'
+          } else {
+            // Extract first meaningful phrase, limit to 20 chars
+            const firstSentence = bugData.value.description.split(/[.!?]/)[0]?.trim()
+            if (firstSentence && firstSentence.length > 0) {
+              fallbackTitle = firstSentence.length > 20 
+                ? firstSentence.substring(0, 17) + '...' 
+                : firstSentence
+            }
           }
+          
+          // Ensure max 20 characters
+          bugData.value.title = fallbackTitle.substring(0, 20).trim()
+          titleGenerated.value = true
+          titleEditable.value = false
         }
       } finally {
         generatingTitle.value = false
@@ -545,6 +580,12 @@ export default {
 
 
     async function generateReport(silent = false) {
+      console.log('generateReport called', { 
+        hasDescription: !!bugData.value.description, 
+        descriptionLength: bugData.value.description?.trim().length,
+        generating: generating.value 
+      })
+      
       // Validate description first (required)
       if (!bugData.value.description || bugData.value.description.trim() === '') {
         if (!silent) {
@@ -566,13 +607,27 @@ export default {
           const desc = bugData.value.description.trim().toLowerCase()
           let fallbackTitle = 'Bug Report'
           
-          // Analyze issue type
-          if (desc.includes('not loading') || desc.includes('doesn\'t load')) {
+          // Analyze issue type - prioritize "failing" patterns
+          if (desc.includes('failing') || desc.includes('fails')) {
+            if (desc.includes('reload') || desc.includes('refresh')) {
+              fallbackTitle = 'App fails on reload'
+            } else if (desc.includes('after')) {
+              const afterMatch = desc.match(/failing\s+after\s+([^.!?\n]{0,10})/i)
+              if (afterMatch) {
+                const action = afterMatch[1].trim()
+                fallbackTitle = action.length > 10 ? 'App fails after action' : `Fails after ${action}`
+              } else {
+                fallbackTitle = 'App failing'
+              }
+            } else {
+              fallbackTitle = 'App failing'
+            }
+          } else if (desc.includes('not loading') || desc.includes('doesn\'t load')) {
             fallbackTitle = 'Page not loading'
           } else if (desc.includes('not working') || desc.includes('doesn\'t work')) {
             fallbackTitle = 'Feature not working'
           } else if (desc.includes('error') || desc.includes('exception')) {
-            const errorMatch = bugData.value.description.match(/(?:error|exception)[:\s]+([^.!?\n]{0,12})/i)
+            const errorMatch = bugData.value.description.match(/(?:error|exception)[:\s]+([^.!?\n]{0,10})/i)
             fallbackTitle = errorMatch ? `Error: ${errorMatch[1].trim()}` : 'Error occurred'
           } else if (desc.includes('broken')) {
             fallbackTitle = 'Feature broken'
@@ -660,18 +715,29 @@ export default {
           finalBugData = createFallbackBugData()
         }
 
+        console.log('Formatting report with:', { finalBugData, evidenceFiles: evidenceFiles.value.length, format: reportFormat.value })
         const report = formatBugReport(finalBugData, evidenceFiles.value, reportFormat.value)
+        console.log('Report formatted, length:', report?.length)
+        
+        if (!report || report.trim() === '') {
+          throw new Error('Report generation returned empty result')
+        }
+        
         generatedReport.value = report
+        console.log('Report assigned to generatedReport')
+        
         if (!silent) {
           showNotification('success', t('bugReport.reportGenerated'))
         }
       } catch (error) {
         console.error('Error generating report:', error)
+        console.error('Error stack:', error.stack)
         if (!silent) {
-          showNotification('error', t('bugReport.generationError'))
+          showNotification('error', t('bugReport.generationError') || 'Error generating bug report')
         }
       } finally {
         generating.value = false
+        console.log('Generation completed, generating set to false')
       }
     }
 
