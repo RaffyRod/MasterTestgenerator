@@ -1521,7 +1521,28 @@ Examples:
 - "The dashboard page is not loading properly after refresh" → "Dashboard not loading"
 
 Generate the bug title now:`
-      : `You are an expert QA engineer. Generate a concise, professional ${typeLabel} title from the following text.
+      : type === "testPlan"
+        ? `You are an expert QA engineer. Analyze the project information and create a concise, descriptive test plan title.
+
+Language: ${lang}
+Project Information: ${text}
+
+Requirements:
+1. Analyze the project/feature described, NOT just copy text
+2. Create a title that summarizes the main functionality or feature being tested (maximum ${maxLength} characters)
+3. Focus on: what is being tested, the main feature, or the core functionality
+4. Be specific and meaningful, avoid generic terms like "Test Plan" or "Testing"
+5. Do NOT copy the description verbatim - analyze and extract the key concept
+6. Return ONLY the title, nothing else
+
+Examples:
+- "The app is failing after reloading the main page when the user is logged off" → "App Reload Failure"
+- "User login functionality with email and password" → "User Authentication"
+- "Payment processing with credit cards and PayPal" → "Payment Processing"
+- "Dashboard shows user statistics and charts" → "Dashboard Analytics"
+
+Generate the test plan title now:`
+        : `You are an expert QA engineer. Generate a concise, professional ${typeLabel} title from the following text.
 
 Language: ${lang}
 Text: ${text}

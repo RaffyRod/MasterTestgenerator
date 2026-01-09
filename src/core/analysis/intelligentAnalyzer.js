@@ -4479,6 +4479,32 @@ export async function extractIntelligentTitle(
     return "Test Plan";
   }
 
+  // Use AI if enabled
+  if (useAI) {
+    try {
+      const aiTitle = await generateIntelligentTitle(
+        projectInfo,
+        "en",
+        "testPlan",
+      );
+      if (aiTitle && aiTitle.trim().length > 0) {
+        // Limit AI title to 50 characters to leave room for prefix
+        let title = aiTitle.trim();
+        if (title.length > 50) {
+          const lastSpace = title.substring(0, 50).lastIndexOf(" ");
+          if (lastSpace > 20) {
+            title = title.substring(0, lastSpace);
+          } else {
+            title = title.substring(0, 47) + "...";
+          }
+        }
+        return title;
+      }
+    } catch (error) {
+      console.warn("AI title generation failed, using fallback:", error);
+    }
+  }
+
   const lines = projectInfo
     .split("\n")
     .filter((line) => line.trim().length > 0);
@@ -4526,21 +4552,53 @@ export async function extractIntelligentTitle(
     firstLine = firstLine.replace(/^-\s+/, "");
     firstLine = firstLine.replace(/^\d+\.\s+/, "");
 
-    // Limit length and clean up
-    title = firstLine.substring(0, 60).trim();
+    // Create a more intelligent title from the description
+    // Extract key information: what is failing, when, where
+    const lowerText = firstLine.toLowerCase();
+    let extractedTitle = "";
 
-    // If title ends with incomplete word, remove last word
-    if (
-      title.length === 60 &&
-      !title.endsWith(".") &&
-      !title.endsWith("!") &&
-      !title.endsWith("?")
+    // Extract issue type
+    if (lowerText.includes("failing") || lowerText.includes("fail")) {
+      extractedTitle = "App Failure";
+    } else if (
+      lowerText.includes("not loading") ||
+      lowerText.includes("not load")
     ) {
-      const lastSpace = title.lastIndexOf(" ");
-      if (lastSpace > 30) {
-        title = title.substring(0, lastSpace);
+      extractedTitle = "Loading Issue";
+    } else if (lowerText.includes("error")) {
+      extractedTitle = "Error";
+    } else if (lowerText.includes("broken")) {
+      extractedTitle = "Broken Feature";
+    } else if (lowerText.includes("not working")) {
+      extractedTitle = "Functionality Issue";
+    } else {
+      // Extract first meaningful phrase (up to 3-4 words)
+      const words = firstLine.split(/\s+/).filter((w) => w.length > 0);
+      if (words.length >= 3) {
+        extractedTitle = words.slice(0, 4).join(" ");
+      } else {
+        extractedTitle = firstLine;
       }
     }
+
+    // Add context if available
+    if (lowerText.includes("reload") || lowerText.includes("refresh")) {
+      extractedTitle += " on Reload";
+    } else if (lowerText.includes("login") || lowerText.includes("logged")) {
+      extractedTitle += " - Authentication";
+    }
+
+    // Limit length to 50 characters (leaving room for prefix)
+    if (extractedTitle.length > 50) {
+      const lastSpace = extractedTitle.substring(0, 50).lastIndexOf(" ");
+      if (lastSpace > 20) {
+        extractedTitle = extractedTitle.substring(0, lastSpace);
+      } else {
+        extractedTitle = extractedTitle.substring(0, 47) + "...";
+      }
+    }
+
+    title = extractedTitle.trim();
   }
 
   // If still no title, generate from detected functionalities

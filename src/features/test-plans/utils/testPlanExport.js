@@ -20,7 +20,6 @@ export function exportTestPlanToMarkdown(testPlan) {
   }
 
   let markdown = `# ${testPlan.title}\n\n`;
-  markdown += `**Type:** ${testPlan.type}\n\n`;
   markdown += `---\n\n`;
 
   // Objectives
@@ -126,22 +125,6 @@ export async function exportTestPlanToDoc(testPlan) {
       text: testPlan.title,
       heading: HeadingLevel.TITLE,
       spacing: { after: 400 },
-    }),
-  );
-
-  // Type
-  children.push(
-    new Paragraph({
-      children: [
-        new TextRun({
-          text: "Type: ",
-          bold: true,
-        }),
-        new TextRun({
-          text: testPlan.type,
-        }),
-      ],
-      spacing: { after: 200 },
     }),
   );
 
@@ -605,10 +588,6 @@ export function exportTestPlanToPDF(testPlan) {
 
   // Title
   addText(testPlan.title, 18, true, [0, 0, 0]);
-  yPosition += 5;
-
-  // Type
-  addText(`Type: ${testPlan.type}`, 12, false, [100, 100, 100]);
   yPosition += 10;
 
   // Objectives

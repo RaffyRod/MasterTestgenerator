@@ -323,8 +323,8 @@ export default {
 
       loading.value = true;
       try {
-        // For now, we don't have a UI toggle for AI in test plans, but we can enable it in the future
-        const useAIForTitle = false; // Can be made configurable later
+        // Enable AI for better title generation
+        const useAIForTitle = true;
         testPlan.value = await generateTestPlan(
           projectInfo.value,
           planType,
@@ -364,6 +364,19 @@ export default {
       showPlanTypeModal.value = false;
     };
 
+    const sanitizeFilename = (title) => {
+      if (!title) return "test-plan";
+      return (
+        title
+          .replace(/[<>:"/\\|?*]/g, "") // Remove invalid filename characters
+          .replace(/\s+/g, "-") // Replace spaces with hyphens
+          .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+          .replace(/^-|-$/g, "") // Remove leading/trailing hyphens
+          .substring(0, 100) // Limit length to 100 characters
+          .trim() || "test-plan"
+      ); // Fallback if empty
+    };
+
     const exportPlan = async (format) => {
       if (!testPlan.value) {
         showNotification(t("notifications.exportError"), "error", 3000);
@@ -373,6 +386,7 @@ export default {
       showExportModal.value = false;
 
       try {
+        const baseFilename = sanitizeFilename(testPlan.value.title);
         let content;
         let filename;
         let mimeType;
@@ -380,7 +394,7 @@ export default {
         switch (format) {
           case "markdown":
             content = exportTestPlanToMarkdown(testPlan.value);
-            filename = "test-plan.md";
+            filename = `${baseFilename}.md`;
             mimeType = "text/markdown";
             downloadFile(content, filename, mimeType);
             showNotification(t("notifications.exportSuccess"), "success", 3000);
@@ -391,7 +405,7 @@ export default {
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
             link.href = url;
-            link.download = "test-plan.docx";
+            link.download = `${baseFilename}.docx`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -402,7 +416,7 @@ export default {
           case "pdf":
             const pdfDoc = exportTestPlanToPDF(testPlan.value);
             if (pdfDoc) {
-              pdfDoc.save("test-plan.pdf");
+              pdfDoc.save(`${baseFilename}.pdf`);
               showNotification(
                 t("notifications.exportSuccess"),
                 "success",
@@ -416,7 +430,7 @@ export default {
           case "json":
           default:
             content = JSON.stringify(testPlan.value, null, 2);
-            filename = "test-plan.json";
+            filename = `${baseFilename}.json`;
             mimeType = "application/json";
             downloadFile(content, filename, mimeType);
             showNotification(t("notifications.exportSuccess"), "success", 3000);
